@@ -26,7 +26,11 @@ async function initialisePlayer() {
       return;
     }
 
-    const gameUrl = `${baseUrl}games/${encodeURIComponent(game.folder)}/index.html`;
+    const encodedPath = game.path
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    const gameUrl = `${baseUrl}games/${encodedPath}`;
     document.title = `${game.title} | Student Game Arcade`;
     if (title) title.textContent = game.title;
     if (message) message.textContent = game.description || 'A game created by one of Jason’s students.';

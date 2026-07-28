@@ -17,15 +17,16 @@ function decodeHtml(value) {
     .trim();
 }
 
-function folderToTitle(folder) {
-  return folder
+function pathToTitle(path) {
+  return path
+    .replace(/\.html$/i, '')
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function getTitle(html, folder) {
+function getTitle(html, path) {
   const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  return match ? decodeHtml(match[1]) : folderToTitle(folder);
+  return match ? decodeHtml(match[1]) : pathToTitle(path);
 }
 
 function getDescription(html) {
@@ -40,13 +41,21 @@ const entries = await readdir(gamesDirectory, { withFileTypes: true });
 const games = [];
 
 for (const entry of entries) {
-  if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+  if (entry.name.startsWith('.')) continue;
 
-  const indexPath = join(gamesDirectory, entry.name, 'index.html');
+  const isStandaloneGame = entry.isFile() && entry.name.toLowerCase().endsWith('.html');
+  const isGameFolder = entry.isDirectory();
+  if (!isStandaloneGame && !isGameFolder) continue;
+
+  const gamePath = isStandaloneGame ? entry.name : `${entry.name}/index.html`;
+  const indexPath = isStandaloneGame
+    ? join(gamesDirectory, entry.name)
+    : join(gamesDirectory, entry.name, 'index.html');
   try {
     const html = await readFile(indexPath, 'utf8');
     games.push({
-      folder: entry.name,
+      folder: isStandaloneGame ? entry.name.replace(/\.html$/i, '') : entry.name,
+      path: gamePath,
       title: getTitle(html, entry.name),
       description: getDescription(html),
     });

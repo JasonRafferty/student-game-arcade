@@ -4,14 +4,21 @@ A gallery for HTML, CSS, and JavaScript games created by Jason's students.
 
 ## Add a game
 
-1. Put the complete game folder inside `public/games/`.
-2. Make sure the folder has an `index.html` at its top level.
+1. Put a standalone `.html` game or a complete game folder inside `public/games/`.
+2. For a folder-based game, make sure it has an `index.html` at its top level.
 3. Run `npm run dev`.
 
 That is all. The discovery script reads the game's `<title>` and description automatically and
 adds it to the gallery. CSS, JavaScript, images, sounds, and nested folders stay with the game.
 
-Example:
+Standalone game:
+
+```text
+public/games/
+└── space-quiz.html
+```
+
+Game with separate CSS, JavaScript, or assets:
 
 ```text
 public/games/

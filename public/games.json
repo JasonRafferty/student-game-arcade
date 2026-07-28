@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "folder": "ameerah_makeup_maths",
+    "path": "ameerah_makeup_maths.html",
+    "title": "Ameerah's Makeup Maths Studio ✨",
+    "description": ""
+  },
+  {
+    "folder": "eshaan_spag_game",
+    "path": "eshaan_spag_game.html",
+    "title": "Eshaan's SPAG Road Race",
+    "description": ""
+  },
+  {
+    "folder": "joyeetha_biology_cafe",
+    "path": "joyeetha_biology_cafe.html",
+    "title": "Joyeetha's Purrfect Cell Café ☕🐱",
+    "description": ""
+  },
+  {
+    "folder": "ricco_chemistry_game",
+    "path": "ricco_chemistry_game.html",
+    "title": "Ricco's Chem Lab Chaos!",
+    "description": ""
+  },
+  {
+    "folder": "romero_biology_penalty",
+    "path": "romero_biology_penalty.html",
+    "title": "Romero's Biology Penalty Shootout!",
+    "description": ""
+  }
+]
