@@ -110,6 +110,37 @@ body::before {
   color: #F2E7C6;
 }
 
+.music-button {
+  flex: none;
+  border: 1px solid rgba(255, 79, 163, 0.72);
+  background: rgba(255, 79, 163, 0.1);
+  box-shadow: 3px 3px 0 rgba(255, 79, 163, 0.2);
+  color: #ff87bd;
+  transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.music-button:hover {
+  background: rgba(255, 79, 163, 0.2);
+  box-shadow:
+    4px 4px 0 rgba(255, 79, 163, 0.24),
+    0 0 18px rgba(255, 79, 163, 0.14);
+  color: #fff;
+  transform: translate(-1px, -1px);
+}
+
+.music-button--muted {
+  border-color: rgba(148, 163, 184, 0.55);
+  background: rgba(148, 163, 184, 0.08);
+  box-shadow: 3px 3px 0 rgba(148, 163, 184, 0.14);
+  color: #94a3b8;
+}
+
+.music-button__icon {
+  min-width: 1rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .pixel-panel {
   position: relative;
   border: 2px solid #C2982E;
@@ -777,7 +808,8 @@ body::before {
   .arcade-button,
   .game-card,
   .share-button,
-  .share-button__icon { transition: none; }
+  .share-button__icon,
+  .music-button { transition: none; }
   .status-light,
   .pixel-sparks span,
   .arcade-cabinet,

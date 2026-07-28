@@ -19,13 +19,19 @@
         <span class="grid h-9 w-9 place-items-center border-2 border-gold bg-navy text-xl" aria-hidden="true">🕹️</span>
         <span class="nav-brand__copy inline-flex items-center gap-3">
           <span class="font-arcade text-[0.62rem] leading-relaxed text-gold sm:text-xs">Student Game<br class="sm:hidden"> Arcade</span>
-          <span class="nav-byline text-[0.55rem] font-bold uppercase tracking-[0.14em] text-arcade-pink">By Jason Rafferty</span>
+          <span class="nav-byline hidden text-[0.55rem] font-bold uppercase tracking-[0.14em] text-arcade-pink sm:inline">By Jason Rafferty</span>
         </span>
       </a>
-      <button type="button" class="share-button inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-arcade-blue focus:ring-offset-2 focus:ring-offset-arcade-screen sm:px-4" data-share-button>
-        <span class="share-button__icon" aria-hidden="true">↗</span>
-        <span data-share-label><span class="sm:hidden">Share</span><span class="hidden sm:inline">Share with friends</span></span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button type="button" class="music-button inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-arcade-pink focus:ring-offset-2 focus:ring-offset-arcade-screen" data-audio-toggle aria-pressed="true" aria-label="Mute arcade music">
+          <span class="music-button__icon" aria-hidden="true" data-audio-icon>♫</span>
+          <span class="hidden md:inline" data-audio-label>Mute music</span>
+        </button>
+        <button type="button" class="share-button inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-arcade-blue focus:ring-offset-2 focus:ring-offset-arcade-screen sm:px-4" data-share-button>
+          <span class="share-button__icon" aria-hidden="true">↗</span>
+          <span data-share-label><span class="sm:hidden">Share</span><span class="hidden sm:inline">Share with friends</span></span>
+        </button>
+      </div>
     </div>
   </header>
 

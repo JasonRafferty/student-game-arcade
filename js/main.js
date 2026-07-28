@@ -1,3 +1,5 @@
+import './audio.js';
+
 const baseUrl = import.meta.env.BASE_URL;
 
 document.querySelectorAll('.js-year').forEach((element) => {
@@ -132,6 +134,9 @@ function createGameCard(game, index) {
   link.rel = 'noopener noreferrer';
   link.textContent = 'Play game ↗';
   link.setAttribute('aria-label', `Play ${game.title}`);
+  link.addEventListener('click', () => {
+    window.dispatchEvent(new Event('arcade:game-launch'));
+  });
 
   const shareButton = document.createElement('button');
   shareButton.type = 'button';
