@@ -4,6 +4,49 @@ document.querySelectorAll('.js-year').forEach((element) => {
   element.textContent = new Date().getFullYear();
 });
 
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const input = document.createElement('textarea');
+  input.value = text;
+  input.setAttribute('readonly', '');
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  document.body.append(input);
+  input.select();
+  const copied = document.execCommand('copy');
+  input.remove();
+  if (!copied) throw new Error('Copy command failed');
+}
+
+document.querySelectorAll('[data-share-button]').forEach((button) => {
+  const label = button.querySelector('[data-share-label]');
+  let resetTimer;
+
+  button.addEventListener('click', async () => {
+    clearTimeout(resetTimer);
+
+    try {
+      const arcadeUrl = new URL(baseUrl, window.location.origin).href;
+      await copyText(arcadeUrl);
+      if (label) label.textContent = 'Link copied!';
+      button.classList.add('share-button--success');
+    } catch {
+      if (label) label.textContent = 'Copy failed';
+    }
+
+    resetTimer = window.setTimeout(() => {
+      if (label) {
+        label.innerHTML = '<span class="sm:hidden">Share</span><span class="hidden sm:inline">Share with friends</span>';
+      }
+      button.classList.remove('share-button--success');
+    }, 2200);
+  });
+});
+
 function controllerIcon() {
   const icon = document.createElement('span');
   icon.className = 'game-icon text-6xl';

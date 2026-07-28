@@ -22,13 +22,10 @@
           <span class="nav-byline text-[0.55rem] font-bold uppercase tracking-[0.14em] text-arcade-pink">By Jason Rafferty</span>
         </span>
       </a>
-      <a href="https://jasonrafferty.github.io/" aria-label="Return to tutoring home" class="tutoring-link group inline-flex items-center gap-3 px-4 py-2.5 font-body text-sm font-bold focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-arcade-screen">
-        <span class="tutoring-link__icon" aria-hidden="true">←</span>
-        <span class="tutoring-link__copy leading-none">
-          <span class="hidden text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:block">Return to</span>
-          <span class="text-gold">Tutoring Home</span>
-        </span>
-      </a>
+      <button type="button" class="share-button inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-arcade-blue focus:ring-offset-2 focus:ring-offset-arcade-screen sm:px-4" data-share-button>
+        <span class="share-button__icon" aria-hidden="true">↗</span>
+        <span data-share-label><span class="sm:hidden">Share</span><span class="hidden sm:inline">Share with friends</span></span>
+      </button>
     </div>
   </header>
 
@@ -53,9 +50,14 @@
             <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300 lg:mx-0">
               Games built by students, for students, to help them learn, create, and grow in a fun and engaging way.
             </p>
-            <a href="#games" class="arcade-button mt-9 inline-flex items-center justify-center gap-3 px-6 py-4 font-arcade text-[0.62rem] uppercase leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-navy">
-              Select a game <span class="cta-arrow" aria-hidden="true">↓</span>
-            </a>
+            <div class="mt-9 flex flex-wrap justify-center gap-4 lg:justify-start">
+              <a href="#games" class="arcade-button inline-flex items-center justify-center gap-3 px-6 py-4 font-arcade text-[0.62rem] uppercase leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-navy">
+                Select a game <span class="cta-arrow" aria-hidden="true">↓</span>
+              </a>
+              <a href="https://jasonrafferty.github.io/" class="arcade-button arcade-button--outline inline-flex items-center justify-center gap-3 px-6 py-4 font-arcade text-[0.62rem] uppercase leading-relaxed focus:outline-none focus:ring-2 focus:ring-arcade-blue focus:ring-offset-4 focus:ring-offset-navy">
+                Tutoring Home <span aria-hidden="true">↗</span>
+              </a>
+            </div>
           </div>
 
           <div class="pixel-panel arcade-cabinet mx-auto w-full max-w-[19rem] p-5" aria-hidden="true">

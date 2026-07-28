@@ -59,57 +59,55 @@ body::before {
   text-shadow: 0 0 8px rgba(255, 79, 163, 0.42);
 }
 
-.tutoring-link {
+.share-button {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(194, 152, 46, 0.7);
-  background: linear-gradient(135deg, rgba(194, 152, 46, 0.12), rgba(53, 217, 255, 0.06));
-  box-shadow:
-    3px 3px 0 rgba(194, 152, 46, 0.22),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.025);
-  transition: color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  flex: none;
+  border: 1px solid rgba(53, 217, 255, 0.65);
+  background: rgba(53, 217, 255, 0.08);
+  box-shadow: 3px 3px 0 rgba(53, 217, 255, 0.18);
+  color: #35D9FF;
+  transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.tutoring-link::before {
+.share-button::before {
   content: "";
   position: absolute;
-  top: -70%;
-  bottom: -70%;
-  left: -35%;
-  width: 20%;
+  inset: 0;
   opacity: 0;
-  background: rgba(255, 255, 255, 0.28);
-  transform: rotate(20deg);
-  transition: left 420ms ease, opacity 180ms ease;
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.18) 50%, transparent 75%);
+  transform: translateX(-100%);
 }
 
-.tutoring-link:hover {
-  border-color: #35D9FF;
+.share-button:hover {
+  background: rgba(53, 217, 255, 0.16);
   box-shadow:
-    4px 4px 0 rgba(53, 217, 255, 0.2),
-    0 0 18px rgba(53, 217, 255, 0.1);
+    4px 4px 0 rgba(53, 217, 255, 0.22),
+    0 0 18px rgba(53, 217, 255, 0.12);
+  color: #fff;
   transform: translate(-1px, -1px);
 }
 
-.tutoring-link:hover::before {
-  left: 120%;
+.share-button:hover::before {
   opacity: 1;
+  animation: button-shine 0.65s ease;
 }
 
-.tutoring-link__icon {
-  display: grid;
-  width: 1.8rem;
-  height: 1.8rem;
-  place-items: center;
-  border: 1px solid rgba(53, 217, 255, 0.6);
-  background: rgba(53, 217, 255, 0.08);
-  color: #35D9FF;
-  transition: transform 160ms ease, background-color 160ms ease;
+.share-button__icon {
+  display: inline-block;
+  font-size: 1rem;
+  transition: transform 160ms ease;
 }
 
-.tutoring-link:hover .tutoring-link__icon {
-  background: rgba(53, 217, 255, 0.18);
-  transform: translateX(-3px);
+.share-button:hover .share-button__icon {
+  transform: translate(2px, -2px);
+}
+
+.share-button--success {
+  border-color: #C2982E;
+  background: rgba(194, 152, 46, 0.14);
+  box-shadow: 3px 3px 0 rgba(194, 152, 46, 0.22);
+  color: #F2E7C6;
 }
 
 .pixel-panel {
@@ -603,15 +601,6 @@ body::before {
 }
 
 @media (max-width: 480px) {
-  .tutoring-link {
-    gap: 0;
-    padding: 0.45rem;
-  }
-
-  .tutoring-link__copy {
-    display: none;
-  }
-
   .nav-brand {
     gap: 0.55rem;
   }
@@ -631,7 +620,9 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .arcade-button,
-  .game-card { transition: none; }
+  .game-card,
+  .share-button,
+  .share-button__icon { transition: none; }
   .status-light,
   .pixel-sparks span,
   .arcade-cabinet,
