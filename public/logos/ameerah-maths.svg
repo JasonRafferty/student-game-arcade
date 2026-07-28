@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title" shape-rendering="crispEdges">
+  <title id="title">Pixel makeup compact with a multiplication symbol</title>
+  <rect width="64" height="64" rx="8" fill="#091426"/>
+  <rect x="14" y="10" width="36" height="4" fill="#ff87bd"/>
+  <rect x="10" y="14" width="44" height="24" fill="#ff4fa3"/>
+  <rect x="14" y="18" width="36" height="16" fill="#fce7f3"/>
+  <rect x="26" y="21" width="4" height="4" fill="#c2982e"/><rect x="34" y="21" width="4" height="4" fill="#c2982e"/>
+  <rect x="30" y="25" width="4" height="4" fill="#c2982e"/><rect x="26" y="29" width="4" height="4" fill="#c2982e"/>
+  <rect x="34" y="29" width="4" height="4" fill="#c2982e"/>
+  <rect x="10" y="40" width="44" height="14" fill="#b91c63"/><rect x="14" y="44" width="36" height="6" fill="#ff87bd"/>
+  <rect x="28" y="54" width="8" height="4" fill="#c2982e"/>
+  <rect x="52" y="8" width="4" height="4" fill="#ffd83d"/><rect x="56" y="12" width="4" height="4" fill="#ffd83d"/>
+  <rect x="52" y="16" width="4" height="4" fill="#ffd83d"/><rect x="48" y="12" width="4" height="4" fill="#ffd83d"/>
+</svg>

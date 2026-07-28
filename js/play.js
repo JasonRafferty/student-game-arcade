@@ -9,6 +9,26 @@ const frame = document.querySelector('[data-game-frame]');
 const directLink = document.querySelector('[data-direct-link]');
 const message = document.querySelector('[data-player-message]');
 const fullscreenButton = document.querySelector('[data-fullscreen]');
+const shareGameButton = document.querySelector('[data-game-share]');
+const shareGameLabel = document.querySelector('[data-game-share-label]');
+
+async function copyGameUrl() {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(window.location.href);
+    return;
+  }
+
+  const input = document.createElement('textarea');
+  input.value = window.location.href;
+  input.setAttribute('readonly', '');
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  document.body.append(input);
+  input.select();
+  const copied = document.execCommand('copy');
+  input.remove();
+  if (!copied) throw new Error('Copy command failed');
+}
 
 async function initialisePlayer() {
   try {
@@ -23,6 +43,7 @@ async function initialisePlayer() {
       if (frame) frame.hidden = true;
       if (directLink) directLink.hidden = true;
       if (fullscreenButton) fullscreenButton.hidden = true;
+      if (shareGameButton) shareGameButton.hidden = true;
       return;
     }
 
@@ -43,8 +64,30 @@ async function initialisePlayer() {
     if (title) title.textContent = 'Unable to load game';
     if (message) message.textContent = 'The arcade could not load the game list. Please try again.';
     if (frame) frame.hidden = true;
+    if (shareGameButton) shareGameButton.hidden = true;
     console.error(error);
   }
+}
+
+if (shareGameButton) {
+  let resetTimer;
+
+  shareGameButton.addEventListener('click', async () => {
+    window.clearTimeout(resetTimer);
+
+    try {
+      await copyGameUrl();
+      if (shareGameLabel) shareGameLabel.textContent = 'Link copied!';
+      shareGameButton.classList.add('game-share-button--success');
+    } catch {
+      if (shareGameLabel) shareGameLabel.textContent = 'Copy failed';
+    }
+
+    resetTimer = window.setTimeout(() => {
+      if (shareGameLabel) shareGameLabel.textContent = 'Share with a friend';
+      shareGameButton.classList.remove('game-share-button--success');
+    }, 2200);
+  });
 }
 
 if (fullscreenButton && frame) {

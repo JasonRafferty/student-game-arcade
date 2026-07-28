@@ -32,6 +32,18 @@ public/games/
 Use relative paths inside each game, such as `style.css` or `images/planet.png`. Avoid paths that
 start with `/`, because the published site lives under `/student-game-arcade/`.
 
+Add these metadata tags inside the game's `<head>` so its learning stage, subject, and pixel logo
+appear in the gallery:
+
+```html
+<meta name="game-stage" content="ks3">
+<meta name="game-subject" content="science">
+<meta name="game-logo" content="logos/my-game.svg">
+```
+
+Supported stages are `sats`, `ks3`, and `gcse`. Current subjects include `maths`, `english`,
+`biology`, and `science`. Logos live in `public/logos/`.
+
 Folders without an `index.html` are ignored and reported in the terminal.
 
 ## Work locally

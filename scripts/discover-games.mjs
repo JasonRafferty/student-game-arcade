@@ -30,9 +30,16 @@ function getTitle(html, path) {
 }
 
 function getDescription(html) {
+  return getMetaContent(html, 'description');
+}
+
+function getMetaContent(html, name) {
   const tags = html.match(/<meta\b[^>]*>/gi) || [];
-  const descriptionTag = tags.find((tag) => /\bname\s*=\s*["']description["']/i.test(tag));
-  const match = descriptionTag?.match(/\bcontent\s*=\s*["']([^"']*)["']/i);
+  const metaTag = tags.find((tag) => {
+    const nameMatch = tag.match(/\bname\s*=\s*["']([^"']*)["']/i);
+    return nameMatch?.[1].toLowerCase() === name.toLowerCase();
+  });
+  const match = metaTag?.match(/\bcontent\s*=\s*["']([^"']*)["']/i);
   return match ? decodeHtml(match[1]) : '';
 }
 
@@ -58,6 +65,9 @@ for (const entry of entries) {
       path: gamePath,
       title: getTitle(html, entry.name),
       description: getDescription(html),
+      stage: getMetaContent(html, 'game-stage') || 'uncategorised',
+      subject: getMetaContent(html, 'game-subject') || 'general',
+      logo: getMetaContent(html, 'game-logo'),
     });
   } catch (error) {
     if (error.code === 'ENOENT') {

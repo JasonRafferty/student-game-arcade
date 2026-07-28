@@ -411,6 +411,14 @@ body::before {
   box-shadow: 2px 2px 0 rgba(53, 217, 255, 0.25);
 }
 
+.game-share-button--success,
+.game-share-button--success:hover {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.14);
+  box-shadow: 2px 2px 0 rgba(21, 96, 52, 0.7);
+  color: #86efac;
+}
+
 .game-card {
   position: relative;
   overflow: hidden;
@@ -476,6 +484,148 @@ body::before {
 
 .game-card .game-icon {
   animation: game-icon-hover 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--card-order, 0) * -0.47s);
+}
+
+.game-logo {
+  width: 7rem;
+  height: 7rem;
+  border: 3px solid rgba(53, 217, 255, 0.72);
+  border-radius: 0.75rem;
+  box-shadow:
+    5px 5px 0 rgba(49, 91, 255, 0.4),
+    0 0 22px rgba(53, 217, 255, 0.28);
+  image-rendering: pixelated;
+  animation: game-icon-hover 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--card-order, 0) * -0.47s);
+}
+
+.game-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.game-tag {
+  display: inline-flex;
+  min-height: 1.85rem;
+  align-items: center;
+  border: 2px solid;
+  padding: 0.35rem 0.55rem;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.43rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.game-tag--stage {
+  border-color: #C2982E;
+  background: rgba(194, 152, 46, 0.18);
+  box-shadow: 3px 3px 0 rgba(112, 79, 19, 0.65);
+  color: #FFD83D;
+}
+
+.game-tag--subject-maths {
+  border-color: #FF4FA3;
+  background: rgba(255, 79, 163, 0.18);
+  box-shadow: 3px 3px 0 rgba(147, 22, 86, 0.65);
+  color: #ffb1d5;
+}
+
+.game-tag--subject-english {
+  border-color: #35D9FF;
+  background: rgba(53, 217, 255, 0.16);
+  box-shadow: 3px 3px 0 rgba(23, 103, 122, 0.65);
+  color: #8cecff;
+}
+
+.game-tag--subject-biology {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.15);
+  box-shadow: 3px 3px 0 rgba(21, 96, 52, 0.7);
+  color: #86efac;
+}
+
+.game-tag--subject-science,
+.game-tag--subject-general {
+  border-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.16);
+  box-shadow: 3px 3px 0 rgba(83, 61, 153, 0.7);
+  color: #c4b5fd;
+}
+
+.stage-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.stage-filter {
+  display: inline-flex;
+  min-width: 13rem;
+  min-height: 3.15rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 2px solid rgba(53, 217, 255, 0.55);
+  background: rgba(14, 27, 48, 0.92);
+  box-shadow: 4px 4px 0 rgba(53, 217, 255, 0.14);
+  color: #d7e3f4;
+  padding: 0.7rem 1rem;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.stage-filter small {
+  border-left: 1px solid currentColor;
+  padding-left: 0.55rem;
+  color: #94a3b8;
+  font-family: "Figtree", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.stage-filter:hover {
+  border-color: #35D9FF;
+  color: #fff;
+  transform: translate(-1px, -1px);
+}
+
+.stage-filter--active {
+  border-color: #C2982E;
+  background: #C2982E;
+  box-shadow: 4px 4px 0 #704F13;
+  color: #091426;
+}
+
+.stage-filter--active small {
+  color: #263b5a;
+}
+
+.stage-filter:focus-visible {
+  outline: 2px solid #35D9FF;
+  outline-offset: 4px;
+}
+
+.games-count {
+  width: fit-content;
+  margin: 2.5rem auto 0;
+  border: 2px solid rgba(194, 152, 46, 0.7);
+  background: rgba(14, 27, 48, 0.9);
+  box-shadow: 3px 3px 0 rgba(112, 79, 19, 0.55);
+  color: #FFD83D;
+  padding: 0.65rem 0.85rem;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.52rem;
+  line-height: 1.5;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .section-beam {
@@ -601,6 +751,11 @@ body::before {
 }
 
 @media (max-width: 480px) {
+  .stage-filter {
+    width: 100%;
+    min-width: 0;
+  }
+
   .nav-brand {
     gap: 0.55rem;
   }
@@ -634,6 +789,7 @@ body::before {
   .cta-arrow,
   .game-card__art,
   .game-card .game-icon,
+  .game-logo,
   .section-beam::after,
   .game-card--enter { animation: none; }
 }

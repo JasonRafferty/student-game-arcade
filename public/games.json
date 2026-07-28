@@ -3,30 +3,45 @@
     "folder": "ameerah_makeup_maths",
     "path": "ameerah_makeup_maths.html",
     "title": "Ameerah's Makeup Maths Studio ✨",
-    "description": ""
+    "description": "Practise times tables, fractions, percentages, decimals, algebra, and area while unlocking makeup and outfits to complete the final look.",
+    "stage": "sats",
+    "subject": "maths",
+    "logo": "logos/ameerah-maths.svg"
   },
   {
     "folder": "eshaan_spag_game",
     "path": "eshaan_spag_game.html",
     "title": "Eshaan's SPAG Road Race",
-    "description": ""
+    "description": "Race through traffic and changing weather while answering Year 6 grammar and punctuation questions to chase a new high score.",
+    "stage": "sats",
+    "subject": "english",
+    "logo": "logos/eshaan-spag.svg"
   },
   {
     "folder": "joyeetha_biology_cafe",
     "path": "joyeetha_biology_cafe.html",
     "title": "Joyeetha's Purrfect Cell Café ☕🐱",
-    "description": ""
+    "description": "Serve treats to cat customers by answering AQA Combined Biology Higher questions across five topics and earning stars in each level.",
+    "stage": "gcse",
+    "subject": "biology",
+    "logo": "logos/joyeetha-biology.svg"
   },
   {
     "folder": "ricco_chemistry_game",
     "path": "ricco_chemistry_game.html",
     "title": "Ricco's Chem Lab Chaos!",
-    "description": ""
+    "description": "Answer questions on chemistry, forces, electricity, living things, and more to build a streak and unlock the Flappy Molecule mini-game.",
+    "stage": "ks3",
+    "subject": "science",
+    "logo": "logos/ricco-science.svg"
   },
   {
     "folder": "romero_biology_penalty",
     "path": "romero_biology_penalty.html",
     "title": "Romero's Biology Penalty Shootout!",
-    "description": ""
+    "description": "Answer Year 9 biology questions to take five penalty shots before time runs out while revising cells, organ systems, the skeleton, digestion, and more.",
+    "stage": "ks3",
+    "subject": "biology",
+    "logo": "logos/romero-biology.svg"
   }
 ]

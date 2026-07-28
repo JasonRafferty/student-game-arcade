@@ -47,12 +47,45 @@ document.querySelectorAll('[data-share-button]').forEach((button) => {
   });
 });
 
-function controllerIcon() {
-  const icon = document.createElement('span');
-  icon.className = 'game-icon text-6xl';
-  icon.setAttribute('aria-hidden', 'true');
-  icon.textContent = '🎮';
-  return icon;
+const stageLabels = {
+  sats: 'SATs · Year 6',
+  ks3: 'KS3 · Years 7–9',
+  gcse: 'GCSE · Years 10–11',
+  uncategorised: 'Stage TBC',
+};
+
+const subjectLabels = {
+  maths: 'Maths',
+  english: 'English',
+  biology: 'Biology',
+  science: 'Science',
+  general: 'General',
+};
+
+function gameLogo(game) {
+  if (!game.logo) {
+    const fallback = document.createElement('span');
+    fallback.className = 'game-icon text-6xl';
+    fallback.setAttribute('aria-hidden', 'true');
+    fallback.textContent = '🎮';
+    return fallback;
+  }
+
+  const logo = document.createElement('img');
+  logo.className = 'game-logo';
+  logo.src = `${baseUrl}${game.logo}`;
+  logo.alt = '';
+  logo.setAttribute('aria-hidden', 'true');
+  logo.width = 112;
+  logo.height = 112;
+  return logo;
+}
+
+function createTag(text, modifier) {
+  const tag = document.createElement('span');
+  tag.className = `game-tag game-tag--${modifier}`;
+  tag.textContent = text;
+  return tag;
 }
 
 function createGameCard(game, index) {
@@ -62,13 +95,23 @@ function createGameCard(game, index) {
 
   const art = document.createElement('div');
   art.className = 'game-card__art';
-  art.append(controllerIcon());
+  art.append(gameLogo(game));
 
   const content = document.createElement('div');
   content.className = 'flex flex-1 flex-col p-6';
 
+  const tags = document.createElement('div');
+  tags.className = 'game-tags';
+  tags.append(
+    createTag(stageLabels[game.stage] || stageLabels.uncategorised, 'stage'),
+    createTag(
+      subjectLabels[game.subject] || game.subject || subjectLabels.general,
+      `subject-${game.subject || 'general'}`,
+    ),
+  );
+
   const title = document.createElement('h3');
-  title.className = 'font-arcade text-xs leading-relaxed text-gold mb-3';
+  title.className = 'font-arcade text-xs leading-relaxed text-gold mb-3 mt-4';
   title.textContent = game.title;
 
   const description = document.createElement('p');
@@ -81,14 +124,15 @@ function createGameCard(game, index) {
   link.textContent = 'Play game →';
   link.setAttribute('aria-label', `Play ${game.title}`);
 
-  content.append(title, description, link);
+  content.append(tags, title, description, link);
   article.append(art, content);
   return article;
 }
 
 async function loadGames() {
   const grid = document.querySelector('[data-games-grid]');
-  const status = document.querySelector('[data-games-status]');
+  const gameCount = document.querySelector('[data-games-count]');
+  const filterButtons = [...document.querySelectorAll('[data-stage-filter]')];
   if (!grid) return;
 
   try {
@@ -96,8 +140,8 @@ async function loadGames() {
     if (!response.ok) throw new Error(`Game list returned ${response.status}`);
     const games = await response.json();
 
-    grid.replaceChildren();
     if (games.length === 0) {
+      grid.replaceChildren();
       const empty = document.createElement('div');
       empty.className = 'empty-state col-span-full px-6 py-12 text-center';
       empty.innerHTML = `
@@ -106,19 +150,53 @@ async function loadGames() {
         <p class="font-body text-slate-300">Drop a game folder containing an <code class="text-arcade-blue">index.html</code> file into <code class="text-arcade-blue">public/games/</code>, then run the site.</p>
       `;
       grid.append(empty);
-      if (status) status.textContent = 'No games have been added yet.';
+      if (gameCount) gameCount.textContent = '0 games available';
       return;
     }
 
-    games.forEach((game, index) => grid.append(createGameCard(game, index)));
-    if (status) status.textContent = `${games.length} ${games.length === 1 ? 'game' : 'games'} available.`;
+    const renderGames = (stage = 'all') => {
+      const visibleGames = stage === 'all'
+        ? games
+        : games.filter((game) => game.stage === stage);
+
+      grid.replaceChildren();
+      if (visibleGames.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state col-span-full px-6 py-12 text-center';
+        empty.innerHTML = `
+          <div class="game-icon text-5xl mb-5" aria-hidden="true">🕹️</div>
+          <h3 class="font-arcade text-sm leading-relaxed text-gold mb-4">More Games Coming Soon</h3>
+          <p class="font-body text-slate-300">There are no games in this learning stage yet.</p>
+        `;
+        grid.append(empty);
+      } else {
+        visibleGames.forEach((game, index) => grid.append(createGameCard(game, index)));
+      }
+
+      if (gameCount) {
+        gameCount.textContent = `${visibleGames.length} ${visibleGames.length === 1 ? 'game' : 'games'} available`;
+      }
+    };
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach((item) => {
+          const selected = item === button;
+          item.classList.toggle('stage-filter--active', selected);
+          item.setAttribute('aria-pressed', String(selected));
+        });
+        renderGames(button.dataset.stageFilter);
+      });
+    });
+
+    renderGames();
   } catch (error) {
     grid.replaceChildren();
     const message = document.createElement('p');
     message.className = 'col-span-full border-2 border-arcade-pink bg-arcade-pink/10 p-5 font-body text-pink-100';
     message.textContent = 'The game list could not be loaded. Run npm run discover and refresh the page.';
     grid.append(message);
-    if (status) status.textContent = 'The game list could not be loaded.';
+    if (gameCount) gameCount.textContent = 'Game count unavailable';
     console.error(error);
   }
 }

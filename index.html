@@ -94,10 +94,24 @@
           <h2 class="font-arcade text-lg leading-relaxed text-gold sm:text-2xl">Choose Your Game</h2>
           <span class="section-beam section-beam--right hidden h-px flex-1 sm:block"></span>
         </div>
-        <p class="mb-10 text-center text-sm text-slate-400" data-games-status aria-live="polite">Loading games…</p>
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3" data-games-grid>
+        <div class="stage-filters mb-5" role="group" aria-label="Filter games by learning stage">
+          <button class="stage-filter stage-filter--active" type="button" data-stage-filter="all" aria-pressed="true">
+            <span>All Games</span>
+          </button>
+          <button class="stage-filter" type="button" data-stage-filter="sats" aria-pressed="false">
+            <span>SATs</span><small>Year 6</small>
+          </button>
+          <button class="stage-filter" type="button" data-stage-filter="ks3" aria-pressed="false">
+            <span>KS3</span><small>Years 7–9</small>
+          </button>
+          <button class="stage-filter" type="button" data-stage-filter="gcse" aria-pressed="false">
+            <span>GCSE</span><small>Years 10–11</small>
+          </button>
+        </div>
+        <div class="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3" data-games-grid>
           <p class="col-span-full text-center text-slate-400">Loading games…</p>
         </div>
+        <p class="games-count" data-games-count aria-live="polite">Loading game count…</p>
       </div>
     </section>
 

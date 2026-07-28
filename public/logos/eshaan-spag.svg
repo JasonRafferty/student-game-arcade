@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title" shape-rendering="crispEdges">
+  <title id="title">Pixel racing car with a pencil</title>
+  <rect width="64" height="64" rx="8" fill="#091426"/>
+  <rect x="4" y="43" width="56" height="4" fill="#315bff"/>
+  <rect x="8" y="35" width="40" height="8" fill="#ff4fa3"/><rect x="16" y="27" width="24" height="8" fill="#e11d48"/>
+  <rect x="22" y="23" width="14" height="4" fill="#35d9ff"/>
+  <rect x="12" y="43" width="8" height="8" fill="#050a16"/><rect x="40" y="43" width="8" height="8" fill="#050a16"/>
+  <rect x="14" y="45" width="4" height="4" fill="#cbd5e1"/><rect x="42" y="45" width="4" height="4" fill="#cbd5e1"/>
+  <rect x="40" y="11" width="4" height="20" fill="#ffd83d"/><rect x="44" y="15" width="4" height="16" fill="#f2e7c6"/>
+  <rect x="48" y="19" width="4" height="12" fill="#ff4fa3"/><rect x="40" y="7" width="4" height="4" fill="#f2e7c6"/>
+  <rect x="44" y="11" width="4" height="4" fill="#f2e7c6"/><rect x="48" y="15" width="4" height="4" fill="#f2e7c6"/>
+</svg>
