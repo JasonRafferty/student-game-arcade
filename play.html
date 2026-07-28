@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Play a student-created game in the Student Game Arcade.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <title>Play | Student Game Arcade</title>
+</head>
+<body class="bg-paper font-body text-ink">
+  <a class="skip-link" href="#main">Skip to game</a>
+
+  <nav class="nav sticky top-0 z-50 bg-white shadow-sm" aria-label="Arcade navigation">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <a href="./" class="inline-flex items-center gap-2 font-display font-bold text-navy text-lg leading-tight">
+          <span aria-hidden="true">🎮</span> Student Game Arcade
+        </a>
+        <div class="flex items-center gap-3">
+          <a href="./" class="rounded px-3 py-2 font-body font-semibold text-gold hover:text-gold-deep focus:outline-none focus:ring-2 focus:ring-gold">← All games</a>
+          <a href="https://jasonrafferty.github.io/" class="hidden rounded px-3 py-2 font-body font-medium text-ink hover:text-gold focus:outline-none focus:ring-2 focus:ring-gold sm:inline-flex">Tutoring site</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="bg-navy py-10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <p class="font-body font-semibold uppercase tracking-widest text-gold text-xs mb-2">Now playing</p>
+        <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 class="font-display font-bold text-white text-3xl sm:text-4xl" data-game-title>Loading game…</h1>
+            <p class="font-body text-gray-300 mt-2" data-player-message aria-live="polite">Preparing the game.</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button type="button" class="rounded-lg border-2 border-gold px-5 py-2.5 font-body font-bold text-gold hover:bg-gold hover:text-navy focus:outline-none focus:ring-2 focus:ring-gold" data-fullscreen>Full screen</button>
+            <a class="rounded-lg bg-gold px-5 py-2.5 font-body font-bold text-navy hover:bg-gold-deep focus:outline-none focus:ring-2 focus:ring-gold" href="#" target="_blank" rel="noopener noreferrer" data-direct-link>Open separately ↗</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-6 lg:py-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+          <iframe class="game-frame" data-game-frame title="Student game" allow="fullscreen; autoplay"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/play.js"></script>
+</body>
+</html>

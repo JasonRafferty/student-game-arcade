@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Play HTML, CSS and JavaScript games created by Jason Rafferty's students.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <title>Student Game Arcade | Jason Rafferty Tutoring</title>
+</head>
+<body class="bg-paper font-body text-ink">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="nav sticky top-0 z-50 bg-white shadow-sm" aria-label="Main navigation">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <a href="./" class="lg:hidden inline-flex items-center gap-2 font-display font-bold text-navy text-lg leading-tight">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#C2982E" aria-hidden="true"><path d="M12 3 2 8.5l10 5.5 10-5.5L12 3z"/><path d="M7 11.3V17c0 1.1 2.2 2 5 2s5-.9 5-2v-5.7L12 14l-5-2.7z"/><path d="M20 8.5v5" stroke="#C2982E" stroke-width="2" stroke-linecap="round"/></svg>
+          Student Game Arcade
+        </a>
+
+        <div class="nav__links" role="list">
+          <a href="https://jasonrafferty.github.io/" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">Home</a>
+          <a href="https://jasonrafferty.github.io/about.html" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">About</a>
+          <a href="https://jasonrafferty.github.io/subjects.html" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">Subjects</a>
+          <a href="https://jasonrafferty.github.io/pricing.html" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">Pricing</a>
+          <a href="https://jasonrafferty.github.io/availability.html" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">Availability</a>
+          <a href="https://jasonrafferty.github.io/resources.html" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">Resources</a>
+          <a href="https://jasonrafferty.github.io/faq.html" class="font-body font-medium text-ink hover:text-gold transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">FAQ</a>
+          <a href="./" aria-current="page" class="font-body font-semibold text-gold hover:text-gold-deep transition-colors rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-gold" role="listitem">Student Games</a>
+          <a href="#" class="nav__cta js-whatsapp inline-flex items-center bg-whatsapp hover:bg-green-700 text-white font-semibold text-sm px-3 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-whatsapp focus:ring-offset-2 ml-1" data-wa-message="Hi Jason, I'd like to ask about tutoring." role="listitem">WhatsApp</a>
+        </div>
+
+        <button class="nav__toggle p-2 text-ink hover:text-gold transition-colors rounded focus:outline-none focus:ring-2 focus:ring-gold" aria-expanded="false" aria-label="Open navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="relative overflow-hidden bg-navy py-16 lg:py-24">
+      <div class="hero-orb hero-orb--1"></div>
+      <div class="hero-orb hero-orb--2"></div>
+      <div class="relative max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
+          <div class="text-center lg:text-left">
+            <p class="font-body font-semibold text-gold text-sm uppercase tracking-widest mb-5">Created by students · Powered by curiosity</p>
+            <h1 class="font-display font-bold text-white text-4xl sm:text-5xl lg:text-6xl leading-tight mb-5">Student Game Arcade</h1>
+            <p class="font-body text-gray-300 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">Explore games built with HTML, CSS and JavaScript by students learning to turn their ideas into something playable.</p>
+            <a href="#games" class="inline-flex items-center justify-center rounded-lg bg-gold px-8 py-4 font-body font-bold text-navy transition-colors hover:bg-gold-deep focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-navy">Explore the games ↓</a>
+          </div>
+          <div class="mx-auto grid h-48 w-48 place-items-center rounded-full border-4 border-gold bg-navy-panel text-8xl shadow-2xl sm:h-60 sm:w-60" aria-hidden="true">🎮</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="games" class="bg-paper py-16 lg:py-24">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="border-l-4 border-gold pl-4 mb-4">
+          <h2 class="font-display font-bold text-ink text-3xl sm:text-4xl">Choose a game</h2>
+        </div>
+        <p class="font-body text-gray-600 mb-10" data-games-status aria-live="polite">Loading games…</p>
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3" data-games-grid>
+          <p class="col-span-full font-body text-gray-600">Loading games…</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white py-16 lg:py-20">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="border-l-4 border-gold pl-4 mb-8">
+          <h2 class="font-display font-bold text-ink text-3xl sm:text-4xl">Learning through building</h2>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-3">
+          <article class="rounded-xl bg-paper p-6"><div class="text-3xl mb-3" aria-hidden="true">💡</div><h3 class="font-display font-bold text-lg mb-2">Imagine</h3><p class="text-sm leading-relaxed text-gray-600">Students begin with their own idea, rules and visual style.</p></article>
+          <article class="rounded-xl bg-paper p-6"><div class="text-3xl mb-3" aria-hidden="true">⌨️</div><h3 class="font-display font-bold text-lg mb-2">Build</h3><p class="text-sm leading-relaxed text-gray-600">They use code to make their designs interactive and playable.</p></article>
+          <article class="rounded-xl bg-paper p-6"><div class="text-3xl mb-3" aria-hidden="true">🚀</div><h3 class="font-display font-bold text-lg mb-2">Share</h3><p class="text-sm leading-relaxed text-gray-600">Finished projects are celebrated here in the student arcade.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-navy-panel py-8 text-center">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <p class="font-display font-bold text-white text-lg mb-2">Jason Rafferty Tutoring</p>
+      <p class="font-body text-sm text-gray-400">&copy; <span class="js-year"></span> Jason Rafferty. Student Game Arcade.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
