@@ -53,6 +53,12 @@ body::before {
   backdrop-filter: blur(12px);
 }
 
+.nav-byline {
+  border-left: 1px solid rgba(255, 79, 163, 0.5);
+  padding-left: 0.75rem;
+  text-shadow: 0 0 8px rgba(255, 79, 163, 0.42);
+}
+
 .tutoring-link {
   position: relative;
   overflow: hidden;
@@ -521,28 +527,6 @@ body::before {
   animation: status-pulse 1.6s ease-in-out infinite;
 }
 
-.journey-card {
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-}
-
-.journey-card:hover {
-  z-index: 1;
-  transform: translateY(-6px);
-  border-color: #35D9FF;
-  box-shadow:
-    6px 10px 0 rgba(53, 217, 255, 0.14),
-    0 0 28px rgba(53, 217, 255, 0.12);
-}
-
-.journey-card > [aria-hidden="true"] {
-  display: inline-block;
-  transform-origin: bottom center;
-}
-
-.journey-card:hover > [aria-hidden="true"] {
-  animation: icon-bounce 0.55s ease;
-}
-
 @keyframes status-pulse {
   50% { opacity: 0.4; }
 }
@@ -585,11 +569,6 @@ body::before {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes icon-bounce {
-  35% { transform: translateY(-8px) rotate(-5deg); }
-  65% { transform: translateY(-3px) rotate(4deg); }
-}
-
 @keyframes title-power-up {
   0%, 100% {
     text-shadow: 3px 3px 0 #16233B, 0 0 14px rgba(194, 152, 46, 0.3);
@@ -623,11 +602,36 @@ body::before {
   to { transform: translateX(300%); }
 }
 
+@media (max-width: 480px) {
+  .tutoring-link {
+    gap: 0;
+    padding: 0.45rem;
+  }
+
+  .tutoring-link__copy {
+    display: none;
+  }
+
+  .nav-brand {
+    gap: 0.55rem;
+  }
+
+  .nav-brand__copy {
+    gap: 0.55rem;
+  }
+
+  .nav-byline {
+    max-width: 4.4rem;
+    padding-left: 0.5rem;
+    font-size: 0.48rem;
+    line-height: 1.45;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .arcade-button,
-  .game-card,
-  .journey-card { transition: none; }
+  .game-card { transition: none; }
   .status-light,
   .pixel-sparks span,
   .arcade-cabinet,
@@ -640,6 +644,5 @@ body::before {
   .game-card__art,
   .game-card .game-icon,
   .section-beam::after,
-  .game-card--enter,
-  .journey-card:hover > [aria-hidden="true"] { animation: none; }
+  .game-card--enter { animation: none; }
 }

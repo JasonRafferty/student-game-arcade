@@ -15,13 +15,16 @@
 
   <header class="arcade-nav sticky top-0 z-50">
     <div class="max-w-6xl mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
-      <a href="./" class="inline-flex items-center gap-3 rounded text-white focus:outline-none focus:ring-2 focus:ring-gold">
+      <a href="./" class="nav-brand inline-flex items-center gap-3 rounded text-white focus:outline-none focus:ring-2 focus:ring-gold">
         <span class="grid h-9 w-9 place-items-center border-2 border-gold bg-navy text-xl" aria-hidden="true">🕹️</span>
-        <span class="font-arcade text-[0.62rem] leading-relaxed text-gold sm:text-xs">Student Game<br class="sm:hidden"> Arcade</span>
+        <span class="nav-brand__copy inline-flex items-center gap-3">
+          <span class="font-arcade text-[0.62rem] leading-relaxed text-gold sm:text-xs">Student Game<br class="sm:hidden"> Arcade</span>
+          <span class="nav-byline text-[0.55rem] font-bold uppercase tracking-[0.14em] text-arcade-pink">By Jason Rafferty</span>
+        </span>
       </a>
-      <a href="https://jasonrafferty.github.io/" class="tutoring-link group inline-flex items-center gap-3 px-4 py-2.5 font-body text-sm font-bold focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-arcade-screen">
+      <a href="https://jasonrafferty.github.io/" aria-label="Return to tutoring home" class="tutoring-link group inline-flex items-center gap-3 px-4 py-2.5 font-body text-sm font-bold focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-arcade-screen">
         <span class="tutoring-link__icon" aria-hidden="true">←</span>
-        <span class="leading-none">
+        <span class="tutoring-link__copy leading-none">
           <span class="hidden text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:block">Return to</span>
           <span class="text-gold">Tutoring Home</span>
         </span>
@@ -48,7 +51,7 @@
               By Jason Rafferty
             </p>
             <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300 lg:mx-0">
-              Games built by students, for students—helping them learn, create, and grow in a fun and engaging way.
+              Games built by students, for students, to help them learn, create, and grow in a fun and engaging way.
             </p>
             <a href="#games" class="arcade-button mt-9 inline-flex items-center justify-center gap-3 px-6 py-4 font-arcade text-[0.62rem] uppercase leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-navy">
               Select a game <span class="cta-arrow" aria-hidden="true">↓</span>
@@ -96,34 +99,6 @@
       </div>
     </section>
 
-    <section class="border-y border-arcade-blue/15 bg-navy/55 py-16 lg:py-20">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="mb-10 text-center">
-          <p class="font-arcade text-[0.55rem] uppercase tracking-wider text-arcade-pink">Player journey</p>
-          <h2 class="mt-4 font-arcade text-xl leading-relaxed text-white sm:text-2xl">From Idea to Arcade</h2>
-        </div>
-        <div class="grid gap-5 sm:grid-cols-3">
-          <article class="pixel-panel journey-card p-6">
-            <p class="font-arcade text-[0.6rem] text-arcade-blue">LEVEL 01</p>
-            <div class="my-4 text-4xl" aria-hidden="true">💡</div>
-            <h3 class="font-arcade text-xs text-gold">Imagine</h3>
-            <p class="mt-3 text-sm leading-relaxed text-slate-300">Start with an idea, some rules and a visual style.</p>
-          </article>
-          <article class="pixel-panel journey-card p-6">
-            <p class="font-arcade text-[0.6rem] text-arcade-blue">LEVEL 02</p>
-            <div class="my-4 text-4xl" aria-hidden="true">⌨️</div>
-            <h3 class="font-arcade text-xs text-gold">Build</h3>
-            <p class="mt-3 text-sm leading-relaxed text-slate-300">Use code to make the design interactive and playable.</p>
-          </article>
-          <article class="pixel-panel journey-card p-6">
-            <p class="font-arcade text-[0.6rem] text-arcade-blue">LEVEL 03</p>
-            <div class="my-4 text-4xl" aria-hidden="true">🚀</div>
-            <h3 class="font-arcade text-xs text-gold">Share</h3>
-            <p class="mt-3 text-sm leading-relaxed text-slate-300">Publish the finished project here for others to enjoy.</p>
-          </article>
-        </div>
-      </div>
-    </section>
   </main>
 
   <footer class="bg-[#060d19] py-9">
