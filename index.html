@@ -19,14 +19,22 @@
         <span class="grid h-9 w-9 place-items-center border-2 border-gold bg-navy text-xl" aria-hidden="true">🕹️</span>
         <span class="font-arcade text-[0.62rem] leading-relaxed text-gold sm:text-xs">Student Game<br class="sm:hidden"> Arcade</span>
       </a>
-      <a href="https://jasonrafferty.github.io/" class="inline-flex items-center gap-2 rounded border border-arcade-blue/60 px-3 py-2 font-body text-sm font-semibold text-arcade-blue transition-colors hover:bg-arcade-blue/10 focus:outline-none focus:ring-2 focus:ring-arcade-blue">
-        <span aria-hidden="true">←</span> Back to Tutoring
+      <a href="https://jasonrafferty.github.io/" class="tutoring-link group inline-flex items-center gap-3 px-4 py-2.5 font-body text-sm font-bold focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-arcade-screen">
+        <span class="tutoring-link__icon" aria-hidden="true">←</span>
+        <span class="leading-none">
+          <span class="hidden text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:block">Return to</span>
+          <span class="text-gold">Tutoring Home</span>
+        </span>
       </a>
     </div>
   </header>
 
   <main id="main">
     <section class="arcade-hero py-16 sm:py-20 lg:py-28">
+      <div class="pixel-sparks" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
       <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
         <div class="grid items-center gap-10 lg:grid-cols-[1fr_19rem]">
           <div class="text-center lg:text-left">
@@ -36,20 +44,34 @@
             <h1 class="arcade-title font-arcade text-3xl leading-relaxed text-gold sm:text-4xl lg:text-5xl">
               Student<br>Game Arcade
             </h1>
-            <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-300 lg:mx-0">
-              Original games built with HTML, CSS and JavaScript by students learning to turn ideas into playable experiences.
+            <p class="hero-byline mx-auto mt-4 w-fit font-arcade text-[0.55rem] uppercase leading-relaxed tracking-wider text-arcade-pink lg:mx-0 sm:text-[0.62rem]">
+              By Jason Rafferty
             </p>
-            <a href="#games" class="arcade-button mt-9 inline-flex items-center justify-center px-6 py-4 font-arcade text-[0.62rem] uppercase leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-navy">
-              Select a game ↓
+            <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300 lg:mx-0">
+              Games built by students, for students—helping them learn, create, and grow in a fun and engaging way.
+            </p>
+            <a href="#games" class="arcade-button mt-9 inline-flex items-center justify-center gap-3 px-6 py-4 font-arcade text-[0.62rem] uppercase leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-navy">
+              Select a game <span class="cta-arrow" aria-hidden="true">↓</span>
             </a>
           </div>
 
-          <div class="pixel-panel mx-auto w-full max-w-[19rem] p-5" aria-hidden="true">
-            <div class="grid aspect-square place-items-center border-2 border-arcade-blue/40 bg-arcade-screen">
-              <div class="text-center">
-                <div class="game-icon text-8xl">🎮</div>
-                <p class="mt-6 font-arcade text-[0.55rem] leading-relaxed text-arcade-pink">PRESS START</p>
+          <div class="pixel-panel arcade-cabinet mx-auto w-full max-w-[19rem] p-5" aria-hidden="true">
+            <div class="arcade-screen-demo aspect-square border-2 border-arcade-blue/40 bg-arcade-screen">
+              <div class="screen-score">
+                <span>1UP</span>
+                <span>00240</span>
               </div>
+              <div class="maze maze--top"></div>
+              <div class="maze maze--middle"></div>
+              <div class="maze maze--bottom"></div>
+              <div class="pellet-lane pellet-lane--one"></div>
+              <div class="pellet-lane pellet-lane--two"></div>
+              <div class="chase-track">
+                <span class="pac-character"></span>
+                <span class="ghost ghost--pink"><i></i><i></i></span>
+                <span class="ghost ghost--blue"><i></i><i></i></span>
+              </div>
+              <p class="screen-ready font-arcade">READY!</p>
             </div>
             <div class="mt-4 flex items-center justify-between">
               <div class="flex items-center gap-2"><span class="status-light"></span><span class="font-arcade text-[0.42rem] text-slate-400">ONLINE</span></div>
@@ -63,9 +85,9 @@
     <section id="games" class="py-16 lg:py-24">
       <div class="max-w-6xl mx-auto px-4 sm:px-6">
         <div class="mb-4 flex items-center gap-4">
-          <span class="hidden h-px flex-1 bg-gradient-to-r from-transparent to-gold/60 sm:block"></span>
+          <span class="section-beam section-beam--left hidden h-px flex-1 sm:block"></span>
           <h2 class="font-arcade text-lg leading-relaxed text-gold sm:text-2xl">Choose Your Game</h2>
-          <span class="hidden h-px flex-1 bg-gradient-to-l from-transparent to-gold/60 sm:block"></span>
+          <span class="section-beam section-beam--right hidden h-px flex-1 sm:block"></span>
         </div>
         <p class="mb-10 text-center text-sm text-slate-400" data-games-status aria-live="polite">Loading games…</p>
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3" data-games-grid>
@@ -81,19 +103,19 @@
           <h2 class="mt-4 font-arcade text-xl leading-relaxed text-white sm:text-2xl">From Idea to Arcade</h2>
         </div>
         <div class="grid gap-5 sm:grid-cols-3">
-          <article class="pixel-panel p-6">
+          <article class="pixel-panel journey-card p-6">
             <p class="font-arcade text-[0.6rem] text-arcade-blue">LEVEL 01</p>
             <div class="my-4 text-4xl" aria-hidden="true">💡</div>
             <h3 class="font-arcade text-xs text-gold">Imagine</h3>
             <p class="mt-3 text-sm leading-relaxed text-slate-300">Start with an idea, some rules and a visual style.</p>
           </article>
-          <article class="pixel-panel p-6">
+          <article class="pixel-panel journey-card p-6">
             <p class="font-arcade text-[0.6rem] text-arcade-blue">LEVEL 02</p>
             <div class="my-4 text-4xl" aria-hidden="true">⌨️</div>
             <h3 class="font-arcade text-xs text-gold">Build</h3>
             <p class="mt-3 text-sm leading-relaxed text-slate-300">Use code to make the design interactive and playable.</p>
           </article>
-          <article class="pixel-panel p-6">
+          <article class="pixel-panel journey-card p-6">
             <p class="font-arcade text-[0.6rem] text-arcade-blue">LEVEL 03</p>
             <div class="my-4 text-4xl" aria-hidden="true">🚀</div>
             <h3 class="font-arcade text-xs text-gold">Share</h3>

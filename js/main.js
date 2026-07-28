@@ -12,9 +12,10 @@ function controllerIcon() {
   return icon;
 }
 
-function createGameCard(game) {
+function createGameCard(game, index) {
   const article = document.createElement('article');
-  article.className = 'game-card flex flex-col';
+  article.className = 'game-card game-card--enter flex flex-col';
+  article.style.setProperty('--card-order', index);
 
   const art = document.createElement('div');
   art.className = 'game-card__art';
@@ -66,7 +67,7 @@ async function loadGames() {
       return;
     }
 
-    games.forEach((game) => grid.append(createGameCard(game)));
+    games.forEach((game, index) => grid.append(createGameCard(game, index)));
     if (status) status.textContent = `${games.length} ${games.length === 1 ? 'game' : 'games'} available.`;
   } catch (error) {
     grid.replaceChildren();
