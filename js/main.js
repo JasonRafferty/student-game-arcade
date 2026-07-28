@@ -118,13 +118,66 @@ function createGameCard(game, index) {
   description.className = 'font-body text-sm leading-relaxed text-slate-300 mb-6 flex-1';
   description.textContent = game.description || 'A game created by one of Jason’s students.';
 
+  const actions = document.createElement('div');
+  actions.className = 'flex flex-col gap-3';
+
   const link = document.createElement('a');
-  link.className = 'arcade-button inline-flex items-center justify-center px-5 py-3 font-arcade text-[0.55rem] leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-arcade-screen';
-  link.href = `${baseUrl}play.html?game=${encodeURIComponent(game.folder)}`;
-  link.textContent = 'Play game →';
+  link.className = 'arcade-button inline-flex h-11 items-center justify-center px-4 font-arcade text-[0.52rem] leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4 focus:ring-offset-arcade-screen';
+  const encodedPath = game.path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  link.href = `${baseUrl}games/${encodedPath}`;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = 'Play game ↗';
   link.setAttribute('aria-label', `Play ${game.title}`);
 
-  content.append(tags, title, description, link);
+  const shareButton = document.createElement('button');
+  shareButton.type = 'button';
+  shareButton.className = 'arcade-button arcade-button--outline inline-flex h-11 items-center justify-center gap-2 px-4 font-arcade text-[0.52rem] leading-relaxed focus:outline-none focus:ring-2 focus:ring-arcade-blue focus:ring-offset-4 focus:ring-offset-arcade-screen';
+  shareButton.setAttribute('aria-label', `Share ${game.title} with friends`);
+
+  const shareIcon = document.createElement('span');
+  shareIcon.setAttribute('aria-hidden', 'true');
+  shareIcon.textContent = '↗';
+
+  const shareLabel = document.createElement('span');
+  shareLabel.textContent = 'Share with friends';
+  shareLabel.setAttribute('aria-live', 'polite');
+  shareButton.append(shareIcon, shareLabel);
+
+  let shareResetTimer;
+  shareButton.addEventListener('click', async () => {
+    window.clearTimeout(shareResetTimer);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: game.title,
+          text: `Play ${game.title} in the Student Game Arcade.`,
+          url: link.href,
+        });
+      } else {
+        await copyText(link.href);
+        shareLabel.textContent = 'Link copied!';
+        shareButton.classList.add('game-share-button--success');
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      shareLabel.textContent = 'Copy failed';
+    }
+
+    if (shareLabel.textContent !== 'Share with friends') {
+      shareResetTimer = window.setTimeout(() => {
+        shareLabel.textContent = 'Share with friends';
+        shareButton.classList.remove('game-share-button--success');
+      }, 2200);
+    }
+  });
+
+  actions.append(shareButton, link);
+  content.append(tags, title, description, actions);
   article.append(art, content);
   return article;
 }

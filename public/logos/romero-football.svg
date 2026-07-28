@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title" shape-rendering="crispEdges">
+  <title id="title">Romero's pixel football</title>
+  <style>
+    .frame-a { animation: frame-a 1.2s step-end infinite; }
+    .frame-b { opacity: 0; animation: frame-b 1.2s step-end infinite; }
+    @keyframes frame-a { 50%, 100% { opacity: 0; } }
+    @keyframes frame-b { 50%, 100% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .frame-a, .frame-b { animation: none; } }
+  </style>
+  <rect width="64" height="64" rx="8" fill="#091426"/>
+
+  <!-- Ball -->
+  <rect x="20" y="8" width="24" height="4" fill="#f8fafc"/>
+  <rect x="12" y="12" width="40" height="8" fill="#f8fafc"/>
+  <rect x="8" y="20" width="48" height="24" fill="#f8fafc"/>
+  <rect x="12" y="44" width="40" height="8" fill="#f8fafc"/>
+  <rect x="20" y="52" width="24" height="4" fill="#f8fafc"/>
+
+  <!-- Black panels -->
+  <rect x="28" y="24" width="8" height="4" fill="#10213b"/>
+  <rect x="24" y="28" width="16" height="8" fill="#10213b"/>
+  <rect x="28" y="36" width="8" height="4" fill="#10213b"/>
+  <rect x="8" y="24" width="8" height="12" fill="#10213b"/>
+  <rect x="12" y="16" width="8" height="8" fill="#10213b"/>
+  <rect x="44" y="16" width="8" height="8" fill="#10213b"/>
+  <rect x="48" y="28" width="8" height="12" fill="#10213b"/>
+  <rect x="16" y="44" width="12" height="8" fill="#10213b"/>
+  <rect x="40" y="44" width="8" height="8" fill="#10213b"/>
+
+  <!-- Panel seams -->
+  <rect x="20" y="24" width="8" height="4" fill="#b8c2d0"/>
+  <rect x="36" y="24" width="8" height="4" fill="#b8c2d0"/>
+  <rect x="20" y="36" width="8" height="4" fill="#b8c2d0"/>
+  <rect x="36" y="36" width="8" height="4" fill="#b8c2d0"/>
+  <g class="frame-a">
+    <rect x="4" y="20" width="4" height="8" fill="#35d9ff"/><rect x="0" y="32" width="8" height="4" fill="#35d9ff"/>
+  </g>
+  <g class="frame-b">
+    <rect x="56" y="36" width="4" height="8" fill="#35d9ff"/><rect x="56" y="28" width="8" height="4" fill="#35d9ff"/>
+  </g>
+</svg>
