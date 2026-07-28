@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Eshaan's SPAG Road Race</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100vw; height: 100vh; padding: 8px; overflow: hidden; font-family: 'Arial', sans-serif; }
+  h1 { flex: none; color: #00d4ff; font-size: clamp(1.35rem, 3vh, 2rem); line-height: 1.1; margin-bottom: 6px; text-shadow: 0 0 15px #00d4ff; }
+  #gameShell { height: calc(100vh - 55px); display: flex; align-items: flex-start; justify-content: center; gap: 16px; width: min(1136px, 100%); min-height: 0; }
+  #playArea { height: 100%; display: flex; flex-direction: column; align-items: center; min-width: 0; min-height: 0; }
+  #hud { width: 220px; flex: 0 0 220px; display: flex; flex-direction: column; gap: 9px; color: #fff; font-size: 1rem; padding: 14px; background: rgba(10, 22, 48, 0.94); border: 2px solid #00d4ff; border-radius: 14px; box-shadow: 0 0 20px #00d4ff33; position: sticky; top: 12px; }
+  #hud::before { content: 'RACE DASHBOARD'; color: #6de8ff; font-size: 0.78rem; font-weight: 900; letter-spacing: 0.14em; text-align: center; margin-bottom: 2px; }
+  #hud > span { min-height: 39px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #16213e; padding: 8px 10px; border-radius: 9px; border: 1px solid #0f3460; }
+  #hud b { color: #dffaff; text-align: right; }
+  #audioControls { flex: none; display: flex; gap: 8px; margin-bottom: 6px; }
+  .audio-btn { background: #16213e; border: 1px solid #00d4ff; color: #fff; padding: 6px 12px; border-radius: 18px; cursor: pointer; font-size: 0.9rem; }
+  .audio-btn:hover { background: #0f3460; }
+  .audio-btn.muted, .audio-btn:disabled { color: #8d9aae; border-color: #526078; cursor: default; }
+  #gameCanvas { width: auto; height: auto; max-width: min(900px, calc(100vw - 260px)); max-height: calc(100vh - 96px); object-fit: contain; border: 3px solid #00d4ff; border-radius: 8px; box-shadow: 0 0 20px #00d4ff44; touch-action: none; }
+  #questionOverlay { display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center; padding: 20px; background: rgba(4, 9, 24, 0.78); backdrop-filter: blur(3px); }
+  #questionBox { background: #16213e; border: 2px solid #00d4ff; border-radius: 12px; padding: 20px; width: min(780px, 100%); max-height: calc(100vh - 40px); overflow-y: auto; color: #fff; box-shadow: 0 0 35px #00d4ff66; }
+  #questionText { font-size: 1.15rem; margin-bottom: 15px; line-height: 1.5; }
+  #answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ans-btn { background: #0f3460; border: 2px solid #00d4ff; color: #fff; padding: 10px 15px; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.2s; text-align: left; }
+  .ans-btn:hover { background: #00d4ff; color: #000; }
+  .ans-btn:disabled { cursor: default; opacity: 0.92; }
+  .ans-btn.correct { background: #27ae60; border-color: #27ae60; }
+  .ans-btn.wrong { background: #e74c3c; border-color: #e74c3c; }
+  #feedback { margin-top: 10px; font-size: 1rem; min-height: 24px; color: #f1c40f; font-weight: bold; }
+  #startScreen, #gameOverScreen, #pauseScreen { position: fixed; z-index: 40; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(22,33,62,0.97); border: 2px solid #00d4ff; border-radius: 16px; padding: 40px; text-align: center; color: #fff; width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; box-shadow: 0 0 30px #00d4ff55; }
+  #startScreen h2, #gameOverScreen h2, #pauseScreen h2 { font-size: 2rem; color: #00d4ff; margin-bottom: 15px; }
+  #startScreen p, #gameOverScreen p, #pauseScreen p { margin-bottom: 14px; line-height: 1.6; }
+  #startScreen { width: min(760px, calc(100vw - 24px)); padding: 28px 30px 24px; overflow: hidden; border-color: #28dfff; background: radial-gradient(circle at 50% -20%, rgba(0,212,255,0.3), transparent 47%), linear-gradient(145deg, rgba(18,35,69,0.985), rgba(5,13,31,0.99)); box-shadow: 0 0 55px #00d4ff55, inset 0 0 45px rgba(0,108,255,0.12); isolation: isolate; }
+  #startScreen::before { content: ''; position: absolute; z-index: -1; inset: 0 0 auto; height: 9px; background: conic-gradient(from 90deg, #fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 18px 18px; opacity: 0.9; }
+  #startScreen::after { content: ''; position: absolute; z-index: -1; width: 340px; height: 340px; right: -180px; bottom: -210px; border: 34px solid rgba(0,212,255,0.08); border-radius: 50%; box-shadow: 0 0 0 34px rgba(0,108,255,0.05), 0 0 0 68px rgba(0,212,255,0.035); }
+  .start-kicker { display: flex; align-items: center; justify-content: center; gap: 10px; color: #a8f4ff; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 7px; }
+  .start-lights { display: inline-flex; gap: 4px; }
+  .start-lights i { width: 9px; height: 9px; border-radius: 50%; background: #ff334f; box-shadow: 0 0 8px #ff334f; animation: startLight 1.2s infinite alternate; }
+  .start-lights i:nth-child(2) { background: #ffc528; box-shadow: 0 0 8px #ffc528; animation-delay: 0.25s; }
+  .start-lights i:nth-child(3) { background: #31f47b; box-shadow: 0 0 8px #31f47b; animation-delay: 0.5s; }
+  @keyframes startLight { from { opacity: 0.35; transform: scale(0.8); } to { opacity: 1; transform: scale(1.15); } }
+  #startScreen .race-title { margin: 0; color: #fff; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 0.98; font-style: italic; letter-spacing: -0.045em; text-transform: uppercase; text-shadow: 0 3px 0 #0050b8, 0 0 22px #00d4ff88; }
+  #startScreen .race-title span { display: block; color: #53e9ff; font-size: 0.42em; line-height: 1.4; letter-spacing: 0.26em; }
+  #startScreen .start-subtitle { max-width: 620px; margin: 9px auto 15px; color: #d8e7f4; font-size: 1rem; line-height: 1.35; }
+  .feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .feature-card { min-height: 78px; display: flex; flex-direction: column; justify-content: center; padding: 9px 8px; background: linear-gradient(155deg, rgba(18,57,98,0.8), rgba(8,25,51,0.88)); border: 1px solid #286691; border-radius: 10px; }
+  .feature-card .feature-icon { font-size: 1.45rem; line-height: 1; margin-bottom: 5px; }
+  .feature-card strong { color: #fff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .feature-card small { color: #9fb8cb; font-size: 0.69rem; margin-top: 2px; }
+  .controls-strip { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; margin: 0 0 12px; padding: 9px; border: 1px solid #203f68; border-radius: 10px; background: rgba(2,10,26,0.6); }
+  .controls-strip strong { color: #62eaff; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 3px; }
+  .key-chip { padding: 4px 8px; color: #effcff; background: #152b4b; border: 1px solid #3c6994; border-bottom-width: 3px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; }
+  .start-launch { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 18px; }
+  .difficulty-panel { text-align: left; }
+  .difficulty-label { display: block; color: #9eb5c8; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.13em; text-transform: uppercase; margin: 0 0 5px 4px; }
+  .big-btn { background: #00d4ff; color: #000; border: none; padding: 14px 40px; font-size: 1.2rem; border-radius: 30px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+  .big-btn:hover { background: #0099cc; }
+  #startScreen .launch-btn { min-width: 214px; margin: 0; padding: 14px 26px; color: #00101c; background: linear-gradient(100deg, #36f28b, #37e8ff); border-radius: 10px; box-shadow: 0 7px 0 #087d7a, 0 0 24px rgba(55,232,255,0.35); text-transform: uppercase; letter-spacing: 0.04em; transition: transform 0.15s, box-shadow 0.15s; }
+  #startScreen .launch-btn:hover { background: linear-gradient(100deg, #61ffa6, #6cf0ff); transform: translateY(-2px); box-shadow: 0 9px 0 #087d7a, 0 0 30px rgba(55,232,255,0.55); }
+  #startScreen .launch-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 #087d7a; }
+  .sound-note { margin: 13px 0 0; color: #7f9aae; font-size: 0.72rem; }
+  #lives-display { font-size: 1.4rem; }
+  #speedBar { width: 92px; height: 10px; background: #333; border-radius: 5px; display: inline-block; vertical-align: middle; margin-left: 6px; }
+  #speedFill { height: 100%; background: linear-gradient(90deg, #00ff88, #ff4400); border-radius: 5px; transition: width 0.3s; }
+  #nitro.ready { color: #00ffff; text-shadow: 0 0 8px #00ffff; }
+  #touchControls { display: none; grid-template-columns: repeat(3, 74px); grid-template-rows: repeat(2, 48px); gap: 6px; margin-top: 10px; }
+  .steer-btn { width: 74px; height: 48px; border: 2px solid #00d4ff; border-radius: 12px; background: #16213e; color: #fff; font-size: 1.45rem; font-weight: bold; user-select: none; touch-action: none; }
+  .steer-btn:active { background: #00d4ff; color: #00152b; }
+  #steerUp { grid-column: 2; grid-row: 1; }
+  #steerLeft { grid-column: 1; grid-row: 2; }
+  #steerDown { grid-column: 2; grid-row: 2; }
+  #steerRight { grid-column: 3; grid-row: 2; }
+  #difficultyChoices { display: flex; justify-content: flex-start; gap: 7px; margin: 0; }
+  .difficulty-btn { min-width: 88px; padding: 9px 12px; border: 2px solid #526078; border-radius: 8px; background: #0f1c38; color: #c8d1df; cursor: pointer; font-weight: bold; }
+  .difficulty-btn.selected { border-color: #00d4ff; background: #0f3460; color: #fff; box-shadow: 0 0 10px #00d4ff55; }
+  #countdownOverlay { display: none; position: fixed; inset: 0; z-index: 45; align-items: center; justify-content: center; pointer-events: none; background: rgba(4, 9, 24, 0.22); }
+  #countdownCard { text-align: center; }
+  #countdownLabel { color: #d8f7ff; font-size: clamp(1rem, 3vw, 1.4rem); font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; text-shadow: 0 2px 8px #00142e; }
+  #countdownText { color: #fff; font-size: clamp(5rem, 20vw, 10rem); line-height: 1; font-weight: 900; font-style: italic; text-shadow: 0 0 16px #00d4ff, 5px 5px 0 #003ecc; animation: countdownPop 0.35s ease-out; }
+  @keyframes countdownPop { from { transform: scale(1.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  #mistakeReview { display: none; margin: 14px 0 2px; padding: 14px; border-radius: 10px; background: #0d1933; text-align: left; line-height: 1.4; }
+  #mistakeReview h3 { color: #f1c40f; margin-bottom: 8px; }
+  #mistakeReview li { margin: 0 0 12px 20px; }
+  #mistakeReview strong { color: #7dffb2; }
+  @media (max-height: 720px) and (min-width: 761px) {
+    #hud { gap: 4px; padding: 8px; font-size: 0.82rem; }
+    #hud::before { font-size: 0.66rem; margin-bottom: 0; }
+    #hud > span { min-height: 28px; padding: 4px 7px; }
+    #lives-display { font-size: 1rem; }
+    #speedBar { width: 72px; }
+    #startScreen { padding: 19px 24px 16px; }
+    #startScreen .race-title { font-size: 2.35rem; }
+    #startScreen .start-subtitle { margin: 6px auto 9px; }
+    .feature-card { min-height: 62px; padding: 6px; }
+    .feature-card .feature-icon { font-size: 1.15rem; margin-bottom: 3px; }
+    .controls-strip { margin-bottom: 8px; padding: 6px; }
+    .sound-note { margin-top: 8px; }
+  }
+  @media (pointer: coarse), (max-width: 760px) {
+    body { padding: 4px; }
+    h1 { font-size: clamp(1.1rem, 5vw, 1.5rem); margin-bottom: 3px; text-align: center; }
+    #gameShell { height: calc(100vh - 34px); flex-direction: column; align-items: center; gap: 4px; }
+    #hud { order: -1; position: static; width: 100%; flex: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; padding: 4px; border-width: 1px; border-radius: 8px; font-size: clamp(0.55rem, 1.9vw, 0.72rem); }
+    #hud::before { display: none; }
+    #hud > span { min-width: 0; min-height: 25px; padding: 2px 4px; gap: 2px; border-radius: 5px; overflow: hidden; white-space: nowrap; }
+    #hud b { overflow: hidden; text-overflow: ellipsis; }
+    #lives-display { font-size: 0.85rem; }
+    #speedBar { width: 42px; height: 7px; margin-left: 2px; }
+    #playArea { flex: 1; width: 100%; height: auto; min-height: 0; }
+    #audioControls { margin-bottom: 3px; gap: 4px; }
+    .audio-btn { padding: 4px 8px; font-size: 0.75rem; }
+    #gameCanvas { max-width: 100%; max-height: calc(100% - 142px); }
+    #touchControls { display: grid; }
+    #answers { grid-template-columns: 1fr; }
+    #startScreen, #gameOverScreen, #pauseScreen { padding: 20px; }
+    #startScreen { padding-top: 24px; }
+    #startScreen .start-subtitle { font-size: 0.86rem; margin-bottom: 10px; }
+    .feature-grid { grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
+    .feature-card { min-height: 55px; padding: 6px; }
+    .feature-card .feature-icon { font-size: 1.1rem; margin: 0; }
+    .feature-card strong { font-size: 0.7rem; }
+    .feature-card small { display: none; }
+    .controls-strip { gap: 4px; margin-bottom: 8px; padding: 6px; }
+    .key-chip { padding: 3px 5px; font-size: 0.64rem; }
+    .start-launch { grid-template-columns: 1fr; justify-items: center; gap: 10px; }
+    .difficulty-panel { text-align: center; }
+    #difficultyChoices { justify-content: center; }
+    .difficulty-btn { min-width: 76px; padding: 7px 9px; }
+    #startScreen .launch-btn { min-width: min(260px, 100%); }
+    .sound-note { display: none; }
+  }
+</style>
+</head>
+<body>
+<h1>🏎️ Eshaan's SPAG Road Race</h1>
+<div id="gameShell">
+  <div id="playArea">
+    <div id="audioControls">
+      <button id="musicToggle" class="audio-btn" onclick="toggleMusic()" aria-pressed="true">🎵 Music: ON</button>
+      <button id="sfxToggle" class="audio-btn" onclick="toggleSfx()" aria-pressed="true">🔊 Sounds: ON</button>
+      <button id="pauseToggle" class="audio-btn" onclick="togglePause()" disabled>⏸ Pause</button>
+    </div>
+    <canvas id="gameCanvas" width="900" height="820"></canvas>
+    <div id="touchControls" aria-label="Touch steering controls">
+      <button id="steerUp" class="steer-btn" aria-label="Drive up">⬆</button>
+      <button id="steerLeft" class="steer-btn" aria-label="Steer left">⬅</button>
+      <button id="steerDown" class="steer-btn" aria-label="Drive down">⬇</button>
+      <button id="steerRight" class="steer-btn" aria-label="Drive right">➡</button>
+    </div>
+  </div>
+  <div id="hud" aria-label="Race dashboard">
+    <span>Score: <b id="score">0</b></span>
+    <span>Lives: <span id="lives-display">❤️❤️❤️</span></span>
+    <span>Level: <b id="level">1</b></span>
+    <span>Combo: <b id="combo">—</b></span>
+    <span>Nitro: <b id="nitro">0/3</b></span>
+    <span>Route: <b id="route">Countryside</b></span>
+    <span>Conditions: <b id="conditions">Day · Clear</b></span>
+    <span>Best: <b id="highScore">0</b></span>
+    <span>Speed: <span id="speedBar"><span id="speedFill" style="width:20%"></span></span></span>
+  </div>
+</div>
+<div id="questionOverlay" role="dialog" aria-modal="true" aria-labelledby="questionText">
+  <div id="questionBox">
+    <div id="questionText"></div>
+    <div id="answers"></div>
+    <div id="feedback" role="status" aria-live="polite"></div>
+  </div>
+</div>
+<div id="countdownOverlay" aria-live="assertive">
+  <div id="countdownCard">
+    <div id="countdownLabel">Race starts in</div>
+    <div id="countdownText">3</div>
+  </div>
+</div>
+
+<div id="startScreen">
+  <div class="start-kicker">
+    <span class="start-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+    Year 6 SPAG Championship
+  </div>
+  <h2 class="race-title"><span>Eshaan's</span> Road Race</h2>
+  <p class="start-subtitle">Take the Bugatti Chiron through changing roads and weather. Smash SPAG barriers, dodge traffic and chase a legendary high score.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon">❓</span>
+      <strong>60 challenges</strong>
+      <small>Year 6 SATs SPAG</small>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🗺️</span>
+      <strong>3 routes</strong>
+      <small>City, country, mountain</small>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🌦️</span>
+      <strong>Live conditions</strong>
+      <small>Rain and day–night cycles</small>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🧰</span>
+      <strong>Repair kits</strong>
+      <small>Recover lost lives</small>
+    </div>
+  </div>
+
+  <div class="controls-strip" aria-label="Game controls">
+    <strong>Controls</strong>
+    <span class="key-chip">WASD</span>
+    <span class="key-chip">ARROW KEYS</span>
+    <span class="key-chip">1–4 ANSWER</span>
+    <span class="key-chip">P PAUSE</span>
+  </div>
+
+  <div class="start-launch">
+    <div class="difficulty-panel">
+      <span class="difficulty-label">Choose difficulty</span>
+      <div id="difficultyChoices">
+        <button class="difficulty-btn" data-difficulty="easy" onclick="selectDifficulty('easy')">Easy</button>
+        <button class="difficulty-btn selected" data-difficulty="normal" onclick="selectDifficulty('normal')">Normal</button>
+        <button class="difficulty-btn" data-difficulty="expert" onclick="selectDifficulty('expert')">Expert</button>
+      </div>
+    </div>
+    <button class="big-btn launch-btn" onclick="startGame()">Start Your Engine 🏁</button>
+  </div>
+  <p class="sound-note">🎧 Sound on recommended for the full engine, music and racing experience.</p>
+</div>
+
+<div id="pauseScreen" style="display:none">
+  <h2>⏸ Race Paused</h2>
+  <p>Take a breather—the road will wait for you.</p>
+  <button class="big-btn" onclick="togglePause()">Resume Racing ▶</button>
+</div>
+
+<div id="gameOverScreen" style="display:none">
+  <h2 id="goTitle">Game Over!</h2>
+  <p id="goMessage"></p>
+  <div id="mistakeReview"></div>
+  <button class="big-btn" onclick="startGame()">Play Again 🔄</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = 900, H = 820;
+
+// ── SPAG Questions ─────────────────────────────────────────────────────────────
+const allQuestions = [
+  { q: "Which sentence uses an apostrophe correctly?", a: ["The dog's bone was buried.", "The dogs bone was buried.", "The dog's' bone was buried.", "The dogs' bone were buried."], correct: 0, explain: "Apostrophe + s shows possession for a singular noun." },
+  { q: "Choose the correct contraction for 'they are':", a: ["they're", "their", "there", "theyr'e"], correct: 0, explain: "'They're' = they are. 'Their' = belonging to them. 'There' = a place." },
+  { q: "Which is correct for plural possession (more than one girl)?", a: ["The girls' coats", "The girl's coats", "The girls coats'", "The girls coats"], correct: 0, explain: "For plural nouns ending in s, the apostrophe goes AFTER the s." },
+  { q: "What does the apostrophe show in: 'It's a sunny day'?", a: ["Contraction (it is)", "Possession", "Plural", "Nothing"], correct: 0, explain: "'It's' = it is (contraction). 'Its' (no apostrophe) shows possession." },
+  { q: "Which punctuation mark introduces a list after a main clause?", a: ["Colon (:)", "Semi-colon (;)", "Comma (,)", "Dash (—)"], correct: 0, explain: "A colon introduces a list or explanation that follows a complete clause." },
+  { q: "A semi-colon (;) is used to…", a: ["Join two closely related main clauses", "Separate items in a simple list", "Show possession", "End a question"], correct: 0, explain: "Semi-colons link two independent clauses that are closely related in meaning." },
+  { q: "Which sentence uses a comma correctly with a subordinate clause?", a: ["Although it was raining, we played outside.", "Although it was raining we, played outside.", "Although, it was raining we played outside.", "Although it was raining we played, outside."], correct: 0, explain: "When a subordinate clause comes FIRST, a comma separates it from the main clause." },
+  { q: "Brackets, dashes, and commas can all be used to add…", a: ["Parenthesis (extra information)", "A list", "Direct speech", "A question"], correct: 0, explain: "Parenthesis adds non-essential information that could be removed without changing the main meaning." },
+  { q: "Which sentence punctuates direct speech correctly?", a: ['"I love SPAG!" said Eshaan.', '"I love SPAG"! said Eshaan.', '"I love SPAG!" Said Eshaan.', '"I love SPAG" said Eshaan.'], correct: 0, explain: "The punctuation goes INSIDE the speech marks, and the reporting clause is lower case." },
+  { q: "What word class is 'quickly' in: 'Eshaan drove quickly'?", a: ["Adverb", "Adjective", "Verb", "Noun"], correct: 0, explain: "Adverbs modify verbs. 'Quickly' tells us HOW Eshaan drove." },
+  { q: "What is the word class of 'enormous' in 'the enormous car'?", a: ["Adjective", "Adverb", "Noun", "Preposition"], correct: 0, explain: "Adjectives describe nouns. 'Enormous' describes the car." },
+  { q: "A word that replaces a noun is called a…", a: ["Pronoun", "Adverb", "Conjunction", "Determiner"], correct: 0, explain: "Pronouns replace nouns to avoid repetition. E.g. he, she, they, it." },
+  { q: "Which word is a PREPOSITION in: 'The car sped through the tunnel'?", a: ["through", "sped", "car", "tunnel"], correct: 0, explain: "Prepositions show the relationship between a noun and another word — often direction or position." },
+  { q: "Which word is a CONJUNCTION in: 'We stopped because it was red'?", a: ["because", "stopped", "was", "red"], correct: 0, explain: "Conjunctions join clauses. 'Because' is a subordinating conjunction." },
+  { q: "What word class is 'the' in 'the fast car'?", a: ["Determiner", "Adjective", "Pronoun", "Noun"], correct: 0, explain: "'The' is a definite article — a type of determiner that introduces a noun." },
+  { q: "Which sentence is written in the PASSIVE voice?", a: ["The trophy was won by Eshaan.", "Eshaan won the trophy.", "Eshaan wins trophies often.", "Did Eshaan win the trophy?"], correct: 0, explain: "In passive voice, the object becomes the subject. 'The trophy' comes first." },
+  { q: "Which sentence contains a RELATIVE CLAUSE?", a: ["The car, which was blue, sped away.", "The blue car sped away.", "Eshaan drove quickly.", "Stop the car now!"], correct: 0, explain: "A relative clause adds extra information using 'who', 'which', 'that', 'where' or 'whose'." },
+  { q: "Which is a MODAL VERB?", a: ["might", "run", "happy", "quickly"], correct: 0, explain: "Modal verbs show possibility or ability: can, could, will, would, shall, should, may, might, must." },
+  { q: "Which sentence uses the SUBJUNCTIVE mood?", a: ["If I were you, I would revise.", "If I was you, I would revise.", "I am you.", "Were you me?"], correct: 0, explain: "The subjunctive uses 'were' (not 'was') in formal or hypothetical clauses." },
+  { q: "Identify the SUBORDINATE CLAUSE in: 'Eshaan braked hard because the light turned red.'", a: ["because the light turned red", "Eshaan braked hard", "Eshaan braked", "the light turned red"], correct: 0, explain: "A subordinate clause can't stand alone — it depends on the main clause." },
+  { q: "Which sentence is in the PAST PERFECT tense?", a: ["Eshaan had driven for miles.", "Eshaan drove for miles.", "Eshaan drives for miles.", "Eshaan was driving for miles."], correct: 0, explain: "Past perfect = had + past participle. It shows an action completed BEFORE another past event." },
+  { q: "Which word is spelled correctly?", a: ["necessary", "neccesary", "necesary", "neccessary"], correct: 0, explain: "Necessary — one c, two s's. Mnemonic: one Collar, two Socks!" },
+  { q: "Which is the correct spelling?", a: ["definitely", "definately", "definitly", "definitley"], correct: 0, explain: "Definitely — no 'a'. Think: de-FINITE-ly." },
+  { q: "A word opposite in meaning is called a…", a: ["Antonym", "Synonym", "Homophone", "Prefix"], correct: 0, explain: "Antonyms are opposites. Synonyms are words with similar meanings." },
+  { q: "What does the prefix 'un-' mean in 'unhappy'?", a: ["Not", "Again", "Before", "After"], correct: 0, explain: "The prefix 'un-' means NOT. Unhappy = not happy." },
+  { q: "Which word uses '-tion' to turn a verb into a noun?", a: ["Education", "Educate", "Educational", "Educatedly"], correct: 0, explain: "The suffix '-tion' turns many verbs into nouns: educate → education." },
+  { q: "Which word is a HOMOPHONE of 'there'?", a: ["their", "here", "where", "were"], correct: 0, explain: "Homophones sound the same but have different spellings and meanings." },
+  { q: "Which sentence is more FORMAL?", a: ["I would be grateful if you could assist me.", "Can you help me out?", "Gimme a hand!", "Cheers for the help!"], correct: 0, explain: "Formal language uses full sentences, polite phrasing, no slang or contractions." },
+  { q: "Which sentence is in the PRESENT PROGRESSIVE tense?", a: ["Eshaan is racing down the road.", "Eshaan races down the road.", "Eshaan raced down the road.", "Eshaan will race down the road."], correct: 0, explain: "Present progressive = is/am/are + verb-ing. It shows an action happening right now." },
+  { q: "What is the correct term for words like 'and', 'but', 'or'?", a: ["Co-ordinating conjunctions", "Subordinating conjunctions", "Prepositions", "Determiners"], correct: 0, explain: "'And', 'but', 'or' are co-ordinating conjunctions — they join two equal clauses." },
+  { q: "Which sentence uses a hyphen correctly to avoid ambiguity?", a: ["The man-eating shark circled the boat.", "The man eating-shark circled the boat.", "The man eating shark-circled the boat.", "The man-eating-shark circled the boat."], correct: 0, explain: "The hyphen joins 'man' and 'eating' so it is clear that the shark eats people." },
+  { q: "Which sentence uses a dash correctly?", a: ["There was only one thing left to do — run.", "There was — only one thing left to do run.", "There was only one — thing left to do run.", "There was only one thing left — to do run."], correct: 0, explain: "A dash can mark a strong break before an explanation or dramatic final word." },
+  { q: "Which sentence needs a question mark?", a: ["Where did Eshaan park the car?", "Eshaan asked where the car was parked.", "I wonder where the car is.", "Tell me where the car is."], correct: 0, explain: "Only the first sentence is a direct question, so it takes a question mark." },
+  { q: "Which sentence uses commas correctly in a list?", a: ["We packed water, snacks, maps and torches.", "We packed, water snacks maps and torches.", "We packed water snacks, maps and torches.", "We packed water snacks maps, and torches."], correct: 0, explain: "Commas separate the items in a list; 'and' introduces the final item." },
+  { q: "Which sentence uses a colon correctly?", a: ["Eshaan needed three things: focus, courage and speed.", "Eshaan needed: three things focus, courage and speed.", "Eshaan: needed three things focus, courage and speed.", "Eshaan needed three: things focus, courage and speed."], correct: 0, explain: "The words before a colon must form a complete main clause." },
+  { q: "Which sentence uses a semi-colon correctly?", a: ["The rain was heavy; the race continued.", "The rain; was heavy the race continued.", "The rain was; heavy, the race continued.", "The rain was heavy the; race continued."], correct: 0, explain: "A semi-colon can join two closely related main clauses." },
+  { q: "Which sentence has correctly punctuated parenthesis?", a: ["The driver (who was exhausted) stopped.", "The driver (who was exhausted stopped.", "The driver who was exhausted) stopped.", "The driver (who was) exhausted) stopped."], correct: 0, explain: "A pair of brackets surrounds the complete piece of extra information." },
+  { q: "Which sentence uses an apostrophe for omission?", a: ["We couldn't see the finish line.", "We could'nt see the finish line.", "We couldnt' see the finish line.", "We couldnt see the finish line."], correct: 0, explain: "In 'couldn't', the apostrophe replaces the missing letter o from 'not'." },
+  { q: "Which possessive pronoun is correct?", a: ["The trophy is theirs.", "The trophy is their's.", "The trophy is theres.", "The trophy is theirs'."], correct: 0, explain: "Possessive pronouns such as 'theirs', 'yours' and 'ours' do not use apostrophes." },
+  { q: "Which sentence uses 'its' correctly?", a: ["The car lost its mirror.", "The car lost it's mirror.", "The car lost its' mirror.", "The car lost it,s mirror."], correct: 0, explain: "'Its' shows possession. 'It's' is the contraction of 'it is' or 'it has'." },
+  { q: "Which word is an adverb in: 'The remarkably skilled driver won'?", a: ["remarkably", "skilled", "driver", "won"], correct: 0, explain: "'Remarkably' modifies the adjective 'skilled', so it is an adverb." },
+  { q: "Which word is a determiner in: 'Several cars entered the race'?", a: ["Several", "cars", "entered", "race"], correct: 0, explain: "'Several' introduces the noun 'cars' and tells us its quantity." },
+  { q: "Which word is a pronoun in: 'They celebrated after the race'?", a: ["They", "celebrated", "after", "race"], correct: 0, explain: "'They' stands in place of the names of the people, so it is a pronoun." },
+  { q: "Which word is an adjective in: 'The engine made a deafening roar'?", a: ["deafening", "engine", "made", "roar"], correct: 0, explain: "'Deafening' describes the noun 'roar', so it is an adjective." },
+  { q: "Which sentence contains a fronted adverbial?", a: ["Without warning, the lights changed.", "The lights changed without warning.", "The bright lights changed.", "The lights suddenly changed."], correct: 0, explain: "The adverbial 'Without warning' has been moved to the front and is followed by a comma." },
+  { q: "Which sentence contains an expanded noun phrase?", a: ["The sleek, midnight-blue racing car accelerated.", "The car accelerated.", "It accelerated quickly.", "Accelerate the car."], correct: 0, explain: "'The sleek, midnight-blue racing car' adds precise description around the noun." },
+  { q: "Which option is a main clause?", a: ["Eshaan crossed the finish line", "although the rain fell", "because he practised", "when the flag waved"], correct: 0, explain: "A main clause contains a subject and verb and makes complete sense by itself." },
+  { q: "Which sentence contains a subordinate clause?", a: ["We slowed down because the road was wet.", "We slowed down.", "The road was wet.", "Slow down now!"], correct: 0, explain: "'Because the road was wet' depends on the main clause and cannot stand alone here." },
+  { q: "Which relative pronoun is best? 'The mechanic, ___ fixed the car, smiled.'", a: ["who", "which", "where", "when"], correct: 0, explain: "Use 'who' to introduce a relative clause about a person." },
+  { q: "Which sentence is in the active voice?", a: ["Eshaan steered the car.", "The car was steered by Eshaan.", "The car had been steered.", "The car is being steered."], correct: 0, explain: "In the active voice, the subject 'Eshaan' performs the action." },
+  { q: "Which sentence changes active to passive correctly? 'The team repaired the engine.'", a: ["The engine was repaired by the team.", "The engine repaired the team.", "The team was repaired by the engine.", "The engine is repairing the team."], correct: 0, explain: "In the passive version, the object 'the engine' becomes the subject and receives the action." },
+  { q: "Which sentence is in the present perfect tense?", a: ["Eshaan has completed the lap.", "Eshaan completed the lap.", "Eshaan completes the lap.", "Eshaan was completing the lap."], correct: 0, explain: "Present perfect uses 'has' or 'have' plus a past participle." },
+  { q: "Which sentence is in the past progressive tense?", a: ["The crowd was cheering loudly.", "The crowd cheered loudly.", "The crowd has cheered loudly.", "The crowd cheers loudly."], correct: 0, explain: "Past progressive uses 'was' or 'were' plus a verb ending in -ing." },
+  { q: "Which verb is in the simple future tense?", a: ["will race", "raced", "races", "has raced"], correct: 0, explain: "The simple future can be formed with 'will' plus the base form of the verb." },
+  { q: "Which sentence uses a modal verb to show obligation?", a: ["Drivers must wear helmets.", "Drivers might wear helmets.", "Drivers could wear helmets.", "Drivers may wear helmets."], correct: 0, explain: "'Must' is a modal verb that expresses strong obligation." },
+  { q: "Which spelling is correct?", a: ["accommodate", "accomodate", "acommodate", "accomadate"], correct: 0, explain: "'Accommodate' has two c's and two m's." },
+  { q: "Which spelling is correct?", a: ["embarrass", "embarass", "embarras", "emmbarass"], correct: 0, explain: "'Embarrass' has two r's and two s's." },
+  { q: "Which spelling is correct?", a: ["immediately", "imediately", "immediatly", "immedietely"], correct: 0, explain: "'Immediately' has two m's and ends with '-ately'." },
+  { q: "Which word has a prefix meaning 'again'?", a: ["rewrite", "unhappy", "preview", "misread"], correct: 0, explain: "The prefix 're-' means again, so 'rewrite' means write again." },
+  { q: "Which pair are synonyms?", a: ["rapid and swift", "rapid and slow", "brave and fearful", "ancient and modern"], correct: 0, explain: "'Rapid' and 'swift' both mean fast." },
+];
+
+// ── Enemy car colours and names ───────────────────────────────────────────────
+const enemyStyles = [
+  { body: '#e74c3c', roof: '#7e1711', accent: '#ffffff', name: 'RED RACER', number: '07' },
+  { body: '#9b59b6', roof: '#4a235a', accent: '#f4d03f', name: 'PURPLE GT', number: '13' },
+  { body: '#f07818', roof: '#873600', accent: '#101010', name: 'ORANGE RS', number: '21' },
+  { body: '#16a085', roof: '#073b34', accent: '#7dfff1', name: 'TEAL TURBO', number: '33' },
+  { body: '#f3b514', roof: '#7d5d05', accent: '#ffffff', name: 'GOLD GHOST', number: '88' },
+];
+
+const DIFFICULTIES = {
+  easy:   { label: 'Easy',   startSpeed: 2.1, acceleration: 0.00085, barrierBase: 155, enemyBase: 265, enemyScale: 9,  aggression: 0.82 },
+  normal: { label: 'Normal', startSpeed: 2.5, acceleration: 0.0012,  barrierBase: 130, enemyBase: 220, enemyScale: 12, aggression: 1 },
+  expert: { label: 'Expert', startSpeed: 3.2, acceleration: 0.00165, barrierBase: 112, enemyBase: 180, enemyScale: 14, aggression: 1.28 },
+};
+let selectedDifficulty = 'normal';
+
+function selectDifficulty(name) {
+  if (!DIFFICULTIES[name]) return;
+  selectedDifficulty = name;
+  document.querySelectorAll('.difficulty-btn').forEach(button => {
+    const selected = button.dataset.difficulty === name;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
+
+// ── Game State ─────────────────────────────────────────────────────────────────
+let score, lives, level, gameRunning, questionActive;
+let carX, carY, carSpeed;
+let barriers = [], coins = [], enemies = [], repairKits = [];
+let roadOffset = 0;
+let currentEnvironment = 'countryside';
+let timeOfDay = 'day';
+let weather = 'clear';
+let environmentMessageTimer = 0;
+let questionPool = [];
+let currentQuestion = null;
+let frameCount = 0;
+let answered = false;
+let invincible = 0; // frames of invincibility after a hit
+let crashFlash = 0;
+let combo = 0;
+let paused = false;
+let countdownActive = false;
+let countdownTimers = [];
+let raceToken = 0;
+let nitroFrames = 0;
+let nitroQueued = false;
+let mistakes = [];
+let highScore = 0;
+try { highScore = Number(localStorage.getItem('eshaanSpagHighScore')) || 0; } catch (e) { /* Storage can be unavailable in private mode. */ }
+document.getElementById('highScore').textContent = highScore;
+
+// ── Audio: engine, effects and procedural racing music ───────────────────────
+// Everything is generated with Web Audio so the game stays in one portable file.
+let audioCtx = null;
+let masterGain, musicGain, sfxGain, engineGain, engineOsc, engineFilter, masterCompressor;
+let noiseBuffer = null;
+let musicTimer = null;
+let nextMusicTime = 0;
+let musicStep = 0;
+let musicEnabled = true;
+let sfxEnabled = true;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = audioCtx.createGain();
+    masterCompressor = audioCtx.createDynamicsCompressor();
+    musicGain = audioCtx.createGain();
+    sfxGain = audioCtx.createGain();
+    engineGain = audioCtx.createGain();
+    engineFilter = audioCtx.createBiquadFilter();
+
+    masterGain.gain.value = 0.72;
+    musicGain.gain.value = 0;
+    sfxGain.gain.value = sfxEnabled ? 0.7 : 0;
+    engineGain.gain.value = 0;
+    engineFilter.type = 'lowpass';
+    engineFilter.frequency.value = 520;
+
+    musicGain.connect(masterGain);
+    sfxGain.connect(masterGain);
+    engineGain.connect(engineFilter);
+    engineFilter.connect(masterGain);
+    masterCompressor.threshold.value = -16;
+    masterCompressor.knee.value = 16;
+    masterCompressor.ratio.value = 5;
+    masterCompressor.attack.value = 0.008;
+    masterCompressor.release.value = 0.22;
+    masterGain.connect(masterCompressor);
+    masterCompressor.connect(audioCtx.destination);
+
+    engineOsc = audioCtx.createOscillator();
+    engineOsc.type = 'sawtooth';
+    engineOsc.frequency.value = 62;
+    engineOsc.connect(engineGain);
+    engineOsc.start();
+
+    noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+    musicTimer = setInterval(scheduleMusic, 80);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function rampGain(node, value, seconds = 0.08) {
+  if (!audioCtx || !node) return;
+  node.gain.cancelScheduledValues(audioCtx.currentTime);
+  node.gain.setTargetAtTime(value, audioCtx.currentTime, seconds);
+}
+
+function playTone(freq, duration, type = 'sine', volume = 0.12, when = null, destination = null) {
+  if (!audioCtx) return;
+  const start = when ?? audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), start + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  osc.connect(gain);
+  gain.connect(destination || sfxGain);
+  osc.start(start);
+  osc.stop(start + duration + 0.03);
+}
+
+function playNoise(duration, volume, filterFreq, when = null, destination = null) {
+  if (!audioCtx || !noiseBuffer) return;
+  const start = when ?? audioCtx.currentTime;
+  const source = audioCtx.createBufferSource();
+  const filter = audioCtx.createBiquadFilter();
+  const gain = audioCtx.createGain();
+  source.buffer = noiseBuffer;
+  filter.type = 'highpass';
+  filter.frequency.value = filterFreq;
+  gain.gain.setValueAtTime(volume, start);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(destination || sfxGain);
+  source.start(start);
+  source.stop(start + duration);
+}
+
+function playKick(when) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.setValueAtTime(145, when);
+  osc.frequency.exponentialRampToValueAtTime(42, when + 0.13);
+  gain.gain.setValueAtTime(0.42, when);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
+  osc.connect(gain); gain.connect(musicGain);
+  osc.start(when); osc.stop(when + 0.18);
+}
+
+function playSynth(freq, duration, when, volume = 0.06, waveform = 'sawtooth', cutoff = 1500) {
+  if (!audioCtx) return;
+  const oscA = audioCtx.createOscillator();
+  const oscB = audioCtx.createOscillator();
+  const filter = audioCtx.createBiquadFilter();
+  const gain = audioCtx.createGain();
+  oscA.type = waveform;
+  oscB.type = waveform === 'sawtooth' ? 'triangle' : waveform;
+  oscA.frequency.setValueAtTime(freq, when);
+  oscB.frequency.setValueAtTime(freq, when);
+  oscB.detune.value = 7;
+  filter.type = 'lowpass';
+  filter.Q.value = 3.5;
+  filter.frequency.setValueAtTime(Math.max(180, cutoff * 0.48), when);
+  filter.frequency.exponentialRampToValueAtTime(cutoff, when + Math.min(0.07, duration * 0.3));
+  filter.frequency.exponentialRampToValueAtTime(Math.max(160, cutoff * 0.35), when + duration);
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(volume, when + 0.012);
+  gain.gain.setValueAtTime(volume * 0.72, when + Math.min(0.08, duration * 0.45));
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  oscA.connect(filter);
+  oscB.connect(filter);
+  filter.connect(gain);
+  gain.connect(musicGain);
+  oscA.start(when);
+  oscB.start(when);
+  oscA.stop(when + duration + 0.03);
+  oscB.stop(when + duration + 0.03);
+}
+
+function playSnare(when) {
+  playNoise(0.16, 0.14, 1050, when, musicGain);
+  playTone(190, 0.09, 'triangle', 0.07, when, musicGain);
+}
+
+function playRoadBass(freq, when, duration = 0.22) {
+  const osc = audioCtx.createOscillator();
+  const sub = audioCtx.createOscillator();
+  const filter = audioCtx.createBiquadFilter();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  sub.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, when);
+  sub.frequency.setValueAtTime(freq / 2, when);
+  filter.type = 'lowpass';
+  filter.Q.value = 2.4;
+  filter.frequency.setValueAtTime(850, when);
+  filter.frequency.exponentialRampToValueAtTime(190, when + duration);
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(0.095, when + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  osc.connect(filter);
+  sub.connect(filter);
+  filter.connect(gain);
+  gain.connect(musicGain);
+  osc.start(when);
+  sub.start(when);
+  osc.stop(when + duration + 0.03);
+  sub.stop(when + duration + 0.03);
+}
+
+function playRoadGuitar(root, when, duration = 0.34, volume = 0.035) {
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  const distortion = audioCtx.createWaveShaper();
+  const curve = new Float32Array(256);
+  for (let i = 0; i < curve.length; i++) {
+    const x = i * 2 / (curve.length - 1) - 1;
+    curve[i] = Math.tanh(x * 3.2);
+  }
+  distortion.curve = curve;
+  distortion.oversample = '2x';
+  filter.type = 'lowpass';
+  filter.frequency.value = 2600;
+  filter.Q.value = 0.8;
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(volume, when + 0.012);
+  gain.gain.setValueAtTime(volume * 0.7, when + duration * 0.42);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  distortion.connect(filter);
+  filter.connect(gain);
+  gain.connect(musicGain);
+  [root, root * 1.4983, root * 2].forEach((frequency, index) => {
+    const osc = audioCtx.createOscillator();
+    osc.type = index === 1 ? 'square' : 'sawtooth';
+    osc.frequency.setValueAtTime(frequency, when);
+    osc.detune.value = index * 3 - 3;
+    osc.connect(distortion);
+    osc.start(when);
+    osc.stop(when + duration + 0.03);
+  });
+}
+
+function playTom(when, high = false) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(high ? 170 : 120, when);
+  osc.frequency.exponentialRampToValueAtTime(high ? 92 : 68, when + 0.16);
+  gain.gain.setValueAtTime(0.12, when);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.18);
+  osc.connect(gain);
+  gain.connect(musicGain);
+  osc.start(when);
+  osc.stop(when + 0.2);
+}
+
+function scheduleMusic() {
+  if (!audioCtx) return;
+  if (!gameRunning || !musicEnabled || paused || countdownActive) {
+    nextMusicTime = audioCtx.currentTime + 0.06;
+    musicStep = 0;
+    return;
+  }
+
+  // Original "open-road rock" track: live-style drums, picked bass and
+  // distorted power chords. Four bars loop with a changing guitar response.
+  const sixteenth = 60 / 132 / 4;
+  if (nextMusicTime < audioCtx.currentTime) nextMusicTime = audioCtx.currentTime + 0.04;
+  const chordRoots = [82.41, 65.41, 98, 73.42]; // E, C, G, D
+  const bassPatterns = [
+    [1, 1, 1.5, 1, 2, 1.5, 1, 1.5],
+    [1, 1, 1.5, 2, 1, 1.5, 2, 1.5],
+    [1, 1.5, 2, 1.5, 1, 1.5, 2, 1.5],
+    [1, 1, 1.5, 1, 2, 1.5, 1, 2],
+  ];
+  const guitarResponse = [2, 4, 7, 4, 2, 9, 7, 4];
+
+  while (nextMusicTime < audioCtx.currentTime + 0.22) {
+    const step = musicStep % 16;
+    const bar = Math.floor(musicStep / 16);
+    const chordIndex = bar % 4;
+    const root = chordRoots[chordIndex];
+    if ([0, 6, 8, 14].includes(step)) playKick(nextMusicTime);
+    if (step === 4 || step === 12) playSnare(nextMusicTime);
+    if (step % 2 === 0) {
+      playNoise(step === 14 ? 0.075 : 0.032, step === 14 ? 0.072 : 0.032, 6800, nextMusicTime, musicGain);
+    }
+    if (step === 11 && chordIndex === 3) playTom(nextMusicTime, true);
+    if (step === 13 && chordIndex === 3) playTom(nextMusicTime, false);
+    if (step % 2 === 0) {
+      const bassNote = root * bassPatterns[chordIndex][step / 2] / 2;
+      playRoadBass(bassNote, nextMusicTime, step === 14 ? 0.3 : 0.2);
+    }
+    if (step === 0 || step === 8 || (step === 14 && chordIndex === 3)) {
+      playRoadGuitar(root * 2, nextMusicTime, step === 14 ? 0.2 : 0.42);
+    }
+    if (bar % 4 === 3 && step % 2 === 1) {
+      const responseNote = root * guitarResponse[(step - 1) / 2];
+      playRoadGuitar(responseNote, nextMusicTime, step === 15 ? 0.28 : 0.1, 0.018);
+    }
+    nextMusicTime += sixteenth;
+    musicStep++;
+  }
+}
+
+function updateEngineSound() {
+  if (!audioCtx || !engineOsc) return;
+  const now = audioCtx.currentTime;
+  const steering = keys.ArrowLeft || keys.ArrowRight || keys.ArrowUp || keys.ArrowDown;
+  const revs = 58 + (carSpeed + (nitroFrames > 0 ? 5 : 0)) * 13 + (steering ? 9 : 0);
+  engineOsc.frequency.setTargetAtTime(questionActive || countdownActive ? 58 : revs, now, 0.06);
+  engineFilter.frequency.setTargetAtTime(questionActive || countdownActive ? 300 : 430 + carSpeed * 38, now, 0.08);
+  engineGain.gain.setTargetAtTime(gameRunning && !paused && sfxEnabled ? (questionActive || countdownActive ? 0.018 : 0.045 + carSpeed * 0.0035) : 0, now, 0.07);
+}
+
+function playSfx(name) {
+  if (!audioCtx || !sfxEnabled) return;
+  const now = audioCtx.currentTime;
+  if (name === 'coin') {
+    playTone(880, 0.09, 'square', 0.14, now);
+    playTone(1320, 0.13, 'square', 0.11, now + 0.075);
+  } else if (name === 'challenge') {
+    playTone(330, 0.11, 'square', 0.09, now);
+    playTone(440, 0.14, 'square', 0.09, now + 0.11);
+  } else if (name === 'correct') {
+    [523.25, 659.25, 783.99, 1046.5].forEach((n, i) => playTone(n, 0.18, 'triangle', 0.14, now + i * 0.07));
+  } else if (name === 'wrong') {
+    playTone(180, 0.22, 'sawtooth', 0.16, now);
+    playTone(130, 0.30, 'sawtooth', 0.12, now + 0.13);
+  } else if (name === 'crash') {
+    playNoise(0.5, 0.55, 180, now);
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(170, now);
+    osc.frequency.exponentialRampToValueAtTime(38, now + 0.48);
+    gain.gain.setValueAtTime(0.28, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    osc.connect(gain); gain.connect(sfxGain); osc.start(now); osc.stop(now + 0.52);
+  } else if (name === 'level') {
+    [392, 523.25, 659.25, 783.99].forEach((n, i) => playTone(n, 0.2, 'square', 0.1, now + i * 0.08));
+  } else if (name === 'start') {
+    [261.63, 329.63, 392, 523.25].forEach((n, i) => playTone(n, 0.2, 'sawtooth', 0.1, now + i * 0.09));
+  } else if (name === 'count') {
+    playTone(440, 0.16, 'square', 0.14, now);
+  } else if (name === 'go') {
+    playTone(880, 0.34, 'square', 0.18, now);
+    playTone(1320, 0.28, 'triangle', 0.13, now + 0.06);
+  } else if (name === 'nitro') {
+    playNoise(0.65, 0.24, 900, now);
+    [220, 330, 440, 660].forEach((n, i) => playTone(n, 0.35, 'sawtooth', 0.09, now + i * 0.045));
+  } else if (name === 'repair') {
+    [392, 523.25, 659.25, 783.99].forEach((n, i) => playTone(n, 0.2, 'triangle', 0.12, now + i * 0.06));
+  } else if (name === 'gameover') {
+    [392, 329.63, 261.63, 196].forEach((n, i) => playTone(n, 0.28, 'triangle', 0.13, now + i * 0.15));
+  }
+}
+
+function updateAudioButtons() {
+  const musicButton = document.getElementById('musicToggle');
+  const sfxButton = document.getElementById('sfxToggle');
+  musicButton.textContent = musicEnabled ? '🎵 Music: ON' : '🎵 Music: OFF';
+  sfxButton.textContent = sfxEnabled ? '🔊 Sounds: ON' : '🔇 Sounds: OFF';
+  musicButton.classList.toggle('muted', !musicEnabled);
+  sfxButton.classList.toggle('muted', !sfxEnabled);
+  musicButton.setAttribute('aria-pressed', String(musicEnabled));
+  sfxButton.setAttribute('aria-pressed', String(sfxEnabled));
+}
+
+function toggleMusic() {
+  initAudio();
+  musicEnabled = !musicEnabled;
+  rampGain(musicGain, musicEnabled && gameRunning ? 0.24 : 0);
+  updateAudioButtons();
+}
+
+function toggleSfx() {
+  initAudio();
+  sfxEnabled = !sfxEnabled;
+  rampGain(sfxGain, sfxEnabled ? 0.7 : 0);
+  if (!sfxEnabled) rampGain(engineGain, 0);
+  updateAudioButtons();
+}
+
+// ── Road Lanes ─────────────────────────────────────────────────────────────────
+const ROAD_LEFT = 130, ROAD_RIGHT = 770;
+
+// ── Drawing: Road ──────────────────────────────────────────────────────────────
+function drawRoad() {
+  drawEnvironmentGround();
+
+  // Road surface
+  const asphalt = ctx.createLinearGradient(ROAD_LEFT, 0, ROAD_RIGHT, 0);
+  asphalt.addColorStop(0, '#25282b');
+  asphalt.addColorStop(0.18, '#35383a');
+  asphalt.addColorStop(0.5, '#3d4042');
+  asphalt.addColorStop(0.82, '#35383a');
+  asphalt.addColorStop(1, '#25282b');
+  ctx.fillStyle = asphalt;
+  ctx.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, H);
+
+  // Road sheen
+  const sheen = ctx.createLinearGradient(ROAD_LEFT, 0, ROAD_RIGHT, 0);
+  sheen.addColorStop(0, 'rgba(0,0,0,0.3)');
+  sheen.addColorStop(0.5, 'rgba(255,255,255,0.03)');
+  sheen.addColorStop(1, 'rgba(0,0,0,0.3)');
+  ctx.fillStyle = sheen;
+  ctx.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, H);
+
+  // Fine asphalt aggregate gives the surface texture without obscuring play.
+  ctx.fillStyle = 'rgba(255,255,255,0.055)';
+  for (let i = 0; i < 85; i++) {
+    const stoneX = ROAD_LEFT + 12 + (i * 71) % (ROAD_RIGHT - ROAD_LEFT - 24);
+    const stoneY = (i * 47 + roadOffset * 1.35) % (H + 12) - 6;
+    ctx.fillRect(stoneX, stoneY, i % 4 === 0 ? 2 : 1, 1);
+  }
+
+  // Painted edges, gravel shoulders and reflective guard rails.
+  ctx.fillStyle = '#d9d9d4';
+  ctx.fillRect(ROAD_LEFT, 0, 7, H);
+  ctx.fillRect(ROAD_RIGHT - 7, 0, 7, H);
+  ctx.fillStyle = '#7f827d';
+  ctx.fillRect(ROAD_LEFT - 13, 0, 9, H);
+  ctx.fillRect(ROAD_RIGHT + 4, 0, 9, H);
+  ctx.strokeStyle = '#b9c2c6';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(ROAD_LEFT - 22, 0); ctx.lineTo(ROAD_LEFT - 22, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ROAD_RIGHT + 22, 0); ctx.lineTo(ROAD_RIGHT + 22, H); ctx.stroke();
+  for (let y = -35 + (roadOffset * 0.9) % 70; y < H + 35; y += 70) {
+    ctx.fillStyle = '#626b6e';
+    ctx.fillRect(ROAD_LEFT - 25, y, 6, 24);
+    ctx.fillRect(ROAD_RIGHT + 19, y, 6, 24);
+    ctx.fillStyle = '#e8f7ff';
+    ctx.fillRect(ROAD_LEFT - 24, y + 2, 4, 5);
+    ctx.fillRect(ROAD_RIGHT + 20, y + 2, 4, 5);
+  }
+
+  // Scrolling dashes
+  const dashLen = 35, gapLen = 25, total = dashLen + gapLen;
+  const offset = roadOffset % total;
+  ctx.strokeStyle = '#ffdd00';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([dashLen, gapLen]);
+  ctx.lineDashOffset = -offset;
+  // Two lane dividers
+  [W/2 - 105, W/2 + 105].forEach(lx => {
+    ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, H); ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  ctx.lineDashOffset = 0;
+
+  drawEnvironmentDetails();
+}
+
+function drawEnvironmentGround() {
+  if (currentEnvironment === 'city') {
+    const pavement = ctx.createLinearGradient(0, 0, W, 0);
+    pavement.addColorStop(0, '#383d46');
+    pavement.addColorStop(0.5, '#68707a');
+    pavement.addColorStop(1, '#383d46');
+    ctx.fillStyle = pavement;
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    for (let y = -70 + roadOffset % 70; y < H + 70; y += 70) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ROAD_LEFT - 12, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ROAD_RIGHT + 12, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    return;
+  }
+
+  if (currentEnvironment === 'mountains') {
+    const rock = ctx.createLinearGradient(0, 0, W, 0);
+    rock.addColorStop(0, '#3a403d');
+    rock.addColorStop(0.5, '#687064');
+    rock.addColorStop(1, '#343a38');
+    ctx.fillStyle = rock;
+    ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 28; i++) {
+      const x = i % 2 ? 20 + (i * 43) % 92 : ROAD_RIGHT + 18 + (i * 31) % 100;
+      const y = (i * 89 + roadOffset * 0.62) % (H + 40) - 20;
+      ctx.fillStyle = i % 3 ? '#555e55' : '#7b8277';
+      ctx.beginPath(); ctx.ellipse(x, y, 7 + i % 6, 4 + i % 4, i * 0.2, 0, Math.PI * 2); ctx.fill();
+    }
+    return;
+  }
+
+  const grass = ctx.createLinearGradient(0, 0, W, 0);
+  grass.addColorStop(0, '#102e1e');
+  grass.addColorStop(0.5, '#285231');
+  grass.addColorStop(1, '#102e1e');
+  ctx.fillStyle = grass;
+  ctx.fillRect(0, 0, W, H);
+  for (let y = -80 + (roadOffset * 0.48) % 80; y < H + 80; y += 80) {
+    ctx.fillStyle = 'rgba(121,166,91,0.07)';
+    ctx.fillRect(0, y, ROAD_LEFT - 12, 32);
+    ctx.fillRect(ROAD_RIGHT + 12, y, W - ROAD_RIGHT, 32);
+  }
+  for (let i = 0; i < 26; i++) {
+    const sideX = i % 2 ? 32 + (i * 37) % 76 : ROAD_RIGHT + 30 + (i * 29) % 74;
+    const flowerY = (i * 83 + roadOffset * 0.72) % (H + 30) - 15;
+    ctx.fillStyle = i % 3 ? 'rgba(219,232,178,0.55)' : 'rgba(150,190,255,0.55)';
+    ctx.beginPath(); ctx.arc(sideX, flowerY, 1.5, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawEnvironmentDetails() {
+  if (currentEnvironment === 'city') {
+    for (let i = 0; i < 9; i++) {
+      const y = (i * 116 + roadOffset * 0.78) % (H + 150) - 90;
+      const leftWidth = 72 + (i % 3) * 13;
+      const rightWidth = 66 + ((i + 1) % 3) * 15;
+      drawCityBuilding(4, y, leftWidth, 86, i);
+      drawCityBuilding(W - rightWidth - 4, y + 45, rightWidth, 92, i + 3);
+      drawStreetLight(ROAD_LEFT - 37, y + 90);
+      drawStreetLight(ROAD_RIGHT + 37, y + 24);
+    }
+    return;
+  }
+
+  const treeRows = currentEnvironment === 'mountains'
+    ? [
+        { x: 48, spacing: 128, phase: 10, scale: 0.9 },
+        { x: 93, spacing: 180, phase: 80, scale: 0.62 },
+        { x: 852, spacing: 136, phase: 46, scale: 0.88 },
+        { x: 808, spacing: 194, phase: 125, scale: 0.6 },
+      ]
+    : [
+        { x: 54, spacing: 138, phase: 12, scale: 1.05 },
+        { x: 92, spacing: 174, phase: 86, scale: 0.72 },
+        { x: 846, spacing: 146, phase: 48, scale: 1.02 },
+        { x: 810, spacing: 188, phase: 132, scale: 0.7 },
+      ];
+  treeRows.forEach(row => {
+    for (let y = -row.spacing; y < H + row.spacing; y += row.spacing) {
+      const treeY = (y + row.phase + roadOffset * row.scale) % (H + row.spacing) - row.spacing * 0.5;
+      if (currentEnvironment === 'mountains') drawPineTree(row.x, treeY, row.scale);
+      else drawRoadsideTree(row.x, treeY, row.scale);
+    }
+  });
+}
+
+function drawCityBuilding(x, y, width, height, seed) {
+  ctx.fillStyle = ['#263144', '#3d3548', '#2f4245'][seed % 3];
+  ctx.fillRect(x, y, width, height);
+  ctx.fillStyle = timeOfDay === 'night' ? '#ffd66b' : '#9cc9d8';
+  for (let wy = y + 12; wy < y + height - 8; wy += 22) {
+    for (let wx = x + 10; wx < x + width - 8; wx += 20) {
+      if ((wx + wy + seed) % 3) ctx.fillRect(wx, wy, 8, 10);
+    }
+  }
+  ctx.fillStyle = '#171d27';
+  ctx.fillRect(x - 2, y + height - 7, width + 4, 7);
+}
+
+function drawStreetLight(x, y) {
+  ctx.strokeStyle = '#232a31';
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(x, y + 22); ctx.lineTo(x, y - 17); ctx.lineTo(x + (x < W / 2 ? 9 : -9), y - 17); ctx.stroke();
+  ctx.fillStyle = timeOfDay === 'day' ? '#b8c7cc' : '#fff1a8';
+  ctx.shadowColor = '#ffe98a';
+  ctx.shadowBlur = timeOfDay === 'day' ? 0 : 14;
+  ctx.beginPath(); ctx.arc(x + (x < W / 2 ? 10 : -10), y - 17, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawPineTree(x, y, scale) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(12, 12, 22, 8, 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#473323';
+  ctx.fillRect(-3, -2, 6, 23);
+  ['#173f31', '#1d513a', '#286244'].forEach((colour, index) => {
+    ctx.fillStyle = colour;
+    const top = -34 + index * 12;
+    ctx.beginPath();
+    ctx.moveTo(0, top - 18);
+    ctx.lineTo(-22 + index * 3, top + 18);
+    ctx.lineTo(22 - index * 3, top + 18);
+    ctx.closePath();
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function drawRoadsideTree(x, y, scale) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.beginPath(); ctx.ellipse(12, 12, 28, 11, 0.35, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#5b3a24';
+  ctx.fillRect(-3, -2, 6, 18);
+  const foliage = ctx.createRadialGradient(-6, -14, 3, 0, -8, 25);
+  foliage.addColorStop(0, '#4e8954');
+  foliage.addColorStop(0.5, '#23613a');
+  foliage.addColorStop(1, '#0c3525');
+  ctx.fillStyle = foliage;
+  [[-12, -8, 15], [10, -9, 17], [0, -24, 19], [0, 3, 15]].forEach(([cx, cy, radius]) => {
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.restore();
+}
+
+function updateWorldState() {
+  const environments = ['countryside', 'city', 'mountains'];
+  const nextEnvironment = environments[Math.floor((level - 1) / 2) % environments.length];
+  if (nextEnvironment !== currentEnvironment) {
+    currentEnvironment = nextEnvironment;
+    addScorePopup(`${environmentLabel(currentEnvironment)} route`, '#a9f3ff', W / 2, 82);
+    updateHUD();
+  }
+
+  if (frameCount > 0 && frameCount % 900 === 0) {
+    const times = ['day', 'dusk', 'night', 'dawn'];
+    timeOfDay = times[(times.indexOf(timeOfDay) + 1) % times.length];
+    addScorePopup(`${capitalise(timeOfDay)} driving`, '#ffe69a', W / 2, 110);
+    updateHUD();
+  }
+  if (frameCount > 0 && frameCount % 720 === 0) {
+    const conditions = ['clear', 'rain'];
+    weather = conditions[(conditions.indexOf(weather) + 1) % conditions.length];
+    addScorePopup(`${capitalise(weather)} ahead`, '#d8efff', W / 2, 138);
+    updateHUD();
+  }
+}
+
+function drawAtmosphere() {
+  if (timeOfDay === 'dusk' || timeOfDay === 'dawn') {
+    ctx.fillStyle = timeOfDay === 'dusk' ? 'rgba(77,34,66,0.17)' : 'rgba(255,150,70,0.11)';
+    ctx.fillRect(0, 0, W, H);
+  } else if (timeOfDay === 'night') {
+    ctx.fillStyle = 'rgba(3,10,28,0.42)';
+    ctx.fillRect(0, 0, W, H);
+    const headlights = ctx.createRadialGradient(carX, carY - 25, 8, carX, carY - 145, 190);
+    headlights.addColorStop(0, 'rgba(255,250,205,0.36)');
+    headlights.addColorStop(0.55, 'rgba(255,244,180,0.13)');
+    headlights.addColorStop(1, 'rgba(255,244,180,0)');
+    ctx.fillStyle = headlights;
+    ctx.beginPath();
+    ctx.moveTo(carX - 24, carY - 24);
+    ctx.lineTo(carX - 145, carY - 270);
+    ctx.lineTo(carX + 145, carY - 270);
+    ctx.lineTo(carX + 24, carY - 24);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (weather === 'rain') {
+    ctx.strokeStyle = 'rgba(190,225,255,0.48)';
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i < 95; i++) {
+      const rainX = (i * 97 + frameCount * 8) % (W + 80) - 40;
+      const rainY = (i * 53 + frameCount * 15) % (H + 80) - 40;
+      ctx.beginPath();
+      ctx.moveTo(rainX, rainY);
+      ctx.lineTo(rainX - 8, rainY + 23);
+      ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(110,150,185,0.07)';
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function environmentLabel(environment) {
+  return environment === 'mountains' ? 'Mountain' : capitalise(environment);
+}
+
+function capitalise(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+// ── Drawing: Bugatti Chiron (Eshaan's car, facing up) ─────────────────────────
+function drawBugatti(x, y, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha ?? 1;
+  ctx.translate(x, y);
+  const steerLean = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
+  ctx.rotate(steerLean * 0.025);
+
+  // Ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.42)';
+  ctx.beginPath();
+  ctx.ellipse(0, 28, 31, 9, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Animated nitro flames from the four exhausts
+  if (nitroFrames > 0) {
+    const flameLength = 18 + Math.sin(frameCount * 0.7) * 5;
+    [-16, -7, 7, 16].forEach(exhaustX => {
+      const flame = ctx.createLinearGradient(0, 28, 0, 28 + flameLength);
+      flame.addColorStop(0, '#ffffff');
+      flame.addColorStop(0.25, '#00ffff');
+      flame.addColorStop(0.7, '#0066ff');
+      flame.addColorStop(1, 'rgba(0,60,255,0)');
+      ctx.fillStyle = flame;
+      ctx.beginPath();
+      ctx.moveTo(exhaustX - 3, 28);
+      ctx.quadraticCurveTo(exhaustX, 38 + flameLength, exhaustX + 3, 28);
+      ctx.fill();
+    });
+  }
+
+  // Wheels sit behind the body; spinning spokes respond to road speed.
+  const wheelSpin = frameCount * (0.08 + carSpeed * 0.025);
+  [[-29, -19], [29, -19], [-30, 17], [30, 17]].forEach(([wx, wy]) => {
+    ctx.fillStyle = '#08090d';
+    ctx.beginPath(); ctx.ellipse(wx, wy, 8, 10, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#333b48';
+    ctx.beginPath(); ctx.arc(wx, wy, 5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#b8c2cc'; ctx.lineWidth = 1;
+    for (let spoke = 0; spoke < 6; spoke++) {
+      const angle = wheelSpin + spoke * Math.PI / 3;
+      ctx.beginPath(); ctx.moveTo(wx, wy);
+      ctx.lineTo(wx + Math.cos(angle) * 4.5, wy + Math.sin(angle) * 4.5);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#006cff';
+    ctx.beginPath(); ctx.arc(wx, wy, 1.6, 0, Math.PI*2); ctx.fill();
+  });
+
+  // Curved, shaded Chiron body shell
+  const bodyPaint = ctx.createLinearGradient(-31, 0, 31, 0);
+  bodyPaint.addColorStop(0, '#00115f');
+  bodyPaint.addColorStop(0.23, '#004de3');
+  bodyPaint.addColorStop(0.52, '#087eff');
+  bodyPaint.addColorStop(0.77, '#0038bd');
+  bodyPaint.addColorStop(1, '#000b4b');
+  ctx.fillStyle = bodyPaint;
+  ctx.beginPath();
+  ctx.moveTo(0, -38);
+  ctx.bezierCurveTo(20, -38, 27, -31, 28, -19);
+  ctx.bezierCurveTo(33, -8, 32, 15, 27, 29);
+  ctx.quadraticCurveTo(0, 36, -27, 29);
+  ctx.bezierCurveTo(-32, 15, -33, -8, -28, -19);
+  ctx.bezierCurveTo(-27, -31, -20, -38, 0, -38);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#298cff';
+  ctx.lineWidth = 1.3;
+  ctx.stroke();
+
+  // Carbon-fibre side intakes and signature C-line
+  ctx.fillStyle = '#080b12';
+  [-1, 1].forEach(side => {
+    ctx.beginPath();
+    ctx.ellipse(side * 22, 5, 6, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#56a7ff'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(side * 16, -2, 16, side > 0 ? -1.25 : 1.9, side > 0 ? 1.25 : 4.4);
+    ctx.stroke();
+  });
+
+  // Glass canopy with a reflective highlight
+  const glass = ctx.createLinearGradient(0, -31, 0, 7);
+  glass.addColorStop(0, '#bce8ff');
+  glass.addColorStop(0.25, '#3d789c');
+  glass.addColorStop(1, '#09131d');
+  ctx.fillStyle = glass;
+  ctx.beginPath();
+  ctx.moveTo(-16, 6);
+  ctx.quadraticCurveTo(-18, -15, -11, -29);
+  ctx.quadraticCurveTo(0, -34, 11, -29);
+  ctx.quadraticCurveTo(18, -15, 16, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#02050b'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(-9, -27); ctx.quadraticCurveTo(-2, -31, 5, -29);
+  ctx.lineTo(-7, -8); ctx.closePath();
+  ctx.fill();
+
+  // Racing stripe and sculpted bonnet ridge
+  ctx.fillStyle = '#001e82';
+  ctx.fillRect(-3, -37, 6, 68);
+  ctx.strokeStyle = 'rgba(255,255,255,0.32)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-8, -35); ctx.lineTo(-12, -17); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(8, -35); ctx.lineTo(12, -17); ctx.stroke();
+
+  // Horseshoe grille and Bugatti badge
+  ctx.fillStyle = '#030407';
+  ctx.beginPath();
+  ctx.ellipse(0, -33, 7, 5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#b9c0c7'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#e3202b';
+  ctx.beginPath(); ctx.ellipse(0, -34, 3, 1.5, 0, 0, Math.PI*2); ctx.fill();
+
+  // Four-element LED headlamps
+  ctx.fillStyle = '#eaffff';
+  ctx.shadowColor = '#00ddff'; ctx.shadowBlur = 10;
+  [-18, 18].forEach(hx => {
+    for (let lamp = -1; lamp <= 1; lamp++) {
+      ctx.beginPath(); ctx.arc(hx + lamp * 3, -29 + Math.abs(lamp), 1.25, 0, Math.PI*2); ctx.fill();
+    }
+  });
+  ctx.shadowBlur = 0;
+
+  // Full-width rear light bar, diffuser and quad exhaust
+  ctx.strokeStyle = '#ff1d36'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#ff1d36'; ctx.shadowBlur = 7;
+  ctx.beginPath(); ctx.moveTo(-23, 24); ctx.lineTo(23, 24); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#080a0e';
+  ctx.fillRect(-25, 27, 50, 5);
+  ctx.fillStyle = '#aab1ba';
+  [-16, -7, 7, 16].forEach(exhaustX => {
+    ctx.beginPath(); ctx.arc(exhaustX, 30, 2.2, 0, Math.PI*2); ctx.fill();
+  });
+
+  // Active rear wing
+  ctx.fillStyle = '#031052';
+  ctx.beginPath(); ctx.roundRect(-30, 20, 60, 5, 2); ctx.fill();
+  ctx.fillRect(-26, 17, 3, 6); ctx.fillRect(23, 17, 3, 6);
+
+  // Driver badge
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 7px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('ESHAAN', 0, 14);
+
+  ctx.restore();
+}
+
+// ── Drawing: Enemy Car ────────────────────────────────────────────────────────
+function drawEnemyCar(e) {
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  const chaseLean = Math.max(-0.045, Math.min(0.045, (carX - e.x) * 0.0015));
+  ctx.rotate(chaseLean);
+
+  // Shadow and animated wheels
+  ctx.fillStyle = 'rgba(0,0,0,0.38)';
+  ctx.beginPath(); ctx.ellipse(0, 29, 28, 8, 0, 0, Math.PI*2); ctx.fill();
+  const wheelSpin = -frameCount * (0.08 + carSpeed * 0.024);
+  [[-25, -18], [25, -18], [-26, 17], [26, 17]].forEach(([wx, wy]) => {
+    ctx.fillStyle = '#08090b';
+    ctx.beginPath(); ctx.ellipse(wx, wy, 7, 10, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#323943';
+    ctx.beginPath(); ctx.arc(wx, wy, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#aeb6bf'; ctx.lineWidth = 1;
+    for (let spoke = 0; spoke < 5; spoke++) {
+      const angle = wheelSpin + spoke * Math.PI * 0.4;
+      ctx.beginPath(); ctx.moveTo(wx, wy);
+      ctx.lineTo(wx + Math.cos(angle) * 4, wy + Math.sin(angle) * 4);
+      ctx.stroke();
+    }
+  });
+
+  // Sculpted paintwork — oncoming traffic faces down towards Eshaan.
+  const paint = ctx.createLinearGradient(-27, 0, 27, 0);
+  paint.addColorStop(0, e.style.roof);
+  paint.addColorStop(0.28, e.style.body);
+  paint.addColorStop(0.55, '#ffffff');
+  paint.addColorStop(0.58, e.style.body);
+  paint.addColorStop(1, e.style.roof);
+  ctx.fillStyle = paint;
+  ctx.beginPath();
+  ctx.moveTo(-18, -31);
+  ctx.quadraticCurveTo(-27, -28, -27, -14);
+  ctx.bezierCurveTo(-32, -2, -30, 22, -20, 31);
+  ctx.quadraticCurveTo(0, 37, 20, 31);
+  ctx.bezierCurveTo(30, 22, 32, -2, 27, -14);
+  ctx.quadraticCurveTo(27, -28, 18, -31);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = e.style.body; ctx.lineWidth = 1.4; ctx.stroke();
+
+  // Dark glass canopy with front and rear reflections
+  const enemyGlass = ctx.createLinearGradient(0, -20, 0, 18);
+  enemyGlass.addColorStop(0, '#101923');
+  enemyGlass.addColorStop(0.52, '#8fc7e6');
+  enemyGlass.addColorStop(1, '#172d3b');
+  ctx.fillStyle = enemyGlass;
+  ctx.beginPath();
+  ctx.moveTo(-14, -17);
+  ctx.quadraticCurveTo(0, -24, 14, -17);
+  ctx.lineTo(17, 13);
+  ctx.quadraticCurveTo(0, 20, -17, 13);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#071019'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Bonnet vents and centre racing accent
+  ctx.fillStyle = e.style.accent;
+  ctx.globalAlpha = 0.82;
+  ctx.fillRect(-2, 18, 4, 14);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#090b10';
+  [-10, 10].forEach(ventX => {
+    ctx.beginPath(); ctx.roundRect(ventX - 4, 21, 8, 5, 2); ctx.fill();
+  });
+
+  // Rear light strip and small exhausts at the top of the oncoming car
+  ctx.strokeStyle = '#ff1738'; ctx.lineWidth = 2.2;
+  ctx.shadowColor = '#ff1738'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.moveTo(-18, -27); ctx.lineTo(18, -27); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#b9c0c8';
+  [-9, 9].forEach(exhaustX => {
+    ctx.beginPath(); ctx.arc(exhaustX, -31, 2, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Bright projector headlights and front grille
+  ctx.fillStyle = '#efffff';
+  ctx.shadowColor = '#bffcff'; ctx.shadowBlur = 10;
+  [-16, 16].forEach(lightX => {
+    ctx.beginPath(); ctx.ellipse(lightX, 27, 5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#06080b';
+  ctx.beginPath();
+  ctx.roundRect(-11, 29, 22, 4, 2);
+  ctx.fill();
+
+  // Car number and model name
+  ctx.fillStyle = e.style.accent;
+  ctx.beginPath(); ctx.arc(0, 4, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#10131a';
+  ctx.font = 'bold 8px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(e.style.number, 0, 7);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 7px Arial';
+  ctx.fillText(e.style.name, 0, -7);
+
+  ctx.restore();
+}
+
+// ── Drawing: Barrier ──────────────────────────────────────────────────────────
+function drawBarrier(b) {
+  ctx.save();
+  ctx.globalAlpha = b.hit ? 0.4 : 1;
+  ctx.fillStyle = b.hit ? '#555' : '#cc8800';
+  ctx.beginPath();
+  ctx.roundRect(b.x - 48, b.y - 22, 96, 44, 8);
+  ctx.fill();
+
+  // Hazard stripes
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(b.x - 48, b.y - 22, 96, 44, 8);
+  ctx.clip();
+  ctx.fillStyle = '#cc0000';
+  for (let i = -2; i < 7; i++) {
+    ctx.fillRect(b.x - 60 + i * 20, b.y - 22, 10, 44);
+  }
+  ctx.restore();
+
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.roundRect(b.x - 48, b.y - 22, 96, 44, 8);
+  ctx.fill();
+
+  // Label
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('❓ SPAG', b.x, b.y + 7);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// ── Drawing: Coin ─────────────────────────────────────────────────────────────
+function drawCoin(c) {
+  if (c.collected) return;
+  ctx.save();
+  ctx.shadowColor = '#f1c40f'; ctx.shadowBlur = 10;
+  ctx.fillStyle = '#f1c40f';
+  ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('★', c.x, c.y + 4);
+  ctx.restore();
+}
+
+function drawRepairKit(kit) {
+  if (kit.collected) return;
+  ctx.save();
+  ctx.translate(kit.x, kit.y);
+  ctx.shadowColor = '#67ff9a';
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#20a957';
+  ctx.beginPath();
+  ctx.roundRect(-17, -14, 34, 28, 6);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#dfffea';
+  ctx.fillRect(-4, -10, 8, 20);
+  ctx.fillRect(-10, -4, 20, 8);
+  ctx.strokeStyle = '#ecfff3';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-17, -14, 34, 28);
+  ctx.fillStyle = '#132d1c';
+  ctx.fillRect(-7, -19, 14, 5);
+  ctx.restore();
+}
+
+// ── Explosion Particles ───────────────────────────────────────────────────────
+let particles = [];
+function spawnExplosion(x, y) {
+  for (let i = 0; i < 18; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      color: ['#ff4400','#ffaa00','#ffff00','#ff0000'][Math.floor(Math.random()*4)]
+    });
+  }
+}
+function updateParticles() {
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.15;
+    p.life -= 0.035;
+  });
+  particles = particles.filter(p => p.life > 0);
+}
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ── Floating score messages ───────────────────────────────────────────────────
+let scorePopups = [];
+function addScorePopup(text, color = '#f1c40f', x = carX, y = carY - 45) {
+  scorePopups.push({ text, color, x, y, life: 1 });
+}
+function updateAndDrawScorePopups() {
+  scorePopups.forEach(p => {
+    p.y -= 0.7;
+    p.life -= 0.025;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 4;
+    ctx.fillText(p.text, p.x, p.y);
+    ctx.restore();
+  });
+  scorePopups = scorePopups.filter(p => p.life > 0);
+}
+
+function activateNitro() {
+  nitroQueued = false;
+  nitroFrames = 240;
+  addScorePopup('NITRO!', '#00ffff');
+  playSfx('nitro');
+  updateHUD();
+}
+
+function clearCountdown() {
+  countdownTimers.forEach(timer => clearTimeout(timer));
+  countdownTimers = [];
+  countdownActive = false;
+  document.getElementById('countdownOverlay').style.display = 'none';
+}
+
+function beginCountdown(token, label = 'Race starts in') {
+  countdownActive = true;
+  const overlay = document.getElementById('countdownOverlay');
+  const text = document.getElementById('countdownText');
+  document.getElementById('countdownLabel').textContent = label;
+  overlay.style.display = 'flex';
+
+  const show = (value, sound) => {
+    if (token !== raceToken || !gameRunning) return;
+    text.textContent = value;
+    text.style.animation = 'none';
+    void text.offsetWidth;
+    text.style.animation = 'countdownPop 0.35s ease-out';
+    playSfx(sound);
+  };
+
+  show('3', 'count');
+  countdownTimers.push(setTimeout(() => show('2', 'count'), 800));
+  countdownTimers.push(setTimeout(() => show('1', 'count'), 1600));
+  countdownTimers.push(setTimeout(() => {
+    show('GO!', 'go');
+    if (token !== raceToken) return;
+    countdownActive = false;
+    rampGain(musicGain, musicEnabled ? 0.24 : 0, 0.12);
+  }, 2400));
+  countdownTimers.push(setTimeout(() => {
+    if (token === raceToken) overlay.style.display = 'none';
+  }, 3000));
+}
+
+// ── Game Loop ─────────────────────────────────────────────────────────────────
+function gameLoop() {
+  if (!gameRunning) return;
+  if (countdownActive) {
+    ctx.clearRect(0, 0, W, H);
+    drawRoad();
+    coins.forEach(drawCoin);
+    repairKits.forEach(drawRepairKit);
+    barriers.forEach(drawBarrier);
+    enemies.forEach(drawEnemyCar);
+    drawParticles();
+    drawBugatti(carX, carY);
+    drawAtmosphere();
+    updateEngineSound();
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+  if (paused) {
+    updateEngineSound();
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+  frameCount++;
+  const difficulty = DIFFICULTIES[selectedDifficulty];
+  let activeSpeed = carSpeed + (nitroFrames > 0 ? 5 : 0);
+
+  // Continuously accelerate
+  if (!questionActive) {
+    carSpeed = Math.min(difficulty.startSpeed + frameCount * difficulty.acceleration, 14);
+    activeSpeed = carSpeed + (nitroFrames > 0 ? 5 : 0);
+    roadOffset = (roadOffset + activeSpeed) % 100000;
+    updateWorldState();
+  }
+
+  // Clear
+  ctx.clearRect(0, 0, W, H);
+
+  // Flash screen red on crash
+  if (crashFlash > 0) {
+    drawRoad();
+    ctx.fillStyle = `rgba(255,0,0,${crashFlash * 0.04})`;
+    ctx.fillRect(0, 0, W, H);
+    crashFlash--;
+  } else {
+    drawRoad();
+  }
+
+  if (!questionActive) {
+    // Level up by score
+    const newLevel = Math.floor(score / 80) + 1;
+    if (newLevel > level) {
+      level = newLevel;
+      addScorePopup(`LEVEL ${level}!`, '#00d4ff', W / 2, 95);
+      playSfx('level');
+      updateHUD();
+    }
+
+    // Scroll & clean barriers
+    barriers.forEach(b => { b.y += activeSpeed; });
+    barriers = barriers.filter(b => b.y < H + 50);
+
+    // Scroll & clean coins
+    coins.forEach(c => { c.y += activeSpeed; });
+    coins = coins.filter(c => c.y < H + 20);
+
+    // Repair kits are rarer than coins and only appear after a life is lost.
+    repairKits.forEach(kit => { kit.y += activeSpeed; });
+    repairKits = repairKits.filter(kit => !kit.collected && kit.y < H + 30 && lives < 3);
+    if (lives < 3 && frameCount % 480 === 0 && repairKits.length === 0) {
+      repairKits.push({
+        x: ROAD_LEFT + 28 + Math.random() * (ROAD_RIGHT - ROAD_LEFT - 56),
+        y: -24,
+        collected: false,
+      });
+    }
+
+    // Scroll & steer enemies
+    enemies.forEach(e => {
+      e.y += activeSpeed * e.speedMult;
+      // Chase Eshaan horizontally
+      const dx = carX - e.x;
+      const chase = Math.min(Math.abs(dx), e.aggressiveness) * Math.sign(dx);
+      e.x += chase;
+      e.x = Math.max(ROAD_LEFT + 28, Math.min(ROAD_RIGHT - 28, e.x));
+    });
+    enemies = enemies.filter(e => e.y < H + 60);
+
+    // Spawn barrier
+    const barrierInterval = Math.max(52, difficulty.barrierBase - level * 6);
+    if (frameCount % barrierInterval === 0) {
+      barriers.push({ x: ROAD_LEFT + 48 + Math.random() * (ROAD_RIGHT - ROAD_LEFT - 96), y: -30, hit: false });
+    }
+
+    // Spawn coin
+    if (frameCount % 70 === 0) {
+      coins.push({ x: ROAD_LEFT + 20 + Math.random() * (ROAD_RIGHT - ROAD_LEFT - 40), y: -10, collected: false });
+    }
+
+    // Spawn enemy
+    const enemyInterval = Math.max(76, difficulty.enemyBase - level * difficulty.enemyScale);
+    if (frameCount % enemyInterval === 0) {
+      spawnEnemy();
+    }
+
+    // Passive score tick
+    if (frameCount % 30 === 0) { score += level; updateHUD(); }
+
+    // Coin collection
+    coins.forEach(c => {
+      if (!c.collected && Math.abs(carX - c.x) < 28 && Math.abs(carY - c.y) < 28) {
+        c.collected = true;
+        score += 10;
+        addScorePopup('+10', '#f1c40f', c.x, c.y - 12);
+        playSfx('coin');
+        updateHUD();
+      }
+    });
+
+    repairKits.forEach(kit => {
+      if (!kit.collected && lives < 3 && Math.abs(carX - kit.x) < 31 && Math.abs(carY - kit.y) < 31) {
+        kit.collected = true;
+        lives = Math.min(3, lives + 1);
+        score += 20;
+        addScorePopup('LIFE REPAIRED! +20', '#67ff9a', kit.x, kit.y - 18);
+        playSfx('repair');
+        updateHUD();
+      }
+    });
+
+    // Barrier collision — only one challenge can open in a frame.
+    const struckBarrier = barriers.find(b =>
+      !b.hit && Math.abs(carX - b.x) < 52 && Math.abs(carY - b.y) < 38
+    );
+    if (struckBarrier) {
+      struckBarrier.hit = true;
+      showQuestion();
+    }
+
+    // Enemy collision — one impact can only cost one life.
+    if (!struckBarrier && invincible <= 0 && nitroFrames <= 0) {
+      const struckEnemy = enemies.find(e =>
+        !e.crashed && Math.abs(carX - e.x) < 46 && Math.abs(carY - e.y) < 46
+      );
+      if (struckEnemy) {
+        struckEnemy.crashed = true;
+        lives--;
+        combo = 0;
+        invincible = 90;
+        crashFlash = 15;
+        spawnExplosion(carX, carY);
+        addScorePopup('COMBO LOST', '#ff6b6b');
+        playSfx('crash');
+        updateHUD();
+        if (lives <= 0) setTimeout(endGame, 800);
+      }
+    } else if (invincible > 0) {
+      invincible--;
+    }
+
+    // Car movement
+    const moveSpeed = 4.5;
+    if (keys['ArrowLeft'] && carX > ROAD_LEFT + 30) carX -= moveSpeed;
+    if (keys['ArrowRight'] && carX < ROAD_RIGHT - 30) carX += moveSpeed;
+    if (keys['ArrowUp'] && carY > 45) carY -= moveSpeed * 0.82;
+    if (keys['ArrowDown'] && carY < H - 38) carY += moveSpeed * 0.82;
+    if (nitroFrames > 0) {
+      nitroFrames--;
+      if (nitroFrames === 0) updateHUD();
+    }
+  }
+
+  // Update particles
+  updateParticles();
+
+  // Draw scene
+  coins.forEach(drawCoin);
+  repairKits.forEach(drawRepairKit);
+  barriers.forEach(drawBarrier);
+  enemies.forEach(drawEnemyCar);
+  drawParticles();
+
+  // Draw Bugatti — blink when invincible
+  const showCar = nitroFrames > 0 || invincible === 0 || Math.floor(invincible / 6) % 2 === 0;
+  if (showCar) drawBugatti(carX, carY);
+  drawAtmosphere();
+  updateAndDrawScorePopups();
+
+  // Speed HUD fill
+  const pct = Math.min(100, ((activeSpeed - difficulty.startSpeed) / (19 - difficulty.startSpeed)) * 100);
+  document.getElementById('speedFill').style.width = pct + '%';
+  updateEngineSound();
+
+  requestAnimationFrame(gameLoop);
+}
+
+function spawnEnemy() {
+  enemies.push({
+    x: ROAD_LEFT + 32 + Math.random() * (ROAD_RIGHT - ROAD_LEFT - 64),
+    y: -45,
+    speedMult: 0.85 + Math.random() * 0.5,
+    aggressiveness: (0.4 + Math.random() * 1.2 * (1 + level * 0.08)) * DIFFICULTIES[selectedDifficulty].aggression,
+    style: enemyStyles[Math.floor(Math.random() * enemyStyles.length)],
+    crashed: false
+  });
+}
+
+// ── Questions ──────────────────────────────────────────────────────────────────
+function showQuestion() {
+  questionActive = true;
+  answered = false;
+  playSfx('challenge');
+  if (questionPool.length === 0) questionPool = shuffle([...allQuestions]);
+  currentQuestion = questionPool.pop();
+
+  document.getElementById('questionText').innerHTML =
+    `<b>⚡ SPAG Challenge — answer to clear the barrier!</b><br><br>${currentQuestion.q}`;
+  const answersDiv = document.getElementById('answers');
+  answersDiv.innerHTML = '';
+  document.getElementById('feedback').textContent = '';
+
+  const s = shuffleAnswers(currentQuestion.a, currentQuestion.correct);
+  s.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.textContent = `${i + 1}. ${opt}`;
+    btn.onclick = () => checkAnswer(i === s.correctIndex, btn, s);
+    answersDiv.appendChild(btn);
+  });
+  document.getElementById('questionOverlay').style.display = 'flex';
+  answersDiv.querySelector('.ans-btn').focus();
+}
+
+function shuffleAnswers(answers, correctIdx) {
+  const paired = answers.map((a, i) => ({ text: a, isCorrect: i === correctIdx }));
+  for (let i = paired.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [paired[i], paired[j]] = [paired[j], paired[i]];
+  }
+  return { options: paired.map(p => p.text), correctIndex: paired.findIndex(p => p.isCorrect) };
+}
+
+function checkAnswer(isCorrect, btn, s) {
+  if (answered) return;
+  answered = true;
+  const answerButtons = document.querySelectorAll('.ans-btn');
+  answerButtons[s.correctIndex].classList.add('correct');
+  answerButtons.forEach(answerButton => { answerButton.disabled = true; });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    combo++;
+    const pointsWon = (25 + (combo - 1) * 5) * level;
+    score += pointsWon;
+    if (combo % 3 === 0) nitroQueued = true;
+    playSfx('correct');
+    document.getElementById('feedback').textContent =
+      `✅ Correct! +${pointsWon} points • ${combo}× combo. ` +
+      (nitroQueued ? '🔥 NITRO READY! ' : '') + currentQuestion.explain;
+  } else {
+    btn.classList.add('wrong');
+    lives--;
+    combo = 0;
+    nitroQueued = false;
+    mistakes.push({
+      question: currentQuestion.q,
+      correct: currentQuestion.a[currentQuestion.correct],
+      explanation: currentQuestion.explain,
+    });
+    playSfx('wrong');
+    document.getElementById('feedback').textContent = `❌ Wrong! ${currentQuestion.explain}`;
+    updateHUD();
+    if (lives <= 0) { setTimeout(endGame, 1800); return; }
+  }
+  updateHUD();
+  setTimeout(() => {
+    if (!gameRunning) return;
+    document.getElementById('questionOverlay').style.display = 'none';
+    questionActive = false;
+    if (nitroQueued) activateNitro();
+    beginCountdown(raceToken, 'Back to racing in');
+  }, 2200);
+}
+
+// ── HUD ────────────────────────────────────────────────────────────────────────
+function updateHUD() {
+  if (score > highScore) highScore = score;
+  document.getElementById('score').textContent = score;
+  document.getElementById('level').textContent = level;
+  document.getElementById('route').textContent = environmentLabel(currentEnvironment);
+  document.getElementById('conditions').textContent = `${capitalise(timeOfDay)} · ${capitalise(weather)}`;
+  document.getElementById('combo').textContent = combo > 0 ? `${combo}×` : '—';
+  const nitroDisplay = document.getElementById('nitro');
+  nitroDisplay.textContent = nitroFrames > 0 ? 'BOOST!' : (nitroQueued ? 'READY!' : `${combo % 3}/3`);
+  nitroDisplay.classList.toggle('ready', nitroFrames > 0 || nitroQueued);
+  document.getElementById('highScore').textContent = highScore;
+  const hearts = ['💔', '❤️', '❤️❤️', '❤️❤️❤️'];
+  document.getElementById('lives-display').textContent = hearts[Math.max(0, lives)];
+}
+
+function endGame() {
+  gameRunning = false;
+  paused = false;
+  countdownActive = false;
+  raceToken++;
+  clearCountdown();
+  try { localStorage.setItem('eshaanSpagHighScore', String(highScore)); } catch (e) { /* Keep playing if storage is blocked. */ }
+  playSfx('gameover');
+  rampGain(musicGain, 0, 0.18);
+  rampGain(engineGain, 0, 0.08);
+  document.getElementById('questionOverlay').style.display = 'none';
+  document.getElementById('pauseScreen').style.display = 'none';
+  document.getElementById('pauseToggle').disabled = true;
+  document.getElementById('goTitle').textContent = lives <= 0 ? '💥 Crashed Out, Eshaan!' : '🏆 Legendary, Eshaan!';
+  document.getElementById('goMessage').innerHTML =
+    `You scored <b>${score}</b> points on <b>${DIFFICULTIES[selectedDifficulty].label}</b>, reached Level <b>${level}</b>, and your best is <b>${highScore}</b>!<br><br>` +
+    (lives <= 0 ? "The traffic got you — but your SPAG is getting sharper! Try again!" : "Incredible driving AND incredible grammar!");
+  renderMistakeReview();
+  document.getElementById('gameOverScreen').style.display = 'block';
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  })[character]);
+}
+
+function renderMistakeReview() {
+  const review = document.getElementById('mistakeReview');
+  review.style.display = 'block';
+  if (mistakes.length === 0) {
+    review.innerHTML = '<h3>🏆 Perfect SPAG run!</h3><p>You did not miss a single question.</p>';
+    return;
+  }
+  review.innerHTML = '<h3>📚 Mistakes to review</h3><ol>' + mistakes.map(mistake =>
+    `<li>${escapeHtml(mistake.question)}<br><strong>Correct: ${escapeHtml(mistake.correct)}</strong><br>${escapeHtml(mistake.explanation)}</li>`
+  ).join('') + '</ol>';
+}
+
+function togglePause() {
+  if (!gameRunning || questionActive || countdownActive) return;
+  paused = !paused;
+  Object.keys(keys).forEach(key => { keys[key] = false; });
+  document.getElementById('pauseScreen').style.display = paused ? 'block' : 'none';
+  document.getElementById('pauseToggle').textContent = paused ? '▶ Resume' : '⏸ Pause';
+  rampGain(musicGain, musicEnabled && !paused ? 0.24 : 0, 0.12);
+  if (paused) rampGain(engineGain, 0, 0.06);
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────────
+const keys = {};
+const drivingKeyMap = {
+  ArrowLeft: 'ArrowLeft',
+  ArrowRight: 'ArrowRight',
+  ArrowUp: 'ArrowUp',
+  ArrowDown: 'ArrowDown',
+  a: 'ArrowLeft',
+  d: 'ArrowRight',
+  w: 'ArrowUp',
+  s: 'ArrowDown',
+};
+
+function getDrivingKey(key) {
+  return drivingKeyMap[key.length === 1 ? key.toLowerCase() : key];
+}
+
+document.addEventListener('keydown', e => {
+  if (questionActive && !answered && ['1', '2', '3', '4'].includes(e.key)) {
+    const answer = document.querySelectorAll('.ans-btn')[Number(e.key) - 1];
+    if (answer) answer.click();
+    e.preventDefault();
+    return;
+  }
+  if (e.key.toLowerCase() === 'p' && !e.repeat) {
+    togglePause();
+    e.preventDefault();
+    return;
+  }
+  const drivingKey = getDrivingKey(e.key);
+  if (drivingKey) {
+    keys[drivingKey] = true;
+    e.preventDefault();
+  }
+});
+document.addEventListener('keyup', e => {
+  const drivingKey = getDrivingKey(e.key);
+  if (drivingKey) keys[drivingKey] = false;
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && gameRunning && !paused && !questionActive) togglePause();
+});
+
+function bindSteeringButton(id, key) {
+  const button = document.getElementById(id);
+  button.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    button.setPointerCapture(e.pointerId);
+    keys[key] = true;
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(eventName => {
+    button.addEventListener(eventName, () => { keys[key] = false; });
+  });
+}
+bindSteeringButton('steerLeft', 'ArrowLeft');
+bindSteeringButton('steerRight', 'ArrowRight');
+bindSteeringButton('steerUp', 'ArrowUp');
+bindSteeringButton('steerDown', 'ArrowDown');
+
+// ── Utils ──────────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function startGame() {
+  initAudio();
+  clearCountdown();
+  raceToken++;
+  const thisRace = raceToken;
+  score = 0; lives = 3; level = 1; carSpeed = DIFFICULTIES[selectedDifficulty].startSpeed;
+  carX = W / 2; carY = H - 95;
+  barriers = []; coins = []; enemies = []; repairKits = []; particles = []; scorePopups = [];
+  roadOffset = 0; frameCount = 0; questionPool = [];
+  currentEnvironment = 'countryside'; timeOfDay = 'day'; weather = 'clear';
+  questionActive = false; gameRunning = true;
+  invincible = 0; crashFlash = 0; combo = 0; paused = false;
+  nitroFrames = 0; nitroQueued = false; mistakes = [];
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameOverScreen').style.display = 'none';
+  document.getElementById('pauseScreen').style.display = 'none';
+  document.getElementById('questionOverlay').style.display = 'none';
+  document.getElementById('mistakeReview').style.display = 'none';
+  document.getElementById('pauseToggle').disabled = false;
+  document.getElementById('pauseToggle').textContent = '⏸ Pause';
+  rampGain(musicGain, 0, 0.05);
+  rampGain(sfxGain, sfxEnabled ? 0.7 : 0);
+  updateHUD();
+  beginCountdown(thisRace);
+  gameLoop();
+}
+</script>
+</body>
+</html>

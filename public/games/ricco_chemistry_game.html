@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricco's Chem Lab Chaos!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
+
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; }
+  .screen.active { display: flex; }
+
+  /* ====== MENU ====== */
+  #menuScreen { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); overflow-y: auto; justify-content: flex-start; padding: 20px 10px 30px; }
+  #menuScreen h1 { font-size: 3rem; color: #e94560; text-shadow: 0 0 20px #e94560; margin-bottom: 0.2rem; }
+  .bubbles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .bubble { position: absolute; bottom: -50px; border-radius: 50%; opacity: 0.15; animation: rise linear infinite; }
+  @keyframes rise { to { transform: translateY(-110vh) rotate(360deg); } }
+  .btn { padding: 14px 40px; border: none; border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, #e94560, #c62a47); color: #fff; box-shadow: 0 4px 20px rgba(233,69,96,0.4); }
+  .btn-primary:hover { transform: scale(1.05); box-shadow: 0 6px 30px rgba(233,69,96,0.6); }
+  .btn-green { background: linear-gradient(135deg, #43aa8b, #2d7a63); color: #fff; box-shadow: 0 4px 20px rgba(67,170,139,0.4); }
+  .btn-green:hover { transform: scale(1.05); }
+  .flask-icon { font-size: 4.5rem; margin-bottom: 0.5rem; animation: wobble 2s ease-in-out infinite; }
+  @keyframes wobble { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+  .curriculum-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 540px; margin-bottom: 1.5rem; }
+  .tag { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 12px; font-size: 0.73rem; color: #a8dadc; }
+
+  /* ====== LAB HUD ====== */
+  #labScreen { background: linear-gradient(180deg, #0d1b2a 0%, #1b2838 100%); justify-content: flex-start; }
+  #labHud { width: 100%; background: rgba(0,0,0,0.45); padding: 10px 16px; display: flex; align-items: center; gap: 14px; border-bottom: 2px solid #e94560; flex-shrink: 0; }
+  #labHud .score-box { background: rgba(233,69,96,0.2); border: 1px solid #e94560; border-radius: 10px; padding: 4px 12px; font-size: 0.85rem; white-space: nowrap; }
+  #streakBar { display: flex; gap: 5px; align-items: center; margin-left: auto; }
+  .streak-dot { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25); transition: all 0.3s; }
+  .streak-dot.filled { background: #f9c74f; border-color: #f9c74f; box-shadow: 0 0 8px #f9c74f; }
+  #levelBadge { background: rgba(249,199,79,0.12); border: 1px solid #f9c74f; border-radius: 20px; padding: 2px 10px; font-size: 0.72rem; color: #f9c74f; white-space: nowrap; }
+
+  /* ====== LAB CONTENT ====== */
+  #labContent { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 16px; overflow-y: auto; }
+  #questionCard { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 18px 24px; max-width: 680px; width: 100%; text-align: center; margin-bottom: 14px; }
+  #questionBadge { display: inline-block; background: #e94560; border-radius: 20px; padding: 3px 14px; font-size: 0.72rem; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+  #questionText { font-size: 1.25rem; color: #fff; line-height: 1.4; }
+  #questionHint { font-size: 0.82rem; color: #a8dadc; margin-top: 7px; }
+  #answerArea { max-width: 680px; width: 100%; }
+
+  /* chemical buttons */
+  #mixingArea { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+  .chemical-btn { padding: 10px 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; background: rgba(255,255,255,0.08); color: #fff; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; min-width: 110px; text-align: center; }
+  .chemical-btn:hover { border-color: #a8dadc; background: rgba(168,218,220,0.15); transform: translateY(-2px); }
+  .chemical-btn.selected { border-color: #f9c74f; background: rgba(249,199,79,0.2); box-shadow: 0 0 12px rgba(249,199,79,0.4); }
+  .chemical-btn .chem-symbol { font-size: 1.3rem; font-weight: bold; display: block; }
+  .chemical-btn .chem-name { font-size: 0.67rem; color: #a8dadc; }
+
+  /* beaker zone */
+  #beakerZone { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 14px; }
+  .slot-beaker { width: 80px; height: 80px; border: 3px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; transition: all 0.3s; position: relative; background: rgba(255,255,255,0.04); }
+  .slot-beaker.has-item { border-style: solid; border-color: #a8dadc; background: rgba(168,218,220,0.1); }
+  .slot-beaker .slot-label { position: absolute; bottom: -20px; font-size: 0.65rem; color: #a8dadc; white-space: nowrap; }
+  .plus-sign { font-size: 1.8rem; color: rgba(255,255,255,0.35); }
+  .arrow-sign { font-size: 1.4rem; color: rgba(255,255,255,0.35); }
+  #mixBtn { padding: 9px 26px; border: none; border-radius: 20px; background: linear-gradient(135deg, #4cc9f0, #4361ee); color: #fff; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: all 0.2s; display: block; margin: 8px auto 0; }
+  #mixBtn:hover { transform: scale(1.05); }
+  #mixBtn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  /* MC */
+  #mcOptions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .mc-btn { padding: 13px 16px; border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; background: rgba(255,255,255,0.06); color: #fff; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; }
+  .mc-btn:hover { border-color: #a8dadc; background: rgba(168,218,220,0.1); }
+  .mc-btn.correct { border-color: #43aa8b !important; background: rgba(67,170,139,0.2) !important; }
+  .mc-btn.wrong { border-color: #e94560 !important; background: rgba(233,69,96,0.2) !important; }
+
+  /* edu fact */
+  #eduFact { background: rgba(76,201,240,0.08); border: 1px solid rgba(76,201,240,0.25); border-radius: 10px; padding: 8px 14px; font-size: 0.8rem; color: #a8dadc; max-width: 680px; width: 100%; text-align: center; line-height: 1.5; margin-top: 10px; }
+
+  /* FEEDBACK */
+  #feedback { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
+  #feedbackBox { border-radius: 20px; padding: 18px 36px; text-align: center; font-size: 1.6rem; font-weight: bold; animation: popIn 0.3s ease; }
+  @keyframes popIn { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
+  #feedbackBox.correct { background: rgba(67,170,139,0.95); box-shadow: 0 0 40px #43aa8b; }
+  #feedbackBox.wrong { background: rgba(233,69,96,0.95); box-shadow: 0 0 40px #e94560; }
+  #feedbackSub { font-size: 0.9rem; font-weight: normal; margin-top: 5px; }
+
+  /* EXPLOSION */
+  #explosion { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 200; background: rgba(0,0,0,0.6); }
+  .exp-emoji { font-size: 7rem; animation: boom 0.5s ease; }
+  @keyframes boom { 0%{transform:scale(0)} 60%{transform:scale(1.4)} 100%{transform:scale(1)} }
+  #expMsg { font-size: 1.3rem; margin-top: 10px; color: #f9c74f; }
+  #expFact { font-size: 0.9rem; color: #a8dadc; margin-top: 8px; max-width: 380px; text-align: center; line-height: 1.5; }
+
+  /* ====== FLAPPY INSTRUCTIONS ====== */
+  #flappyInstructScreen { background: radial-gradient(ellipse at center, #1b2838, #0d1b2a); }
+  #flappyInstructScreen h2 { font-size: 2.2rem; color: #f9c74f; text-shadow: 0 0 20px #f9c74f; margin-bottom: 6px; }
+  #flappyInstructScreen .sub { color: #a8dadc; margin-bottom: 1.5rem; font-size: 1rem; }
+  .instruct-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 20px 28px; max-width: 480px; width: 90%; margin-bottom: 1.5rem; }
+  .instruct-row { display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .instruct-row:last-child { border-bottom: none; }
+  .instruct-icon { font-size: 2rem; width: 44px; text-align: center; flex-shrink: 0; }
+  .instruct-text { font-size: 0.92rem; color: #e0e0e0; line-height: 1.4; }
+  .instruct-text strong { color: #f9c74f; }
+  .bonus-note { color: #f9c74f; font-size: 0.82rem; margin-bottom: 1.2rem; }
+
+  /* ====== FLAPPY GAME ====== */
+  #flappyScreen { background: #0d1b2a; }
+  #flappyCanvas { border: 2px solid #e94560; border-radius: 4px; display: block; }
+  #flappyHud { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 5px 18px; border-radius: 20px; font-size: 0.9rem; color: #f9c74f; white-space: nowrap; }
+  #flappyOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); }
+  #flappyOverlay h2 { font-size: 2.2rem; color: #e94560; margin-bottom: 8px; }
+  #flappyOverlay p { color: #a8dadc; margin-bottom: 16px; font-size: 0.95rem; text-align: center; max-width: 340px; }
+
+  /* TRANSITION */
+  #transitionScreen { background: #000; z-index: 300; }
+  #transitionScreen h2 { font-size: 3rem; color: #f9c74f; text-shadow: 0 0 30px #f9c74f; animation: pulse 0.8s ease-in-out infinite alternate; }
+  @keyframes pulse { from{transform:scale(0.95)} to{transform:scale(1.05)} }
+  #transitionScreen p { color: #a8dadc; font-size: 1rem; margin-top: 8px; }
+
+  /* particle canvas */
+  #particleArea { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div id="menuScreen" class="screen active">
+  <div class="bubbles" id="bubbles"></div>
+  <div class="flask-icon">⚗️</div>
+  <h1>Ricco's Chem Lab Chaos!</h1>
+  <p style="color:#f9c74f;font-size:0.9rem;margin-bottom:0.3rem">🧪 Science Adventure for Ricco</p>
+  <p style="color:#a8dadc;font-size:0.85rem;margin-bottom:1.4rem">Mix chemicals, don't explode, become a scientist!</p>
+  <div class="curriculum-tags">
+    <span class="tag">⚗️ States of Matter</span><span class="tag">🔬 Particle Model</span>
+    <span class="tag">🧲 Elements</span><span class="tag">🧪 Compounds</span>
+    <span class="tag">🌊 Mixtures</span><span class="tag">🔥 Chemical Changes</span>
+    <span class="tag">🧫 Separation</span><span class="tag">🍋 Acids &amp; Alkalis</span>
+    <span class="tag">🌱 Plants</span><span class="tag">🫀 Human Body</span>
+    <span class="tag">🌍 Earth &amp; Space</span><span class="tag">⚡ Electricity</span>
+    <span class="tag">🦁 Living Things</span><span class="tag">🦴 Forces</span>
+    <span class="tag">🔊 Sound</span><span class="tag">💡 Light</span>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🧪 Start Experiment!</button>
+  <button id="muteBtn" onclick="toggleMusic()" style="position:fixed;top:12px;right:12px;z-index:999;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);color:#a8dadc;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:0.85rem">🔊 Music</button>
+  <p style="margin-top:10px;font-size:0.75rem;color:rgba(255,255,255,0.35)">Get 5 right in a row → unlock Flappy Molecule! 🐦</p>
+</div>
+
+<!-- LAB GAME -->
+<div id="labScreen" class="screen">
+  <div id="labHud">
+    <div class="score-box">⭐ <span id="scoreDisplay">0</span></div>
+    <div class="score-box">❤️ <span id="livesDisplay">❤️❤️❤️</span></div>
+    <div id="levelBadge">📚 <span id="topicLabel">Science</span></div>
+    <div id="streakBar">
+      <span style="font-size:0.72rem;color:#a8dadc">Streak:</span>
+      <div class="streak-dot" id="dot1"></div><div class="streak-dot" id="dot2"></div>
+      <div class="streak-dot" id="dot3"></div><div class="streak-dot" id="dot4"></div>
+      <div class="streak-dot" id="dot5"></div>
+      <span style="font-size:0.72rem;color:#f9c74f">🐦5</span>
+    </div>
+  </div>
+  <div id="labContent">
+    <div id="questionCard">
+      <div id="questionBadge">CHALLENGE</div>
+      <div id="questionText">Loading...</div>
+      <div id="questionHint"></div>
+    </div>
+    <div id="answerArea"></div>
+    <div id="eduFact">💡 Fun fact here!</div>
+  </div>
+</div>
+
+<!-- FEEDBACK -->
+<div id="feedback">
+  <div id="feedbackBox">✅ Correct!<div id="feedbackSub"></div></div>
+</div>
+
+<!-- EXPLOSION -->
+<div id="explosion">
+  <div style="text-align:center;padding:20px">
+    <div class="exp-emoji">💥</div>
+    <div id="expMsg">BOOM!</div>
+    <div id="expFact"></div>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="hideExplosion()">Try Again →</button>
+  </div>
+</div>
+
+<!-- TRANSITION -->
+<div id="transitionScreen" class="screen">
+  <h2>🔥 5 IN A ROW!</h2>
+  <p>Unlocking Flappy Molecule…</p>
+</div>
+
+<!-- FLAPPY INSTRUCTIONS -->
+<div id="flappyInstructScreen" class="screen">
+  <div style="font-size:3.5rem;margin-bottom:0.4rem">⚗️🐦</div>
+  <h2>Flappy Molecule!</h2>
+  <p class="sub">Well done Ricco — you earned this mini-game! 🎉</p>
+  <div class="instruct-card">
+    <div class="instruct-row">
+      <div class="instruct-icon">🖱️</div>
+      <div class="instruct-text"><strong>SPACE, click or tap</strong> to make the molecule flap its wings</div>
+    </div>
+    <div class="instruct-row">
+      <div class="instruct-icon">🧪</div>
+      <div class="instruct-text">Fly through the <strong>gaps between test tubes</strong> — don't hit them!</div>
+    </div>
+    <div class="instruct-row">
+      <div class="instruct-icon">☠️</div>
+      <div class="instruct-text">Hit a tube or the floor/ceiling and it's <strong>game over</strong></div>
+    </div>
+    <div class="instruct-row">
+      <div class="instruct-icon">⭐</div>
+      <div class="instruct-text">Each pipe you pass = <strong>+5 bonus points</strong> added to your lab score</div>
+    </div>
+    <div class="instruct-row">
+      <div class="instruct-icon">⚡</div>
+      <div class="instruct-text">The tubes <strong>speed up</strong> the higher your score gets!</div>
+    </div>
+  </div>
+  <p class="bonus-note">🏆 Try to beat your best score each time!</p>
+  <button class="btn btn-green" onclick="launchFlappy()" style="font-size:1.2rem;padding:16px 50px">🚀 Let's Go!</button>
+  <button onclick="returnToLabFromInstructions()" style="background:none;border:none;color:#a8dadc;font-size:0.8rem;margin-top:12px;cursor:pointer;text-decoration:underline">Skip — back to lab</button>
+</div>
+
+<!-- FLAPPY GAME -->
+<div id="flappyScreen" class="screen">
+  <div id="flappyHud">⚗️ Score: <span id="flappyScore">0</span> &nbsp;|&nbsp; Best: <span id="flappyBest">0</span></div>
+  <canvas id="flappyCanvas"></canvas>
+  <div id="flappyOverlay">
+    <h2 id="flappyTitle">Game Over!</h2>
+    <p id="flappyDesc"></p>
+    <button class="btn btn-primary" onclick="returnToLab()" id="flappyEndBtn">🔬 Back to the Lab!</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  SOUND ENGINE — simple beep, no scheduling complexity
+// ============================================================
+let AC = null;
+
+function beep(freq, dur, vol, type) {
+  try {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.connect(g);
+    g.connect(AC.destination);
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    g.gain.value = vol || 0.4;
+    o.start();
+    o.stop(AC.currentTime + (dur || 0.15));
+  } catch(e) { console.error('beep error:', e); }
+}
+
+function sndClick()   { beep(660, 0.08, 0.3); }
+function sndCorrect() { beep(523,0.12,0.4); setTimeout(()=>beep(659,0.12,0.4),120); setTimeout(()=>beep(784,0.12,0.4),240); setTimeout(()=>beep(1047,0.2,0.4),370); }
+function sndWrong()   { beep(220, 0.08, 0.5, 'sawtooth'); setTimeout(()=>beep(150,0.15,0.5,'sawtooth'),100); setTimeout(()=>beep(90,0.2,0.5,'sawtooth'),220); }
+function sndStreak()  { [523,659,784,1047,1319].forEach((f,i) => setTimeout(()=>beep(f,0.2,0.4),i*110)); }
+function sndFlap()    { beep(400, 0.07, 0.3, 'square'); }
+function sndPoint()   { beep(880, 0.08, 0.3); setTimeout(()=>beep(1320,0.1,0.3),90); }
+function sndDeath()   { beep(300,0.15,0.45,'sawtooth'); setTimeout(()=>beep(180,0.2,0.45,'sawtooth'),160); }
+
+// ============================================================
+//  BACKGROUND MUSIC  (Geometry Dash / Stereo Madness inspired)
+// ============================================================
+let MX = null, musicOn = true, musicLoop = null, nextBar = 0, barIdx = 0;
+const BPM = 140, BEAT = 60/BPM, BAR = BEAT*4;
+
+// Note frequencies
+const [G3,A3,B3,C4,D4,E4,F4,G4,A4,B4,C5,D5,E5,F5,G5,A5,Bb4,F3,B5] =
+  [196,220,246.94,261.63,293.66,329.63,349.23,392,440,493.88,523.25,587.33,659.25,698.46,783.99,880,466.16,174.61,987.77];
+
+function mx() {
+  if (!MX) MX = new (window.AudioContext || window.webkitAudioContext)();
+  if (MX.state === 'suspended') MX.resume();
+  return MX;
+}
+
+function kick(t) {
+  const ctx = mx(), o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(180, t);
+  o.frequency.exponentialRampToValueAtTime(30, t+0.25);
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.28);
+  o.start(t); o.stop(t+0.3);
+}
+
+function snare(t) {
+  const ctx = mx();
+  const buf = ctx.createBuffer(1, ctx.sampleRate*0.12, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const flt = ctx.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=2200;
+  const g = ctx.createGain();
+  src.connect(flt); flt.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(0.35, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.12);
+  src.start(t); src.stop(t+0.14);
+}
+
+function hat(t, vol) {
+  const ctx = mx();
+  const buf = ctx.createBuffer(1, ctx.sampleRate*0.04, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const flt = ctx.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=9000;
+  const g = ctx.createGain();
+  src.connect(flt); flt.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(vol||0.12, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.04);
+  src.start(t); src.stop(t+0.06);
+}
+
+function bass(freq, t, dur) {
+  if (!freq) return;
+  const ctx = mx(), o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = 'sawtooth'; o.frequency.value = freq;
+  const flt = ctx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=600;
+  o.disconnect(); o.connect(flt); flt.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(0.38, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+dur*0.85);
+  o.start(t); o.stop(t+dur);
+}
+
+function lead(freq, t, dur, vol) {
+  if (!freq) return;
+  const ctx = mx(), o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = 'square'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol||0.18, t+0.01);
+  g.gain.setValueAtTime(vol||0.18, t+dur-0.04);
+  g.gain.linearRampToValueAtTime(0, t+dur);
+  o.start(t); o.stop(t+dur+0.02);
+}
+
+function arp(freq, t, dur) {
+  if (!freq) return;
+  const ctx = mx(), o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = 'triangle'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.1, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+dur*0.7);
+  o.start(t); o.stop(t+dur);
+}
+
+// Stereo Madness-inspired patterns
+// Each entry: [freq_or_0, beat_offset, duration_in_beats]
+const BASS_PAT = [
+  [G3,0,0.9],[G3,1,0.9],[G3,2,0.4],[G3,2.5,0.4],[C4,3,0.9],
+  [C4,4,0.9],[C4,5,0.9],[C4,6,0.4],[C4,6.5,0.4],[F3,7,0.9],
+  [F3,8,0.9],[F3,9,0.9],[G3,10,0.4],[G3,10.5,0.4],[G3,11,0.9],
+  [G3,12,0.9],[G3,13,0.9],[C4,14,0.4],[C4,14.5,0.4],[G3,15,1.8],
+];
+
+const MELODY_PAT = [
+  [G4,0,0.45],[G4,0.5,0.45],[B4,1,0.9],[A4,2,0.45],[G4,2.5,0.45],
+  [E4,3,0.9],[G4,4,0.45],[A4,4.5,0.45],[B4,5,0.9],[G4,6,0.45],[A4,6.5,0.45],
+  [B4,7,0.9],[D5,8,0.9],[B4,9,0.45],[A4,9.5,0.45],[G4,10,1.8],
+  [G4,12,0.45],[A4,12.5,0.45],[B4,13,0.45],[A4,13.5,0.45],[G4,14,0.9],[E4,15,0.9],
+];
+
+const ARP_PAT = [
+  [G5,0],[B5||B4*2,0.25],[D5,0.5],[B4,0.75],
+  [G5,1],[B5||B4*2,1.25],[D5,1.5],[B4,1.75],
+  [C5,2],[E5,2.25],[G5,2.5],[E5,2.75],
+  [C5,3],[E5,3.25],[G5,3.5],[E5,3.75],
+].map(([f,t]) => [f,t,0.22]);
+
+const LOOP_BARS = 4; // 4-bar loop = 16 beats
+
+function scheduleBar(startT) {
+  const b = barIdx % LOOP_BARS;
+
+  // Drums every bar
+  for (let i=0;i<4;i++) kick(startT + i*BEAT);
+  snare(startT + BEAT);   // beat 2
+  snare(startT + BEAT*3); // beat 4
+  for (let i=0;i<8;i++) hat(startT + i*BEAT*0.5, i%2===0?0.14:0.08);
+
+  // Bass (all 4 bars, offset into BASS_PAT by which bar we're on)
+  const bOff = b * 4; // bar offset in beats
+  BASS_PAT.forEach(([f,bt,d]) => {
+    if (bt >= bOff && bt < bOff+4) bass(f, startT+(bt-bOff)*BEAT, d*BEAT);
+  });
+
+  // Melody on bars 1 & 3 (0-indexed)
+  if (b===1||b===3) {
+    const mOff = b===1?0:8; // which section of MELODY_PAT
+    MELODY_PAT.forEach(([f,bt,d]) => {
+      if (bt >= mOff && bt < mOff+8) lead(f, startT+(bt-mOff)*BEAT*0.5, d*BEAT*0.5);
+    });
+  }
+
+  // Arp on bars 0 & 2
+  if (b===0||b===2) {
+    ARP_PAT.forEach(([f,bt,d]) => arp(f, startT+bt*BEAT, d*BEAT));
+  }
+
+  barIdx++;
+}
+
+function musicTick() {
+  if (!musicOn) return;
+  const ctx = mx();
+  const now = ctx.currentTime;
+  while (nextBar < now + BAR*3) {
+    scheduleBar(nextBar);
+    nextBar += BAR;
+  }
+  musicLoop = setTimeout(musicTick, BAR*500);
+}
+
+function startMusic() {
+  if (!musicOn) return;
+  const ctx = mx();
+  nextBar = ctx.currentTime + 0.05;
+  barIdx = 0;
+  musicTick();
+}
+
+function toggleMusic() {
+  musicOn = !musicOn;
+  document.getElementById('muteBtn').textContent = musicOn ? '🔊 Music' : '🔇 Muted';
+  if (musicOn) startMusic();
+  else { clearTimeout(musicLoop); musicLoop = null; }
+}
+
+// Start music on first user click
+let musicStarted = false;
+document.addEventListener('click', () => {
+  if (!musicStarted && musicOn) { musicStarted = true; startMusic(); }
+}, true);
+
+// ============================================================
+//  QUESTION BANK
+// ============================================================
+const questions = [
+
+  // ==================== CHEMISTRY ====================
+
+  // ELEMENTS
+  { topic:"Elements", type:"mc", q:"Which of these is a pure element?",
+    options:["Gold (Au)","Water (H₂O)","Salt (NaCl)","Air"], correct:0,
+    fact:"Gold is a pure element — only gold atoms. Water and salt are compounds; air is a mixture!",
+    hint:"An element contains only ONE type of atom." },
+  { topic:"Elements", type:"mc", q:"What is the chemical symbol for Oxygen?",
+    options:["O","Ox","Om","On"], correct:0,
+    fact:"Oxygen's symbol is O. It's element number 8 and we breathe it every second!",
+    hint:"Element symbols come from their Latin or English names." },
+  { topic:"Elements", type:"mc", q:"Iron has the symbol Fe. Where does 'Fe' come from?",
+    options:["Latin (Ferrum)","French (Fer)","German","Greek"], correct:0,
+    fact:"Fe comes from the Latin word 'Ferrum'. Many symbols come from Latin!",
+    hint:"Scientists used Latin for thousands of years." },
+  { topic:"Elements", type:"mc", q:"How many elements are on the periodic table?",
+    options:["118","100","92","150"], correct:0,
+    fact:"There are 118 known elements! 94 occur naturally; the rest are made in labs.",
+    hint:"There are more than 100!" },
+
+  // COMPOUNDS
+  { topic:"Compounds", type:"mix",
+    q:"Mix the right chemicals to make Water (H₂O)!",
+    chemicals:["Hydrogen (H)","Oxygen (O)","Carbon (C)","Nitrogen (N)","Helium (He)"],
+    symbols:["H","O","C","N","He"], correct:[0,1], result:"H₂O — Water",
+    fact:"Water (H₂O) has 2 hydrogen atoms and 1 oxygen atom. Most important compound for life!",
+    hint:"H₂O — which elements do those letters refer to?" },
+  { topic:"Compounds", type:"mix",
+    q:"Mix the right chemicals to make Carbon Dioxide (CO₂)!",
+    chemicals:["Carbon (C)","Oxygen (O)","Hydrogen (H)","Nitrogen (N)","Sulfur (S)"],
+    symbols:["C","O","H","N","S"], correct:[0,1], result:"CO₂ — Carbon Dioxide",
+    fact:"CO₂ is what we breathe out! Plants absorb it and use sunlight to make glucose — photosynthesis!",
+    hint:"CO₂ — the letters tell you which elements it contains!" },
+  { topic:"Compounds", type:"mix",
+    q:"Mix the right chemicals to make Table Salt (NaCl)!",
+    chemicals:["Sodium (Na)","Chlorine (Cl)","Potassium (K)","Oxygen (O)","Carbon (C)"],
+    symbols:["Na","Cl","K","O","C"], correct:[0,1], result:"NaCl — Table Salt",
+    fact:"Sodium is a reactive metal; chlorine is a toxic gas — together they make the salt on your chips!",
+    hint:"NaCl — Na is sodium, Cl is chlorine!" },
+  { topic:"Compounds", type:"mc", q:"What makes a compound DIFFERENT from a mixture?",
+    options:["Atoms are chemically bonded","It contains one element only","It can be filtered","It is always liquid"], correct:0,
+    fact:"In a compound atoms are chemically bonded — you need a chemical reaction to split them.",
+    hint:"Think about HOW the parts are connected." },
+
+  // MIXTURES
+  { topic:"Mixtures", type:"mc", q:"Which of these is a MIXTURE?",
+    options:["Sea water","Water (H₂O)","Gold (Au)","Salt (NaCl)"], correct:0,
+    fact:"Sea water is a mixture of water, salt and many dissolved substances. Separate by evaporation!",
+    hint:"A mixture contains substances that aren't chemically joined." },
+  { topic:"Mixtures", type:"mc", q:"How is a mixture DIFFERENT from a compound?",
+    options:["Parts aren't chemically joined, can be separated","Has exactly two elements","Has a fixed boiling point","Always looks the same throughout"], correct:0,
+    fact:"Mixtures can be separated by physical methods like filtering or evaporation!",
+    hint:"Can you separate a mixture without a chemical reaction?" },
+  { topic:"Mixtures", type:"mc", q:"Sand mixed with water makes a...",
+    options:["Mixture","Compound","Element","Alloy"], correct:0,
+    fact:"Sand and water form a mixture — they aren't bonded. Separate them by filtering!",
+    hint:"The sand and water keep their own properties." },
+
+  // STATES OF MATTER
+  { topic:"States of Matter", type:"mc", q:"When water turns to ice, what type of change is this?",
+    options:["Physical change (freezing)","Chemical change","Evaporation","Condensation"], correct:0,
+    fact:"Freezing is physical! Water molecules are still H₂O — they slow down and pack tightly. Reversible by melting!",
+    hint:"Can you turn ice back into water easily?" },
+  { topic:"States of Matter", type:"mc", q:"Which state has NO fixed shape AND no fixed volume?",
+    options:["Gas","Solid","Liquid","Plasma"], correct:0,
+    fact:"Gas particles move very fast and fill any container — no fixed shape or volume!",
+    hint:"Think about what happens when you open a fizzy drink..." },
+  { topic:"States of Matter", type:"mc", q:"What happens to particles when a substance is heated?",
+    options:["They move faster and spread out","They move slower and clump together","They turn into different atoms","They stop moving"], correct:0,
+    fact:"Heating gives particles more energy, making them move faster. This can melt solids and evaporate liquids!",
+    hint:"Energy makes things move more..." },
+  { topic:"States of Matter", type:"mc", q:"What is the process of a liquid turning into a gas called?",
+    options:["Evaporation","Condensation","Melting","Freezing"], correct:0,
+    fact:"Evaporation = liquid → gas. Condensation is the opposite: gas → liquid (like water droplets on a cold window)!",
+    hint:"Think about puddles drying up on a sunny day." },
+
+  // PARTICLE MODEL
+  { topic:"Particle Model", type:"particle", q:"Which arrangement shows particles in a SOLID?", state:"solid",
+    fact:"In a solid, particles are packed tightly in a regular pattern and only vibrate in place.",
+    hint:"Solid particles are very close together and orderly." },
+  { topic:"Particle Model", type:"particle", q:"Which arrangement shows particles in a GAS?", state:"gas",
+    fact:"Gas particles zoom around randomly with big gaps between them — that's why gases can be compressed!",
+    hint:"Gas particles have lots of space between them." },
+  { topic:"Particle Model", type:"mc", q:"In which state are particles CLOSEST together?",
+    options:["Solid","Liquid","Gas","Same in all"], correct:0,
+    fact:"Solid particles are packed most tightly, in a regular pattern — which is why solids are usually densest!",
+    hint:"Think about which state has the least movement." },
+
+  // CHEMICAL vs PHYSICAL
+  { topic:"Physical & Chemical Changes", type:"mc", q:"Burning a piece of paper is a...",
+    options:["Chemical change (irreversible)","Physical change (reversible)","Mixture forming","Evaporation"], correct:0,
+    fact:"Burning is chemical! New substances (CO₂ and water vapour) form and you CAN'T get the paper back.",
+    hint:"Can you turn ash back into paper?" },
+  { topic:"Physical & Chemical Changes", type:"mc", q:"Which of these is a PHYSICAL change?",
+    options:["Cutting paper","Burning wood","Cooking an egg","Iron rusting"], correct:0,
+    fact:"Cutting paper is physical — the paper is still paper, just smaller! The others create new substances.",
+    hint:"In a physical change, no new substance is made." },
+  { topic:"Physical & Chemical Changes", type:"mc", q:"Which is a sign of a CHEMICAL change?",
+    options:["A new substance forms","The substance changes shape","The substance changes size","Only colour changes"], correct:0,
+    fact:"Signs of chemical change: new smell, gas bubbles, light/heat given off, hard to reverse!",
+    hint:"Chemical changes produce NEW substances." },
+  { topic:"Physical & Chemical Changes", type:"mc", q:"Iron rusting is a...",
+    options:["Chemical change — new substance (iron oxide)","Physical change","Evaporation","Mixture forming"], correct:0,
+    fact:"Rust is iron oxide (Fe₂O₃) — a completely new substance! Iron + oxygen + water → rust.",
+    hint:"Rust is a different substance from iron!" },
+
+  // SEPARATION TECHNIQUES
+  { topic:"Separation Techniques", type:"mc", q:"How would you separate SAND from WATER?",
+    options:["Filtration","Evaporation","Distillation","Chromatography"], correct:0,
+    fact:"Filtration works because sand is too big to pass through filter paper, but water molecules are tiny!",
+    hint:"What equipment would you use in a chemistry lab?" },
+  { topic:"Separation Techniques", type:"mc", q:"How would you get SALT back from salty water?",
+    options:["Evaporation","Filtration","Distillation","Magnetism"], correct:0,
+    fact:"Evaporate the water by heating — water turns to steam, salt crystals remain. That's how sea salt is made!",
+    hint:"Water can turn into steam if heated..." },
+  { topic:"Separation Techniques", type:"mc", q:"Which technique separates a mixture of different coloured dyes?",
+    options:["Chromatography","Filtration","Evaporation","Distillation"], correct:0,
+    fact:"Chromatography! Different dye molecules travel different distances. Used in forensic science!",
+    hint:"This technique separates coloured substances." },
+  { topic:"Separation Techniques", type:"mc", q:"You could separate iron filings from sand using...",
+    options:["A magnet","Filtration","Evaporation","Chromatography"], correct:0,
+    fact:"A magnet attracts iron but not sand — magnetic separation! Simple and effective.",
+    hint:"Iron has a special magnetic property..." },
+
+  // ACIDS AND ALKALIS
+  { topic:"Acids & Alkalis", type:"mc", q:"Which of these is an ACID?",
+    options:["Lemon juice","Baking soda","Toothpaste","Bleach"], correct:0,
+    fact:"Lemon juice contains citric acid (pH ~2). Baking soda, toothpaste and bleach are all alkalis!",
+    hint:"Acids taste sour (don't taste chemicals in a lab!)" },
+  { topic:"Acids & Alkalis", type:"mc", q:"On the pH scale, what number is NEUTRAL?",
+    options:["7","0","14","5"], correct:0,
+    fact:"pH 7 is neutral — that's pure water! Below 7 = acidic, above 7 = alkaline.",
+    hint:"The scale goes from 0–14..." },
+  { topic:"Acids & Alkalis", type:"mc", q:"What colour does universal indicator turn in an ACID?",
+    options:["Red/orange","Blue/purple","Green","Yellow"], correct:0,
+    fact:"Red/orange in acids, green in neutral, blue/purple in alkalis. It's a mixture of colour-changing dyes!",
+    hint:"Think traffic light colours from 0–14." },
+  { topic:"Acids & Alkalis", type:"mc", q:"When an acid and alkali mix, they...",
+    options:["Neutralise each other","Both get stronger","Explode","Turn into an element"], correct:0,
+    fact:"Neutralisation! Acids and alkalis cancel out. Balanced perfectly = neutral solution + salt + water.",
+    hint:"Think about what 'neutral' means..." },
+
+  // ==================== SATs SCIENCE ====================
+
+  // PLANTS
+  { topic:"Plants", type:"mc", q:"What process do plants use to make their own food?",
+    options:["Photosynthesis","Respiration","Digestion","Transpiration"], correct:0,
+    fact:"Plants absorb sunlight, water (from roots) and CO₂ (from air) to make glucose. Oxygen is released as a by-product!",
+    hint:"Photo = light, synthesis = making..." },
+  { topic:"Plants", type:"mc", q:"What gas do plants absorb during photosynthesis?",
+    options:["Carbon dioxide (CO₂)","Oxygen (O₂)","Nitrogen (N₂)","Hydrogen (H₂)"], correct:0,
+    fact:"Plants take in CO₂ and release O₂ — the opposite of what we do when we breathe!",
+    hint:"It's the gas we breathe OUT." },
+  { topic:"Plants", type:"mc", q:"Which part of the plant absorbs water and minerals from the soil?",
+    options:["Roots","Leaves","Stem","Flowers"], correct:0,
+    fact:"Root hair cells have a very large surface area to absorb water and minerals efficiently!",
+    hint:"It's the underground part." },
+  { topic:"Plants", type:"mc", q:"What is the function of the flower?",
+    options:["Reproduction","Photosynthesis","Absorbing water","Supporting the plant"], correct:0,
+    fact:"Flowers contain male and female parts for reproduction. Pollination leads to seed production!",
+    hint:"Flowers attract insects for a reason..." },
+  { topic:"Plants", type:"mc", q:"What is pollination?",
+    options:["Transfer of pollen between flowers","Making seeds in the ground","Absorbing water through roots","Leaves falling off"], correct:0,
+    fact:"Pollination is when pollen moves from the male stamen to the female stigma. Bees, wind and insects help!",
+    hint:"Pollen has to travel from one flower to another..." },
+  { topic:"Plants", type:"mc", q:"Which part of the plant carries water from the roots to the leaves?",
+    options:["Stem (xylem tubes)","Petals","Sepals","Roots"], correct:0,
+    fact:"Xylem tubes run up the stem like tiny pipes, carrying water and minerals from roots to leaves!",
+    hint:"Water travels up through the tall part of the plant." },
+  { topic:"Plants", type:"mc", q:"What do seeds need to germinate (start growing)?",
+    options:["Water, warmth and oxygen","Sunlight, soil and fertiliser","Rain, wind and cold","Darkness and heat only"], correct:0,
+    fact:"Seeds need water, warmth and oxygen to germinate — NOT sunlight! The seedling makes food once leaves appear.",
+    hint:"The seed has stored food, so it doesn't need sunlight yet." },
+
+  // ANIMALS INCLUDING HUMANS
+  { topic:"Human Body", type:"mc", q:"What is the main function of the heart?",
+    options:["Pump blood around the body","Digest food","Filter blood","Produce oxygen"], correct:0,
+    fact:"The heart pumps blood around the body in a continuous loop, delivering oxygen and nutrients to every cell!",
+    hint:"Think about what keeps blood moving..." },
+  { topic:"Human Body", type:"mc", q:"What do red blood cells carry?",
+    options:["Oxygen","Carbon dioxide","Nutrients","White blood cells"], correct:0,
+    fact:"Red blood cells contain haemoglobin which binds to oxygen in the lungs and delivers it around the body!",
+    hint:"They're red because of what they carry..." },
+  { topic:"Human Body", type:"mc", q:"What are the lungs responsible for?",
+    options:["Taking in oxygen and removing CO₂","Pumping blood","Digesting food","Filtering waste from blood"], correct:0,
+    fact:"Gas exchange! Oxygen from the air enters the blood in the lungs; CO₂ waste leaves the blood and is breathed out.",
+    hint:"Think about breathing in and breathing out." },
+  { topic:"Human Body", type:"mc", q:"What is the role of the stomach in digestion?",
+    options:["Breaks down food with acid and muscles","Absorbs nutrients into blood","Filters waste from blood","Pumps food through the body"], correct:0,
+    fact:"The stomach produces hydrochloric acid and uses muscular walls to churn food into a liquid called chyme!",
+    hint:"The stomach is very acidic for a reason." },
+  { topic:"Human Body", type:"mc", q:"Which nutrient do we need for growth and repair of muscles?",
+    options:["Protein","Carbohydrates","Fat","Vitamins"], correct:0,
+    fact:"Proteins are the building blocks of the body! Meat, fish, eggs, beans and nuts are all good protein sources.",
+    hint:"Think about body-builders eating lots of this..." },
+  { topic:"Human Body", type:"mc", q:"What is a vertebrate?",
+    options:["An animal with a backbone (spine)","An animal without a backbone","An animal with 6 legs","A plant with a woody stem"], correct:0,
+    fact:"Vertebrates have a backbone (vertebral column). The 5 groups are: fish, amphibians, reptiles, birds and mammals!",
+    hint:"'Vertebra' is a bone in your spine." },
+  { topic:"Human Body", type:"mc", q:"What are the five vertebrate groups?",
+    options:["Fish, Amphibians, Reptiles, Birds, Mammals","Insects, Spiders, Worms, Slugs, Snails","Sharks, Whales, Lizards, Eagles, Dogs","Plants, Fungi, Bacteria, Algae, Animals"], correct:0,
+    fact:"All vertebrates have a spine. Invertebrates (like insects and worms) don't!",
+    hint:"Remember: FARM-B — Fish, Amphibians, Reptiles, Mammals, Birds." },
+  { topic:"Human Body", type:"mc", q:"What is a herbivore?",
+    options:["An animal that only eats plants","An animal that only eats meat","An animal that eats both plants and meat","A plant that eats insects"], correct:0,
+    fact:"Herbivores eat plants: cows, rabbits, horses. Carnivores eat meat. Omnivores eat both (like humans)!",
+    hint:"'Herba' is the Latin word for plant." },
+
+  // ROCKS
+  { topic:"Rocks & Soils", type:"mc", q:"Which type of rock is formed when molten lava cools and hardens?",
+    options:["Igneous rock","Sedimentary rock","Metamorphic rock","Chalk"], correct:0,
+    fact:"Igneous means 'fire-formed'! Granite and basalt are igneous. Slow cooling = big crystals; fast = small crystals.",
+    hint:"Igneous comes from the Latin for fire (ignis)." },
+  { topic:"Rocks & Soils", type:"mc", q:"How is sedimentary rock formed?",
+    options:["Layers of sediment are compressed over millions of years","Lava cools and hardens","Rock is heated and squeezed underground","Water freezes inside rock"], correct:0,
+    fact:"Sediment (sand, shells, mud) builds up in layers at the bottom of seas and rivers and is compressed into rock!",
+    hint:"Think about layers building up over a very long time..." },
+  { topic:"Rocks & Soils", type:"mc", q:"What is a fossil?",
+    options:["Preserved remains or traces of ancient living things","A type of crystal","A very old piece of metal","A rock that can float"], correct:0,
+    fact:"Fossils form when organisms are buried in sediment. They give us evidence of life millions of years ago!",
+    hint:"You find fossils in sedimentary rock." },
+  { topic:"Rocks & Soils", type:"mc", q:"Which rock is HARDEST?",
+    options:["Diamond","Chalk","Limestone","Sandstone"], correct:0,
+    fact:"Diamond is the hardest natural substance — it scores 10 on the Mohs hardness scale! It's a form of pure carbon.",
+    hint:"This is used in engagement rings!" },
+
+  // LIGHT
+  { topic:"Light", type:"mc", q:"How do we see objects that don't produce their own light?",
+    options:["Light reflects off them into our eyes","Our eyes send out beams of light","Objects glow in the dark","Sound helps us see"], correct:0,
+    fact:"Light from the Sun (or a lamp) bounces off objects and travels into our eyes — that's how we see!",
+    hint:"Light has to reach your eyes somehow..." },
+  { topic:"Light", type:"mc", q:"What is a shadow?",
+    options:["A dark area where light is blocked by an opaque object","A reflection on water","Light bending through glass","A type of echo"], correct:0,
+    fact:"Opaque objects block light, creating a shadow on the other side. Transparent objects don't create shadows!",
+    hint:"Stand in bright sunlight — what do you see behind you?" },
+  { topic:"Light", type:"mc", q:"What are the colours of the visible spectrum (rainbow order)?",
+    options:["Red, Orange, Yellow, Green, Blue, Indigo, Violet","Red, White, Blue, Green, Yellow, Black, Pink","Orange, Yellow, Blue, Purple, Red, Green, Brown","Blue, Green, Red, Yellow, Purple, White, Black"], correct:0,
+    fact:"Remember ROYGBIV! White light from the Sun contains ALL these colours. A prism splits them up.",
+    hint:"Remember ROYGBIV!" },
+  { topic:"Light", type:"mc", q:"Which type of surface reflects light BEST?",
+    options:["Smooth and shiny (like a mirror)","Rough and dark","Soft and fluffy","Transparent and coloured"], correct:0,
+    fact:"Smooth, shiny surfaces like mirrors reflect light regularly. Rough surfaces scatter light in all directions!",
+    hint:"Mirrors are very good reflectors..." },
+
+  // FORCES
+  { topic:"Forces", type:"mc", q:"What is gravity?",
+    options:["A force that pulls objects towards the Earth","A force that pushes objects upwards","The speed of falling objects","A type of friction"], correct:0,
+    fact:"Every object with mass has gravity. Earth's gravity pulls everything towards its centre — that's why we don't float away!",
+    hint:"Drop something — what pulls it down?" },
+  { topic:"Forces", type:"mc", q:"What is friction?",
+    options:["A force that opposes motion between surfaces","A force that pulls things down","The speed of an object","Air pushing against things"], correct:0,
+    fact:"Friction acts between surfaces in contact. Rough surfaces create more friction. It's useful for braking but wastes energy as heat!",
+    hint:"Try sliding on ice vs carpet — which has more?" },
+  { topic:"Forces", type:"mc", q:"What is air resistance?",
+    options:["A force that slows objects moving through air","A force that pulls things towards Earth","The weight of air","Electricity in the atmosphere"], correct:0,
+    fact:"Air resistance (drag) acts against movement through air. A parachute works by increasing air resistance to slow a fall!",
+    hint:"Why do parachutes work?" },
+  { topic:"Forces", type:"mc", q:"Who first described the force of gravity?",
+    options:["Isaac Newton","Albert Einstein","Charles Darwin","Galileo Galilei"], correct:0,
+    fact:"Newton (1643–1727) described gravity after (legend has it) watching an apple fall from a tree!",
+    hint:"He's famous for a story involving a falling apple..." },
+  { topic:"Forces", type:"mc", q:"What is the unit of force?",
+    options:["Newton (N)","Kilogram (kg)","Metre (m)","Joule (J)"], correct:0,
+    fact:"Forces are measured in Newtons (N), named after Isaac Newton. A 1 kg mass has a weight of about 10 N on Earth.",
+    hint:"Named after the scientist who described gravity!" },
+  { topic:"Forces", type:"mc", q:"What is upthrust?",
+    options:["An upward force on objects in a liquid","A downward push from air","The force of a rocket","Magnetic repulsion"], correct:0,
+    fact:"Upthrust is the upward push from water (or any fluid) on an object. If upthrust ≥ weight, the object floats!",
+    hint:"Why do boats float?" },
+
+  // EARTH AND SPACE
+  { topic:"Earth & Space", type:"mc", q:"What is the closest planet to the Sun?",
+    options:["Mercury","Venus","Earth","Mars"], correct:0,
+    fact:"Mercury is closest to the Sun but has no atmosphere, so temperatures swing from -180°C to 430°C!",
+    hint:"It's named after the Roman messenger god — small and fast!" },
+  { topic:"Earth & Space", type:"mc", q:"What causes day and night?",
+    options:["Earth rotating on its own axis","The Sun moving around Earth","The Moon blocking the Sun","Earth orbiting the Sun"], correct:0,
+    fact:"Earth takes 24 hours to spin once on its axis. The side facing the Sun has day; the other side has night!",
+    hint:"Think about Earth spinning like a top." },
+  { topic:"Earth & Space", type:"mc", q:"How long does it take Earth to orbit the Sun?",
+    options:["365.25 days (1 year)","24 hours","28 days","100 years"], correct:0,
+    fact:"Earth takes ~365.25 days to orbit the Sun. That extra 0.25 adds up to one extra day every 4 years — a leap year!",
+    hint:"Think about how many days are in a year." },
+  { topic:"Earth & Space", type:"mc", q:"What causes the seasons?",
+    options:["Earth's tilted axis as it orbits the Sun","Earth moving closer and further from the Sun","The Moon's position","Clouds blocking sunlight"], correct:0,
+    fact:"Earth is tilted at 23.5°. When the UK tilts towards the Sun, we get summer. When tilted away, we get winter!",
+    hint:"Earth isn't straight up — it's tilted!" },
+  { topic:"Earth & Space", type:"mc", q:"What is the largest planet in our solar system?",
+    options:["Jupiter","Saturn","Neptune","Uranus"], correct:0,
+    fact:"Jupiter is so massive that over 1,300 Earths could fit inside it! It has the Great Red Spot — a storm bigger than Earth.",
+    hint:"It has a giant storm on it!" },
+  { topic:"Earth & Space", type:"mc", q:"How long does it take the Moon to orbit Earth?",
+    options:["About 28 days","1 day","365 days","7 days"], correct:0,
+    fact:"The Moon takes about 27.3 days to orbit Earth. It also spins at the same rate, which is why we always see the same face!",
+    hint:"Think about how long a lunar month is." },
+  { topic:"Earth & Space", type:"mc", q:"What is our galaxy called?",
+    options:["The Milky Way","Andromeda","The Solar System","The Big Bang"], correct:0,
+    fact:"The Milky Way contains over 200 billion stars! Our Solar System is in one of its spiral arms.",
+    hint:"You can see it as a faint band of light on a dark night." },
+
+  // ELECTRICITY
+  { topic:"Electricity", type:"mc", q:"What is needed for electricity to flow in a circuit?",
+    options:["A complete (unbroken) loop","A battery only","Metal wire only","A light bulb"], correct:0,
+    fact:"Current only flows when there's a complete circuit — break any part and current stops. That's how switches work!",
+    hint:"A 'break' in the circuit stops everything." },
+  { topic:"Electricity", type:"mc", q:"Which material is a CONDUCTOR of electricity?",
+    options:["Copper wire","Plastic","Wood","Rubber"], correct:0,
+    fact:"Most metals (copper, gold, silver, iron) are conductors. Plastic and rubber are insulators used to coat wires safely!",
+    hint:"Most metals allow electricity to flow." },
+  { topic:"Electricity", type:"mc", q:"In a SERIES circuit, what happens if one bulb is removed?",
+    options:["All bulbs go out","Only that bulb goes out","The others get brighter","Nothing changes"], correct:0,
+    fact:"In a series circuit there's only one path for current. Remove one component and the loop breaks — all bulbs go out!",
+    hint:"There's only one path for the current..." },
+  { topic:"Electricity", type:"mc", q:"In a PARALLEL circuit, what happens if one bulb is removed?",
+    options:["Other bulbs stay on","All bulbs go out","The battery explodes","All bulbs get dimmer"], correct:0,
+    fact:"In parallel circuits there are multiple paths. One path breaking doesn't affect the others — that's why house wiring is parallel!",
+    hint:"There are multiple paths for the current." },
+  { topic:"Electricity", type:"mc", q:"How could you make a bulb in a circuit shine BRIGHTER?",
+    options:["Add more batteries","Remove batteries","Add more bulbs in series","Use a longer wire"], correct:0,
+    fact:"More batteries = higher voltage = more current = brighter bulb! Adding more bulbs in series actually makes them dimmer.",
+    hint:"More power in = more power out!" },
+
+  // LIVING THINGS & HABITATS
+  { topic:"Living Things", type:"mc", q:"What is a habitat?",
+    options:["The natural home/environment of an organism","A type of animal","A food chain","A way of classifying living things"], correct:0,
+    fact:"Different habitats (rainforest, ocean, desert, pond) have different conditions that suit different organisms!",
+    hint:"Where does an animal naturally live?" },
+  { topic:"Living Things", type:"mc", q:"What is ADAPTATION?",
+    options:["A feature that helps an organism survive in its environment","A type of fossil","When animals move to warmer places","A way plants reproduce"], correct:0,
+    fact:"A polar bear's white fur (camouflage) and thick fat (insulation) are adaptations for Arctic survival!",
+    hint:"Think about WHY a polar bear is white..." },
+  { topic:"Living Things", type:"mc", q:"In a food chain, what is a PRODUCER?",
+    options:["A plant that makes its own food","An animal that eats other animals","A decomposer like a fungus","An animal at the top of the chain"], correct:0,
+    fact:"Producers (plants) make food using sunlight. All food chains start with a producer — they make the energy available!",
+    hint:"Who 'produces' the food energy?" },
+  { topic:"Living Things", type:"mc", q:"Who created the system we use to classify living things?",
+    options:["Carl Linnaeus","Charles Darwin","Isaac Newton","Louis Pasteur"], correct:0,
+    fact:"Carl Linnaeus (1707–1778) created binomial nomenclature — the two-part Latin name system (e.g. Homo sapiens)!",
+    hint:"He created the Latin naming system we still use today." },
+  { topic:"Living Things", type:"mc", q:"Which of these is NOT a sign of a living thing?",
+    options:["Made of metal","Reproduces","Grows","Responds to changes"], correct:0,
+    fact:"Living things MRS GREN: Movement, Respiration, Sensitivity, Growth, Reproduction, Excretion, Nutrition!",
+    hint:"Remember MRS GREN for signs of life." },
+
+  // EVOLUTION
+  { topic:"Evolution", type:"mc", q:"Who developed the theory of evolution by natural selection?",
+    options:["Charles Darwin","Isaac Newton","Carl Linnaeus","Marie Curie"], correct:0,
+    fact:"Darwin (1809–1882) sailed on HMS Beagle and observed different species. He published 'On the Origin of Species' in 1859!",
+    hint:"He studied finches on the Galapagos Islands." },
+  { topic:"Evolution", type:"mc", q:"What is natural selection?",
+    options:["Individuals with better adaptations are more likely to survive and reproduce","Animals choosing their favourite food","Plants growing towards sunlight","The strongest animals picking on weaker ones"], correct:0,
+    fact:"'Survival of the fittest' — organisms with helpful traits survive, pass genes to offspring, and those traits become common!",
+    hint:"'Survival of the fittest' — but 'fittest' means BEST ADAPTED, not strongest!" },
+  { topic:"Evolution", type:"mc", q:"What is inheritance?",
+    options:["Passing characteristics from parents to offspring","Animals living in habitats","Plants absorbing nutrients","The age of fossils"], correct:0,
+    fact:"Offspring inherit characteristics (eye colour, height, blood group) from their parents through genes in DNA!",
+    hint:"Think about why you look like your parents." },
+
+  // SOUND
+  { topic:"Sound", type:"mc", q:"What causes sound?",
+    options:["Vibrations","Gravity","Chemical reactions","Light waves"], correct:0,
+    fact:"All sounds are caused by vibrations. The vibrations travel as waves through materials (solid, liquid, or gas) to our ears!",
+    hint:"Put your hand on a speaker — what do you feel?" },
+  { topic:"Sound", type:"mc", q:"Can sound travel through space?",
+    options:["No — there's no medium (material) in space","Yes — it travels very fast","Yes — but only in sunlight","No — it needs to be dark"], correct:0,
+    fact:"Sound needs a medium to travel through. Space is a vacuum (no particles), so there's nothing for the vibrations to pass through!",
+    hint:"Space is a vacuum — there are no particles." },
+  { topic:"Sound", type:"mc", q:"What is PITCH?",
+    options:["How high or low a sound is","How loud or quiet a sound is","The speed of sound","The direction of sound"], correct:0,
+    fact:"Pitch depends on frequency of vibration. Fast vibrations = high pitch (piccolo). Slow vibrations = low pitch (tuba)!",
+    hint:"Think about the difference between a mouse squeak and a lion's roar." },
+  { topic:"Sound", type:"mc", q:"How would you make a guitar string produce a HIGHER pitch note?",
+    options:["Make the string tighter/shorter","Make the string longer/looser","Pluck it harder","Make the guitar bigger"], correct:0,
+    fact:"Tighter or shorter strings vibrate faster = higher frequency = higher pitch. That's why you tune by tightening the pegs!",
+    hint:"Faster vibrations = higher pitch. What makes something vibrate faster?" },
+];
+
+// ============================================================
+//  GAME STATE
+// ============================================================
+let score = 0, lives = 3, streak = 0, currentQ = null, selectedChems = [], canAnswer = true;
+let flappyBest = 0;
+const questionPool = shuffle([...questions]);
+let qIndex = 0;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ============================================================
+//  MENU BUBBLES
+// ============================================================
+(function createBubbles() {
+  const container = document.getElementById('bubbles');
+  const colors = ['#e94560','#4cc9f0','#f9c74f','#43aa8b','#a8dadc'];
+  for (let i = 0; i < 15; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 20 + Math.random() * 60;
+    b.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${5+Math.random()*10}s;animation-delay:${Math.random()*5}s`;
+    container.appendChild(b);
+  }
+})();
+
+// ============================================================
+//  GAME FLOW
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  sndClick();
+  score = 0; lives = 3; streak = 0; qIndex = 0;
+  questionPool.length = 0;
+  questionPool.push(...shuffle([...questions]));
+  updateHud();
+  showScreen('labScreen');
+  nextQuestion();
+}
+
+function updateHud() {
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(Math.max(0, lives));
+  for (let i = 1; i <= 5; i++)
+    document.getElementById('dot' + i).className = 'streak-dot' + (i <= streak ? ' filled' : '');
+}
+
+function nextQuestion() {
+  selectedChems = [];
+  canAnswer = true;
+  if (qIndex >= questionPool.length) { qIndex = 0; shuffle(questionPool); }
+  currentQ = questionPool[qIndex++];
+  document.getElementById('topicLabel').textContent = currentQ.topic;
+  document.getElementById('questionText').textContent = currentQ.q;
+  document.getElementById('questionHint').textContent = '💡 ' + currentQ.hint;
+  document.getElementById('eduFact').textContent = '';
+  const area = document.getElementById('answerArea');
+  area.innerHTML = '';
+  if (currentQ.type === 'mc') renderMC(area);
+  else if (currentQ.type === 'mix') renderMix(area);
+  else if (currentQ.type === 'particle') renderParticle(area);
+}
+
+// ---- Multiple Choice ----
+function renderMC(area) {
+  const grid = document.createElement('div');
+  grid.id = 'mcOptions';
+  currentQ.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mc-btn';
+    btn.textContent = opt;
+    btn.onclick = () => answerMC(i, btn);
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function answerMC(idx, btn) {
+  if (!canAnswer) return;
+  canAnswer = false;
+  const btns = document.querySelectorAll('.mc-btn');
+  btns[currentQ.correct].classList.add('correct');
+  if (idx === currentQ.correct) {
+    btn.classList.add('correct');
+    correctAnswer();
+  } else {
+    btn.classList.add('wrong');
+    wrongAnswer(`Correct answer: "${currentQ.options[currentQ.correct]}"`);
+  }
+  setTimeout(nextQuestion, 1900);
+}
+
+// ---- Mixing Game ----
+function renderMix(area) {
+  const beakerZone = document.createElement('div');
+  beakerZone.id = 'beakerZone';
+
+  const slot1 = document.createElement('div');
+  slot1.id = 'slot1'; slot1.className = 'slot-beaker';
+  slot1.innerHTML = '<span id="slot1emoji">🧪</span><span class="slot-label" id="slot1label">Slot 1</span>';
+
+  const slot2 = document.createElement('div');
+  slot2.id = 'slot2'; slot2.className = 'slot-beaker';
+  slot2.innerHTML = '<span id="slot2emoji">🧪</span><span class="slot-label" id="slot2label">Slot 2</span>';
+
+  const resultBeaker = document.createElement('div');
+  resultBeaker.className = 'slot-beaker';
+  resultBeaker.innerHTML = '<span id="resultEmoji">❓</span><span class="slot-label">Result</span>';
+
+  beakerZone.appendChild(slot1);
+  beakerZone.appendChild(Object.assign(document.createElement('span'),{className:'plus-sign',textContent:'+'}));
+  beakerZone.appendChild(slot2);
+  beakerZone.appendChild(Object.assign(document.createElement('span'),{className:'arrow-sign',textContent:'→'}));
+  beakerZone.appendChild(resultBeaker);
+  area.appendChild(beakerZone);
+
+  const chemGrid = document.createElement('div');
+  chemGrid.id = 'mixingArea';
+  currentQ.chemicals.forEach((chem, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'chemical-btn';
+    btn.dataset.idx = i;
+    btn.innerHTML = `<span class="chem-symbol">${currentQ.symbols[i]}</span><span class="chem-name">${chem}</span>`;
+    btn.onclick = () => selectChem(i, btn);
+    chemGrid.appendChild(btn);
+  });
+  area.appendChild(chemGrid);
+
+  const mixBtn = document.createElement('button');
+  mixBtn.id = 'mixBtn'; mixBtn.textContent = '⚗️ MIX!'; mixBtn.disabled = true;
+  mixBtn.onclick = checkMix;
+  area.appendChild(mixBtn);
+}
+
+function selectChem(idx, btn) {
+  if (!canAnswer) return;
+  sndClick();
+  const already = selectedChems.indexOf(idx);
+  if (already >= 0) { selectedChems.splice(already, 1); btn.classList.remove('selected'); }
+  else if (selectedChems.length < 2) { selectedChems.push(idx); btn.classList.add('selected'); }
+  updateBeakerSlots();
+  document.getElementById('mixBtn').disabled = selectedChems.length < 2;
+}
+
+function updateBeakerSlots() {
+  for (let s = 0; s < 2; s++) {
+    const n = s + 1;
+    if (selectedChems[s] !== undefined) {
+      document.getElementById('slot'+n+'emoji').textContent = currentQ.symbols[selectedChems[s]];
+      document.getElementById('slot'+n+'label').textContent = currentQ.chemicals[selectedChems[s]].split(' ')[0];
+      document.getElementById('slot'+n).classList.add('has-item');
+    } else {
+      document.getElementById('slot'+n+'emoji').textContent = '🧪';
+      document.getElementById('slot'+n+'label').textContent = 'Slot ' + n;
+      document.getElementById('slot'+n).classList.remove('has-item');
+    }
+  }
+}
+
+function checkMix() {
+  if (!canAnswer || selectedChems.length < 2) return;
+  canAnswer = false;
+  const sorted = [...selectedChems].sort();
+  const correctSorted = [...currentQ.correct].sort();
+  const ok = sorted[0]===correctSorted[0] && sorted[1]===correctSorted[1];
+  document.getElementById('resultEmoji').textContent = ok ? '✅' : '💥';
+  if (ok) { correctAnswer(); setTimeout(nextQuestion, 1900); }
+  else {
+    const c0 = currentQ.chemicals[currentQ.correct[0]], c1 = currentQ.chemicals[currentQ.correct[1]];
+    wrongAnswer(`You needed: ${c0} + ${c1} → ${currentQ.result}`);
+    setTimeout(() => { hideExplosion(); nextQuestion(); }, 100);
+  }
+}
+
+// ---- Particle Question ----
+function renderParticle(area) {
+  const states = ['solid','liquid','gas'];
+  const opts = shuffle([...states]);
+  const grid = document.createElement('div');
+  grid.id = 'particleArea';
+  opts.forEach(st => {
+    const card = document.createElement('div');
+    card.style.cssText = 'text-align:center;cursor:pointer;';
+    const canvas = document.createElement('canvas');
+    canvas.width = 120; canvas.height = 96;
+    drawParticles(canvas, st);
+    canvas.style.cssText = 'border:2px solid rgba(255,255,255,0.2);border-radius:10px;display:block;transition:all 0.2s;';
+    canvas.onmouseenter = () => canvas.style.borderColor='#a8dadc';
+    canvas.onmouseleave = () => { if (!canvas.dataset.locked) canvas.style.borderColor='rgba(255,255,255,0.2)'; };
+    const label = document.createElement('div');
+    label.textContent = st.charAt(0).toUpperCase()+st.slice(1);
+    label.style.cssText = 'margin-top:5px;font-size:0.88rem;color:#a8dadc;';
+    card.appendChild(canvas); card.appendChild(label);
+    card.onclick = () => {
+      if (!canAnswer) return;
+      canAnswer = false;
+      canvas.dataset.locked = true;
+      if (st === currentQ.state) {
+        canvas.style.borderColor='#43aa8b'; canvas.style.boxShadow='0 0 15px #43aa8b';
+        correctAnswer();
+      } else {
+        canvas.style.borderColor='#e94560'; canvas.style.boxShadow='0 0 15px #e94560';
+        grid.querySelectorAll('canvas').forEach((c,ci) => {
+          if (opts[ci]===currentQ.state) { c.style.borderColor='#43aa8b'; c.style.boxShadow='0 0 15px #43aa8b'; }
+        });
+        wrongAnswer(`The correct answer was: ${currentQ.state.toUpperCase()}`);
+      }
+      setTimeout(nextQuestion, 1900);
+    };
+    grid.appendChild(card);
+  });
+  area.appendChild(grid);
+}
+
+function drawParticles(canvas, state) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if (state==='solid') {
+    for (let r=0;r<4;r++) for (let c=0;c<5;c++) {
+      ctx.beginPath(); ctx.arc(13+c*22, 13+r*20, 7, 0, Math.PI*2);
+      ctx.fillStyle='#4cc9f0'; ctx.fill();
+    }
+  } else if (state==='liquid') {
+    [[18,14],[38,26],[60,12],[82,22],[104,18],[28,44],[52,55],[76,40],[98,52],[14,70],[38,76],[62,68],[84,80],[106,65]].forEach(([x,y])=>{
+      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fillStyle='#f9c74f'; ctx.fill();
+    });
+  } else {
+    for (let i=0;i<7;i++) {
+      const x=12+Math.random()*96, y=8+Math.random()*80;
+      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fillStyle='#43aa8b'; ctx.fill();
+    }
+  }
+}
+
+// ============================================================
+//  CORRECT / WRONG
+// ============================================================
+function revealFact() {
+  document.getElementById('eduFact').textContent = '🔬 ' + currentQ.fact;
+}
+
+function correctAnswer() {
+  score += 10; streak++;
+  updateHud();
+  revealFact();
+  showFeedback(true);
+  if (streak >= 5) {
+    sndStreak();
+    streak = 0; updateHud();
+    setTimeout(triggerFlappyInstructions, 900);
+  } else {
+    sndCorrect();
+  }
+}
+
+function wrongAnswer(msg) {
+  sndWrong();
+  lives--; streak = 0; updateHud();
+  revealFact();
+  showExplosion(msg);
+  if (lives <= 0) {
+    setTimeout(() => {
+      document.getElementById('explosion').style.display = 'none';
+      alert(`Game Over, Ricco! 😢\nFinal score: ${score}\nRefresh to play again!`);
+      startGame();
+    }, 500);
+  }
+}
+
+function showFeedback(correct) {
+  const fb = document.getElementById('feedback');
+  const box = document.getElementById('feedbackBox');
+  const sub = document.getElementById('feedbackSub');
+  box.className = correct ? 'correct' : 'wrong';
+  box.childNodes[0].textContent = correct ? `✅ Correct! +10` : `❌ Wrong!`;
+  sub.textContent = correct ? (streak >= 4 ? '🔥 One more for Flappy!' : `Streak: ${streak} 🔥`) : '';
+  fb.style.display = 'flex';
+  setTimeout(() => { fb.style.display = 'none'; }, 1300);
+}
+
+function showExplosion(msg) {
+  document.getElementById('expMsg').textContent = '💥 ' + msg;
+  document.getElementById('expFact').textContent = '📚 ' + currentQ.fact;
+  document.getElementById('explosion').style.display = 'flex';
+}
+
+function hideExplosion() {
+  sndClick();
+  document.getElementById('explosion').style.display = 'none';
+}
+
+// ============================================================
+//  FLAPPY INSTRUCTIONS
+// ============================================================
+function triggerFlappyInstructions() {
+  showScreen('transitionScreen');
+  setTimeout(() => { showScreen('flappyInstructScreen'); }, 1500);
+}
+
+function returnToLabFromInstructions() {
+  sndClick();
+  showScreen('labScreen');
+  updateHud();
+  nextQuestion();
+}
+
+function launchFlappy() {
+  sndClick();
+  showScreen('flappyScreen');
+  document.getElementById('flappyOverlay').style.display = 'none';
+  initFlappyCanvas();
+  startFlappy();
+}
+
+// ============================================================
+//  FLAPPY BIRD ENGINE
+// ============================================================
+let fCanvas, fCtx, fRunning = false, fGameOver = false;
+let fBird, fPipes, fFScore, fFrame, fBgX = 0;
+const GRAVITY = 0.44, FLAP_VEL = -8, PIPE_GAP = 155, PIPE_W = 58, BASE_SPEED = 2.6;
+
+const CHEM_LABELS = ['H₂O','CO₂','NaCl','O₂','Fe','Au','HCl','Na','Ca','Mg','K','N₂','H₂','SO₄'];
+
+function initFlappyCanvas() {
+  fCanvas = document.getElementById('flappyCanvas');
+  fCtx = fCanvas.getContext('2d');
+  const maxW = Math.min(window.innerWidth - 20, 480);
+  const maxH = Math.min(window.innerHeight - 80, 640);
+  fCanvas.width = maxW; fCanvas.height = maxH;
+  fBird = { x: fCanvas.width*0.25, y: fCanvas.height/2, vy: 0, r: 18 };
+  fPipes = []; fFScore = 0; fFrame = 0; fRunning = false; fGameOver = false;
+}
+
+function startFlappy() {
+  fBird = { x: fCanvas.width*0.25, y: fCanvas.height/2, vy: 0, r: 18 };
+  fPipes = []; fFScore = 0; fFrame = 0; fRunning = true; fGameOver = false;
+  document.getElementById('flappyScore').textContent = 0;
+  document.addEventListener('keydown', onFlappyKey);
+  fCanvas.addEventListener('click', onFlappyTap);
+  fCanvas.addEventListener('touchstart', onFlappyTap, {passive:false});
+  requestAnimationFrame(flappyLoop);
+}
+
+function onFlappyKey(e) { if (e.code==='Space') { e.preventDefault(); doFlap(); } }
+function onFlappyTap(e) { e.preventDefault(); doFlap(); }
+function doFlap() { if (fRunning && !fGameOver) { fBird.vy = FLAP_VEL; sndFlap(); } }
+
+function flappyLoop() {
+  if (!fRunning) return;
+  fFrame++; fBgX -= 0.4;
+  const speed = BASE_SPEED + fFScore * 0.06;
+  const spawnRate = Math.max(45, 80 - fFScore * 2);
+
+  if (fFrame % Math.floor(spawnRate) === 0) {
+    const minTop = 70, maxTop = fCanvas.height - PIPE_GAP - 70;
+    const topH = minTop + Math.random() * (maxTop - minTop);
+    fPipes.push({ x: fCanvas.width, topH, label: CHEM_LABELS[Math.floor(Math.random()*CHEM_LABELS.length)], passed: false });
+  }
+
+  fBird.vy += GRAVITY; fBird.y += fBird.vy;
+  fPipes.forEach(p => { p.x -= speed; });
+  fPipes = fPipes.filter(p => p.x > -PIPE_W - 10);
+
+  fPipes.forEach(p => {
+    if (!p.passed && p.x + PIPE_W < fBird.x) {
+      p.passed = true; fFScore++;
+      document.getElementById('flappyScore').textContent = fFScore;
+      if (fFScore > flappyBest) { flappyBest = fFScore; document.getElementById('flappyBest').textContent = flappyBest; }
+      sndPoint();
+    }
+  });
+
+  const dead = fBird.y - fBird.r < 0 || fBird.y + fBird.r > fCanvas.height ||
+    fPipes.some(p => {
+      const inX = fBird.x + fBird.r > p.x && fBird.x - fBird.r < p.x + PIPE_W;
+      return inX && (fBird.y - fBird.r < p.topH || fBird.y + fBird.r > p.topH + PIPE_GAP);
+    });
+
+  drawFlappy();
+  if (dead) { endFlappy(); return; }
+  requestAnimationFrame(flappyLoop);
+}
+
+function drawFlappy() {
+  const ctx = fCtx, W = fCanvas.width, H = fCanvas.height;
+  // background
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0d1b2a'); grad.addColorStop(1,'#1b2838');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+  // bg stars
+  ctx.fillStyle = 'rgba(168,218,220,0.12)';
+  for (let i=0;i<18;i++) {
+    const bx = ((i*137 + fBgX*0.3)%W+W)%W, by=(i*73)%H;
+    ctx.beginPath(); ctx.arc(bx,by,1.5,0,Math.PI*2); ctx.fill();
+  }
+  fPipes.forEach(p => drawTubePair(ctx, p, H));
+  drawAtom(ctx, fBird.x, fBird.y, fBird.r, fBird.vy);
+}
+
+function drawTubePair(ctx, p, H) {
+  const x=p.x, topH=p.topH, botY=topH+PIPE_GAP, botH=H-botY;
+  // top tube
+  ctx.fillStyle='rgba(76,201,240,0.22)'; ctx.strokeStyle='#4cc9f0'; ctx.lineWidth=3;
+  roundRect(ctx,x,0,PIPE_W,topH,[0,0,10,10]); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(233,69,96,0.45)'; roundRect(ctx,x+4,topH-18,PIPE_W-8,14,4); ctx.fill();
+  // bottom tube
+  ctx.fillStyle='rgba(76,201,240,0.22)'; ctx.strokeStyle='#4cc9f0';
+  roundRect(ctx,x,botY,PIPE_W,botH,[10,10,0,0]); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(249,199,79,0.45)'; roundRect(ctx,x+4,botY+4,PIPE_W-8,14,4); ctx.fill();
+  // label
+  ctx.fillStyle='#f9c74f'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(p.label, x+PIPE_W/2, topH+PIPE_GAP/2+5); ctx.textAlign='left';
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  if (typeof r==='number') r=[r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+r[0],y); ctx.lineTo(x+w-r[1],y); ctx.arcTo(x+w,y,x+w,y+r[1],r[1]);
+  ctx.lineTo(x+w,y+h-r[2]); ctx.arcTo(x+w,y+h,x+w-r[2],y+h,r[2]);
+  ctx.lineTo(x+r[3],y+h); ctx.arcTo(x,y+h,x,y+h-r[3],r[3]);
+  ctx.lineTo(x,y+r[0]); ctx.arcTo(x,y,x+r[0],y,r[0]); ctx.closePath();
+}
+
+function drawAtom(ctx,x,y,r,vy) {
+  // nucleus
+  const grad = ctx.createRadialGradient(x-r*0.3,y-r*0.3,1,x,y,r);
+  grad.addColorStop(0,'#e94560'); grad.addColorStop(1,'#c62a47');
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=grad; ctx.shadowColor='#e94560'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  ctx.save(); ctx.translate(x,y); ctx.rotate(vy*0.04);
+  // orbits
+  ctx.strokeStyle='rgba(168,218,220,0.45)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.ellipse(0,0,r*1.8,r*0.55,0,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0,0,r*0.55,r*1.8,Math.PI/2,0,Math.PI*2); ctx.stroke();
+  // electrons
+  const t=Date.now()/450;
+  ctx.fillStyle='#a8dadc';
+  ctx.beginPath(); ctx.arc(Math.cos(t)*r*1.8,Math.sin(t)*r*0.55,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-Math.cos(t)*r*0.55,-Math.sin(t)*r*1.8,4,0,Math.PI*2); ctx.fill();
+  // label
+  ctx.fillStyle='#fff'; ctx.font=`bold ${r*0.8}px Segoe UI`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('H',0,0);
+  ctx.restore();
+}
+
+function endFlappy() {
+  fRunning = false;
+  sndDeath();
+  document.removeEventListener('keydown', onFlappyKey);
+  fCanvas.removeEventListener('click', onFlappyTap);
+  fCanvas.removeEventListener('touchstart', onFlappyTap);
+  fCtx.fillStyle='rgba(233,69,96,0.25)'; fCtx.fillRect(0,0,fCanvas.width,fCanvas.height);
+  const bonus = fFScore * 5; score += bonus;
+  const overlay = document.getElementById('flappyOverlay');
+  document.getElementById('flappyTitle').textContent = `💥 SPLAT! You scored ${fFScore}`;
+  document.getElementById('flappyDesc').textContent = `+${bonus} bonus points added to your lab score! Total: ${score} ⭐`;
+  overlay.style.display = 'flex';
+}
+
+function returnToLab() {
+  sndClick();
+  document.getElementById('flappyOverlay').style.display = 'none';
+  showScreen('labScreen');
+  updateHud();
+  nextQuestion();
+}
+</script>
+</body>
+</html>

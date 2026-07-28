@@ -1,0 +1,2891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joyeetha's Purrfect Cell Café ☕🐱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #f6d8bb;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        /* ══════════════ PIXEL CAFÉ BACKDROP ══════════════ */
+        .cafe-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(255,255,255,.14), rgba(255,255,255,.14)),
+                repeating-linear-gradient(0deg, #f1c9a8 0 34px, #e9b991 34px 38px);
+        }
+        .cafe-backdrop::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 32%;
+            background:
+                linear-gradient(90deg, rgba(91,53,42,.12) 2px, transparent 2px),
+                linear-gradient(rgba(91,53,42,.14) 2px, transparent 2px),
+                #b97758;
+            background-size: 72px 72px;
+            transform: perspective(360px) rotateX(38deg);
+            transform-origin: bottom;
+        }
+        .cafe-awning {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            border-bottom: 8px solid #6f3851;
+            background: repeating-linear-gradient(90deg, #9c496b 0 58px, #ffe8db 58px 116px);
+            filter: drop-shadow(0 7px 0 rgba(87, 45, 52, .12));
+        }
+        .cafe-sign {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 290px;
+            padding: 10px 24px 8px;
+            border: 6px solid #6b354a;
+            background: #fff1d7;
+            color: #7d3154;
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(1rem, 2vw, 1.35rem);
+            letter-spacing: 2px;
+            text-align: center;
+            box-shadow: 7px 7px 0 rgba(86, 46, 43, .18);
+        }
+        .cafe-window {
+            position: absolute;
+            top: 15%;
+            left: 4%;
+            width: min(28vw, 330px);
+            height: 230px;
+            border: 12px solid #754933;
+            background:
+                linear-gradient(90deg, transparent calc(50% - 4px), #754933 calc(50% - 4px) calc(50% + 4px), transparent calc(50% + 4px)),
+                linear-gradient(transparent calc(52% - 4px), #754933 calc(52% - 4px) calc(52% + 4px), transparent calc(52% + 4px)),
+                linear-gradient(#9ed9e4 0 58%, #c9e8cc 58% 68%, #8cbd79 68%);
+            box-shadow: 8px 8px 0 rgba(86, 46, 43, .16), inset 0 0 0 5px #f9db9d;
+        }
+        .cafe-window::before {
+            content: "☁  ·  ☀";
+            position: absolute;
+            top: 24px;
+            left: 22px;
+            color: rgba(255,255,255,.9);
+            font-size: 2rem;
+            letter-spacing: 10px;
+        }
+        .cafe-window::after {
+            content: "🌿";
+            position: absolute;
+            right: -22px;
+            bottom: -22px;
+            font-size: 4rem;
+            filter: drop-shadow(4px 5px 0 rgba(52, 86, 53, .2));
+        }
+        .menu-board {
+            position: absolute;
+            top: 14%;
+            right: 5%;
+            width: min(25vw, 270px);
+            min-width: 210px;
+            padding: 18px 18px 16px;
+            border: 9px solid #6e4431;
+            background: #345049;
+            color: #fff3dc;
+            font: 800 .8rem/1.8 'Nunito', sans-serif;
+            text-align: center;
+            box-shadow: 8px 8px 0 rgba(86, 46, 43, .16);
+        }
+        .menu-board strong {
+            display: block;
+            color: #f8bad4;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+        }
+        .cafe-shelf {
+            position: absolute;
+            top: 46%;
+            right: 8%;
+            width: 240px;
+            height: 12px;
+            background: #70432e;
+            box-shadow: 0 8px 0 #4d2e23;
+        }
+        .cafe-shelf::before {
+            content: "☕  🫖  ☕  🧁";
+            position: absolute;
+            left: 8px;
+            bottom: 10px;
+            font-size: 1.8rem;
+            letter-spacing: 8px;
+            white-space: nowrap;
+        }
+        .cafe-unlock {
+            position: absolute;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(18px) scale(.75);
+            filter: grayscale(1);
+            transition: opacity .55s ease, transform .55s cubic-bezier(.175,.885,.32,1.275), filter .55s;
+        }
+        .cafe-unlock.unlocked {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: none;
+        }
+        .unlock-plant {
+            top: 75px;
+            left: 21%;
+            font-size: 3.7rem;
+            transform-origin: top center;
+        }
+        .unlock-plant.unlocked { animation: plantSway 4s ease-in-out infinite; }
+        .unlock-tree {
+            right: 2.5%;
+            bottom: 121px;
+            width: 110px;
+            height: 170px;
+        }
+        .unlock-tree::before {
+            content: "";
+            position: absolute;
+            left: 47px;
+            bottom: 0;
+            width: 18px;
+            height: 145px;
+            border: 5px dashed #c98d5b;
+            background: #8b573d;
+            box-shadow: -36px 77px 0 12px #b97858, 34px 36px 0 10px #b97858;
+        }
+        .unlock-tree::after {
+            content: "🐾";
+            position: absolute;
+            left: 20px;
+            top: 0;
+            width: 72px;
+            padding: 7px 0;
+            border: 6px solid #68402f;
+            background: #f0ad74;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        .unlock-books {
+            top: 54%;
+            left: 3%;
+            padding: 8px 12px;
+            border: 7px solid #704331;
+            background: #f8d9a2;
+            font-size: 2rem;
+            box-shadow: inset 0 -7px 0 #b77255;
+        }
+        .unlock-aquarium {
+            right: 23%;
+            bottom: 135px;
+            width: 122px;
+            height: 82px;
+            border: 8px solid #664333;
+            background: linear-gradient(#8ce2e7 0 78%, #e5c479 78%);
+            box-shadow: inset 0 0 0 5px rgba(255,255,255,.25);
+        }
+        .unlock-aquarium::before {
+            content: "🐟  ·  🫧";
+            position: absolute;
+            top: 20px;
+            left: 9px;
+            font-size: 1.35rem;
+            white-space: nowrap;
+            animation: fishSwim 3.8s ease-in-out infinite alternate;
+        }
+        .unlock-neon {
+            top: 31%;
+            left: 39%;
+            padding: 10px 15px;
+            border: 5px solid #704331;
+            background: #3d2841;
+            color: #ff8ed8;
+            font: 900 1.15rem/1 monospace;
+            letter-spacing: 2px;
+            text-shadow: 0 0 6px #ff8ed8, 0 0 12px #f24fae;
+            box-shadow: inset 0 0 12px rgba(255,99,190,.25), 6px 6px 0 rgba(86,46,43,.15);
+            animation: neonFlicker 5s steps(1) infinite;
+        }
+        .cafe-toy {
+            position: absolute;
+            z-index: 4;
+            opacity: 0;
+            transform: scale(.25);
+            filter: grayscale(1);
+            transition: opacity .45s, transform .45s cubic-bezier(.175,.885,.32,1.275), filter .45s;
+        }
+        .cafe-toy.unlocked {
+            opacity: 1;
+            transform: scale(1);
+            filter: none;
+        }
+        .toy-ball {
+            left: 27%;
+            bottom: 34px;
+            font-size: 2.3rem;
+        }
+        .toy-feather {
+            right: 15%;
+            bottom: 135px;
+            font-size: 2.45rem;
+            transform-origin: bottom center;
+        }
+        .toy-box {
+            left: 57%;
+            bottom: 119px;
+            width: 76px;
+            height: 50px;
+            border: 7px solid #75452f;
+            background: #c9824f;
+            box-shadow: inset 0 -8px 0 #a9613d;
+        }
+        .toy-box::before {
+            content: "CAT";
+            position: absolute;
+            left: 17px;
+            top: 11px;
+            color: #75452f;
+            font: 900 .8rem/1 monospace;
+        }
+        .toy-ball.in-use { animation: toyBallBounce .45s ease-in-out 6; }
+        .toy-feather.in-use { animation: featherWiggle .32s ease-in-out 9; }
+        .toy-box.in-use { animation: boxWobble .5s steps(2) 6; }
+        .unlock-aquarium.in-use::before { animation-duration: .65s; }
+        .unlock-tree.in-use::after { box-shadow: 0 0 0 6px rgba(255,185,221,.35); }
+        .cafe-table.in-use { filter: brightness(1.08); }
+        .cafe-counter {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            height: 128px;
+            border-top: 14px solid #5b3829;
+            background:
+                repeating-linear-gradient(90deg, #9b5d43 0 92px, #8a503b 92px 98px);
+            box-shadow: 0 -9px 0 #f1b87d;
+        }
+        .pastry-case {
+            position: absolute;
+            left: 7%;
+            bottom: 112px;
+            z-index: 2;
+            width: 205px;
+            height: 108px;
+            border: 9px solid #704331;
+            background: rgba(211, 244, 244, .72);
+            box-shadow: inset 0 -8px 0 rgba(101, 157, 161, .2);
+        }
+        .pastry-case::before {
+            content: "🧁  🍰  🍪";
+            position: absolute;
+            left: 15px;
+            bottom: 14px;
+            font-size: 2.05rem;
+            letter-spacing: 7px;
+        }
+        .pastry-case::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 43px;
+            height: 6px;
+            background: #8bb8b8;
+        }
+        .cafe-table {
+            position: absolute;
+            bottom: 92px;
+            z-index: 2;
+            width: 145px;
+            height: 14px;
+            border: 5px solid #663d2e;
+            background: #f0a56f;
+            box-shadow: 0 7px 0 rgba(79,47,36,.15);
+        }
+        .cafe-table::before {
+            content: "";
+            position: absolute;
+            left: 60px;
+            top: 12px;
+            width: 18px;
+            height: 90px;
+            background: #663d2e;
+        }
+        .cafe-table::after {
+            content: "☕";
+            position: absolute;
+            left: 56px;
+            bottom: 12px;
+            font-size: 2rem;
+        }
+        .cafe-table.one { left: 34%; }
+        .cafe-table.two { right: 30%; transform: scale(.82); }
+        .cafe-pendant {
+            position: absolute;
+            top: 55px;
+            width: 7px;
+            height: 70px;
+            background: #583746;
+        }
+        .cafe-pendant::after {
+            content: "";
+            position: absolute;
+            left: -23px;
+            bottom: -32px;
+            width: 54px;
+            height: 34px;
+            background: #f2a04f;
+            clip-path: polygon(28% 0, 72% 0, 100% 100%, 0 100%);
+            box-shadow: inset 0 -8px 0 #ffd98d;
+        }
+        .cafe-pendant.one { left: 37%; }
+        .cafe-pendant.two { right: 35%; height: 94px; }
+
+        .cafe-reaction {
+            position: fixed;
+            left: 50%;
+            top: 76px;
+            z-index: 20;
+            transform: translate(-50%, -20px) scale(.85);
+            max-width: calc(100vw - 32px);
+            padding: 10px 20px;
+            border: 4px solid #6d3850;
+            background: #fff7df;
+            color: #6d2850;
+            font-weight: 900;
+            text-align: center;
+            box-shadow: 6px 6px 0 rgba(89, 45, 56, .2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s, transform .18s;
+        }
+        .cafe-reaction.show {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+        }
+        .cafe-reaction.wrong {
+            background: #fff0f0;
+            color: #a52d4c;
+        }
+        .sound-toggle {
+            position: fixed;
+            top: 15px;
+            right: 16px;
+            z-index: 24;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 42px;
+            padding: 7px 12px;
+            border: 4px solid #65364c;
+            background: #fff7df;
+            color: #6d2850;
+            font: 900 .75rem/1 'Nunito', sans-serif;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 rgba(89, 45, 56, .22);
+            transition: transform .12s, background .12s;
+        }
+        .sound-toggle:hover { transform: translateY(-2px); background: #fff; }
+        .sound-toggle:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 rgba(89, 45, 56, .22); }
+        .sound-toggle:focus-visible { outline: 4px solid #f59ed0; outline-offset: 3px; }
+        .sound-toggle .sound-icon { font-size: 1.15rem; }
+        .cafe-progress {
+            position: fixed;
+            top: 15px;
+            left: 16px;
+            z-index: 24;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 42px;
+            padding: 7px 12px;
+            border: 4px solid #65364c;
+            background: #fff7df;
+            color: #6d2850;
+            font: 900 .75rem/1 'Nunito', sans-serif;
+            box-shadow: 4px 4px 0 rgba(89,45,56,.22);
+        }
+        .cafe-progress span { white-space: nowrap; }
+        .reaction-spark {
+            position: fixed;
+            z-index: 19;
+            pointer-events: none;
+            font-size: 1.3rem;
+            animation: reactionSpark 1.15s ease-out forwards;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 820px;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        .screen.active { display: flex; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 13px 34px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.18);
+        }
+        .btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.18); }
+        .btn:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,0.18); }
+        .btn-purple { background: linear-gradient(135deg, #d946ef, #9333ea); color: #fff; }
+        .btn-orange { background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; }
+        .btn-green  { background: linear-gradient(135deg, #4ade80, #16a34a); color: #fff; }
+        .btn-red    { background: linear-gradient(135deg, #f87171, #dc2626); color: #fff; }
+
+        /* ══════════════ TITLE SCREEN ══════════════ */
+        #screen-title {
+            justify-content: center;
+            min-height: 92vh;
+            text-align: center;
+            padding-top: 30px;
+        }
+        .title-hero {
+            min-height: 74px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+        }
+        .title-hero .pixel-cat { transform: scale(.72); transform-origin: bottom center; }
+        .title-hero .pixel-cat:nth-child(1) { animation: catStalk 3.2s ease-in-out infinite; }
+        .title-hero .pixel-cat:nth-child(2) { animation: catPrance 1.15s ease-in-out infinite; }
+        .title-hero .pixel-cat:nth-child(3) { animation: catPatrol .65s steps(2) infinite; }
+        .title-hero .pixel-cat:nth-child(4) { animation: catZoom .75s ease-in-out infinite; }
+        .title-hero .pixel-cat:nth-child(5) { animation: catSleepwalk 2.8s ease-in-out infinite; }
+        .title-main {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.6rem;
+            color: #9333ea;
+            text-shadow: 3px 3px 0 #f0abfc, 6px 6px 0 rgba(147,51,234,0.15);
+            line-height: 1.15;
+        }
+        .title-sub { font-size: 1rem; font-weight: 800; color: #c026d3; }
+        .title-blurb {
+            background: #fff;
+            border-radius: 22px;
+            padding: 18px 28px;
+            max-width: 480px;
+            color: #555;
+            font-size: 0.92rem;
+            line-height: 1.55;
+            border: 3px solid #f0d0ff;
+            box-shadow: 0 6px 20px rgba(147,51,234,0.12);
+        }
+        .treat-row { font-size: 2.2rem; letter-spacing: 6px; }
+
+        /* ══════════════ LEVEL SELECT ══════════════ */
+        .levels-heading {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: #9333ea;
+            text-align: center;
+        }
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 14px;
+            width: 100%;
+            max-width: 620px;
+        }
+        .level-card {
+            background: #fff;
+            border-radius: 22px;
+            padding: 20px 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 3px solid #f0d0ff;
+            transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+        .level-card:hover {
+            transform: translateY(-5px);
+            border-color: #d946ef;
+            box-shadow: 0 10px 24px rgba(147,51,234,0.22);
+        }
+        .level-icon  { font-size: 2.4rem; margin-bottom: 7px; }
+        .level-name  { font-size: 0.85rem; font-weight: 900; color: #7e22ce; }
+        .level-topic { font-size: 0.72rem; color: #a3a3a3; margin-top: 3px; }
+        .level-stars { font-size: 1.1rem; margin-top: 7px; }
+
+        /* ══════════════ GAME SCREEN ══════════════ */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            background: #fff;
+            border-radius: 18px;
+            padding: 11px 20px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+        }
+        .hearts-display { font-size: 1.45rem; letter-spacing: 3px; }
+        .level-indicator { font-weight: 900; color: #7e22ce; font-size: 0.88rem; text-align: center; }
+        .score-display  { font-weight: 900; color: #d97706; font-size: 0.95rem; }
+
+        .progress-wrap { width: 100%; height: 9px; background: #f3e8ff; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 9px; background: linear-gradient(90deg, #d946ef, #9333ea); border-radius: 10px; transition: width 0.4s ease; }
+
+        /* Café scene card */
+        .cafe-card {
+            width: 100%;
+            background: #fff;
+            border-radius: 26px;
+            padding: 20px;
+            display: flex;
+            gap: 16px;
+            border: 3px solid #f0d0ff;
+            box-shadow: 0 6px 22px rgba(147,51,234,0.1);
+        }
+
+        /* Cat panel */
+        .cat-panel {
+            flex: 0 0 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .cat-emoji {
+            width: 84px;
+            height: 66px;
+            display: grid;
+            place-items: center;
+            transition: transform 0.2s;
+        }
+        .cat-emoji .pixel-cat { transform: scale(1.12); transform-origin: center; }
+        .cat-emoji.pop { animation: bigPop 0.35s cubic-bezier(.175,.885,.32,1.275); }
+        .cat-emoji.happy .pixel-cat { animation: catHappy .38s ease-in-out 2; }
+        .cat-emoji.sad .pixel-cat { animation: catSad .65s ease-in-out infinite alternate; filter: saturate(.75); }
+        .cat-name-badge {
+            background: linear-gradient(135deg, #f0abfc, #d946ef);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.72rem;
+            padding: 3px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+        .speech-bubble {
+            background: #fdf4ff;
+            border: 2px solid #e879f9;
+            border-radius: 14px;
+            padding: 9px 11px;
+            font-size: 0.73rem;
+            color: #7e22ce;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.4;
+            width: 100%;
+        }
+        .treat-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #a3a3a3;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .treat-emoji { font-size: 1.9rem; }
+
+        /* Question panel */
+        .question-panel { flex: 1; min-width: 0; }
+        .topic-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbcfe8, #f9a8d4);
+            color: #9d174d;
+            font-size: 0.68rem;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .q-num    { font-size: 0.72rem; color: #a3a3a3; font-weight: 700; margin-bottom: 5px; }
+        .q-text   { font-size: 0.93rem; font-weight: 800; color: #1f2937; line-height: 1.45; }
+
+        /* MC answers */
+        .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+        .mc-btn {
+            background: #fdf4ff;
+            border: 2px solid #e9d5ff;
+            border-radius: 14px;
+            padding: 11px 10px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.79rem;
+            font-weight: 700;
+            color: #374151;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.12s;
+            text-align: left;
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+        }
+        .mc-btn:hover:not(:disabled) { background: #f3e8ff; border-color: #9333ea; transform: translateY(-2px); }
+        .mc-btn:disabled { cursor: default; }
+        .mc-btn.correct { background: #dcfce7 !important; border-color: #16a34a !important; color: #15803d; }
+        .mc-btn.wrong   { background: #fee2e2 !important; border-color: #dc2626 !important; color: #b91c1c; }
+        .mc-letter {
+            flex-shrink: 0;
+            width: 22px; height: 22px;
+            background: #e9d5ff;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 22px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: #7e22ce;
+        }
+        .mc-btn.correct .mc-letter { background: #bbf7d0; color: #15803d; }
+        .mc-btn.wrong   .mc-letter { background: #fecaca; color: #b91c1c; }
+
+        /* Drag and drop */
+        .drag-hint { font-size: 0.72rem; color: #a3a3a3; font-weight: 700; margin-top: 10px; }
+        .drag-wrap { display: flex; gap: 12px; margin-top: 9px; }
+        .drag-col  { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .drag-col-label { font-size: 0.68rem; font-weight: 900; color: #9333ea; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+
+        .drag-item {
+            background: linear-gradient(135deg, #fdf4ff, #f3e8ff);
+            border: 2px solid #d8b4fe;
+            border-radius: 12px;
+            padding: 9px 11px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #7e22ce;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            user-select: none;
+        }
+        .drag-item:hover:not(.matched) { border-color: #9333ea; transform: scale(1.03); }
+        .drag-item.selected { background: linear-gradient(135deg, #9333ea, #7c3aed); color: #fff; border-color: #7c3aed; transform: scale(1.05); }
+        .drag-item.matched  { background: linear-gradient(135deg, #bbf7d0, #86efac); color: #15803d; border-color: #16a34a; cursor: default; }
+        .drag-item.wrong-flash { animation: flashRed 0.4s; }
+
+        .drag-slot {
+            border: 2px dashed #d8b4fe;
+            border-radius: 12px;
+            padding: 9px 11px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #a3a3a3;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        .drag-slot:hover   { border-color: #9333ea; background: #fdf4ff; }
+        .drag-slot.filled  { border-style: solid; border-color: #16a34a; background: #dcfce7; color: #15803d; cursor: default; }
+        .drag-slot.wrong-flash { animation: flashRed 0.4s; border-color: #dc2626; }
+
+        .answer-feedback {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 14px;
+            border: 3px solid #f59a9a;
+            background: #fff0f0;
+            color: #9f2847;
+            font-size: .78rem;
+            font-weight: 800;
+            line-height: 1.45;
+            white-space: pre-line;
+            box-shadow: 4px 4px 0 rgba(163,46,66,.12);
+        }
+        .answer-feedback.show {
+            display: block;
+            animation: inlineFeedback .3s cubic-bezier(.175,.885,.32,1.275);
+        }
+        .inline-next {
+            display: block;
+            margin-top: 10px;
+            padding: 8px 13px;
+            border: 3px solid #9f2847;
+            background: #fff;
+            color: #8c2441;
+            font: 900 .75rem/1 'Nunito', sans-serif;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 rgba(163,46,66,.15);
+        }
+        .inline-next:hover { background: #ffe2e8; transform: translateY(-1px); }
+        .inline-next:focus-visible { outline: 3px solid #ef91ad; outline-offset: 2px; }
+
+        /* ══════════════ LEVEL COMPLETE ══════════════ */
+        #screen-level-complete {
+            justify-content: center;
+            min-height: 92vh;
+            text-align: center;
+        }
+        .complete-cat   { font-size: 5rem; animation: floatY 0.6s ease-in-out infinite alternate; }
+        .complete-title { font-family: 'Fredoka One', cursive; font-size: 2.6rem; color: #9333ea; }
+        .stars-row      { font-size: 2.8rem; letter-spacing: 8px; }
+        .complete-card  { background: #fff; border-radius: 24px; padding: 22px 32px; border: 3px solid #f0d0ff; box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+        .complete-num   { font-size: 3.2rem; font-weight: 900; color: #9333ea; }
+        .complete-label { font-size: 0.88rem; color: #a3a3a3; font-weight: 700; }
+        .fact-box {
+            background: #fdf4ff;
+            border: 2px solid #e9d5ff;
+            border-radius: 18px;
+            padding: 16px 20px;
+            max-width: 520px;
+            text-align: left;
+        }
+        .fact-heading { font-size: 0.72rem; font-weight: 900; color: #9333ea; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .fact-body    { font-size: 0.84rem; color: #374151; font-weight: 700; line-height: 1.5; }
+        .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+        /* ══════════════ PIXEL CAT CAST ══════════════ */
+        .roaming-cats {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .cat-roamer {
+            position: absolute;
+            left: -110px;
+            width: 92px;
+            height: 70px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            opacity: .86;
+            filter: drop-shadow(0 5px 2px rgba(91, 33, 182, .12));
+            will-change: transform;
+            pointer-events: auto;
+            cursor: pointer;
+            font: inherit;
+        }
+        .cat-roamer:hover .pixel-cat { filter: brightness(1.1) drop-shadow(0 0 5px rgba(255,255,255,.9)); }
+        .cat-roamer:hover, .cat-roamer:focus-visible, .cat-roamer.selected, .cat-roamer.idling { animation-play-state: paused; }
+        .cat-roamer:focus-visible { outline: 4px solid #f59ed0; outline-offset: 5px; }
+        .cat-roamer:focus-visible .pixel-cat { filter: brightness(1.12); }
+        .cat-roamer .pixel-cat { transform-origin: bottom center; }
+        .cat-roamer.mochi   { bottom: 16px;  animation: roamRight 29s linear infinite; }
+        .cat-roamer.pudding { bottom: 104px; animation: roamRight 23s linear -14s infinite; }
+        .cat-roamer.biscuit { bottom: 180px; animation: roamRight 34s linear -22s infinite; opacity: .72; }
+        .cat-roamer.cookie  { bottom: 47px;  animation: roamRight 15s linear -8s infinite; }
+        .cat-roamer.caramel { bottom: 136px; animation: roamRight 41s linear -30s infinite; opacity: .78; }
+        .cat-roamer { animation-play-state: paused; }
+        .cat-roamer.walking { animation-play-state: running; }
+        .cat-roamer.walking:hover,
+        .cat-roamer.walking:focus-visible,
+        .cat-roamer.walking.selected,
+        .cat-roamer.walking.idling { animation-play-state: paused; }
+        .cat-roamer.destination-mode {
+            animation: none !important;
+            z-index: 12;
+            opacity: 1;
+            filter: drop-shadow(0 7px 3px rgba(79,42,53,.2));
+        }
+        .cat-roamer.busy { pointer-events: none; }
+        .cat-roamer.resetting { opacity: 0 !important; }
+        .cat-roamer.preparing-walk .pixel-cat { animation: lookBeforeMoving .62s ease-in-out 1; }
+        .cat-roamer.turning-to-target.face-left .pixel-cat { animation: turnToLeft .58s ease-in-out 1 forwards; }
+        .cat-roamer.turning-to-target.face-right .pixel-cat { animation: turnToRight .58s ease-in-out 1 forwards; }
+        .cat-roamer.purpose-walk.face-left .pixel-cat { animation: purposefulWalkLeft .42s steps(2) infinite; }
+        .cat-roamer.purpose-walk.face-right .pixel-cat { animation: purposefulWalkRight .42s steps(2) infinite; }
+        .cat-roamer.at-table .pixel-cat { animation: tablePerch 3.1s ease-in-out 1 forwards; }
+        .cat-roamer.at-tree .pixel-cat { animation: towerSleep 3.1s ease-in-out 1 forwards; }
+        .cat-roamer.at-aquarium .pixel-cat { animation: watchFish 1.7s ease-in-out infinite; }
+        .cat-roamer.at-ball .pixel-cat { animation: playWithBall .72s ease-in-out infinite; }
+        .cat-roamer.at-feather .pixel-cat { animation: batFeather .55s ease-in-out infinite; }
+        .cat-roamer.at-box .pixel-cat { animation: hideInBox 1.8s steps(2) infinite; }
+        .cat-roamer.mochi .pixel-cat   { animation: catStalk 3.2s ease-in-out infinite; }
+        .cat-roamer.pudding .pixel-cat { animation: catPrance 1.15s ease-in-out infinite; }
+        .cat-roamer.biscuit .pixel-cat { animation: catPatrol .65s steps(2) infinite; }
+        .cat-roamer.cookie .pixel-cat  { animation: catZoom .75s ease-in-out infinite; }
+        .cat-roamer.caramel .pixel-cat { animation: catSleepwalk 2.8s ease-in-out infinite; }
+
+        .roaming-cats.react-correct .cat-roamer.mochi .pixel-cat { animation: mochiApprove .8s ease-in-out 2; }
+        .roaming-cats.react-correct .cat-roamer.pudding .pixel-cat { animation: puddingCelebrate .55s ease-in-out 3; }
+        .roaming-cats.react-correct .cat-roamer.biscuit .pixel-cat { animation: biscuitNod .35s steps(2) 4; }
+        .roaming-cats.react-correct .cat-roamer.cookie .pixel-cat { animation: cookieVictory .42s ease-in-out 4; }
+        .roaming-cats.react-correct .cat-roamer.caramel .pixel-cat { animation: caramelWake 1.25s ease-in-out 1; }
+        .roaming-cats.react-wrong .cat-roamer.mochi .pixel-cat { animation: mochiGasp .45s ease-in-out 3; }
+        .roaming-cats.react-wrong .cat-roamer.pudding .pixel-cat { animation: puddingHide .7s ease-in-out 2; }
+        .roaming-cats.react-wrong .cat-roamer.biscuit .pixel-cat { animation: biscuitSideEye .85s steps(2) 2; }
+        .roaming-cats.react-wrong .cat-roamer.cookie .pixel-cat { animation: cookieSkid .5s ease-out 3; }
+        .roaming-cats.react-wrong .cat-roamer.caramel .pixel-cat { animation: caramelStartle .65s ease-in-out 2; }
+        .roaming-cats.react-party .cat-roamer .pixel-cat { animation: cafeParty .52s ease-in-out 6; }
+        .cat-roamer.idle-sit .pixel-cat { animation: catSit 3s ease-in-out 1; }
+        .cat-roamer.idle-groom .pixel-cat { animation: catGroom 2.7s ease-in-out 1; }
+        .cat-roamer.idle-groom .pc-leg.front { animation: groomPaw .28s ease-in-out 7; }
+        .cat-roamer.idle-jump .pixel-cat { animation: catTableJump 2.5s ease-in-out 1; }
+        .cat-roamer.idle-sleep .pixel-cat { animation: catNap 3.2s ease-in-out 1; }
+        .cat-roamer.idle-turn .pixel-cat { animation: catTurn 2.8s ease-in-out 1; }
+        .cat-roamer.idle-loaf .pixel-cat { animation: catLoaf 3.2s ease-in-out 1; }
+        .cat-roamer.idle-stretch .pixel-cat { animation: catStretch 2.8s ease-in-out 1; }
+        .cat-roamer.idle-pounce .pixel-cat { animation: catPounce 2.4s ease-in-out 1; }
+        .cat-roamer.idle-roll .pixel-cat { animation: catRoll 2.9s ease-in-out 1; }
+        .cat-roamer.being-pet .pixel-cat { animation: petWiggle .5s ease-in-out 4; }
+        .cat-roamer.being-fed .pixel-cat { animation: happyMunch .42s steps(2) 6; }
+
+        .roamer-bubble {
+            position: absolute;
+            left: 50%;
+            bottom: 65px;
+            z-index: 8;
+            min-width: 105px;
+            max-width: 165px;
+            padding: 7px 9px;
+            border: 3px solid #6d3850;
+            background: #fffaf0;
+            color: #63304b;
+            font: 900 .69rem/1.25 'Nunito', sans-serif;
+            text-align: center;
+            box-shadow: 3px 3px 0 rgba(89,45,56,.2);
+            opacity: 0;
+            transform: translate(-50%, 8px) scale(.8);
+            transition: opacity .16s, transform .16s;
+            pointer-events: none;
+        }
+        .roamer-bubble::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -9px;
+            width: 12px;
+            height: 12px;
+            border-right: 3px solid #6d3850;
+            border-bottom: 3px solid #6d3850;
+            background: #fffaf0;
+            transform: translateX(-50%) rotate(45deg);
+        }
+        .roamer-bubble.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+        .cat-care-card {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 30;
+            width: min(310px, calc(100vw - 36px));
+            padding: 16px;
+            border: 5px solid #65364c;
+            background: #fff8e8;
+            color: #5f3147;
+            box-shadow: 8px 8px 0 rgba(89,45,56,.22);
+            transform: translateY(calc(100% + 35px));
+            opacity: 0;
+            pointer-events: none;
+            transition: transform .25s cubic-bezier(.175,.885,.32,1.275), opacity .2s;
+        }
+        .cat-care-card.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        .care-close {
+            position: absolute;
+            top: 7px;
+            right: 8px;
+            width: 30px;
+            height: 30px;
+            border: 0;
+            background: transparent;
+            color: #65364c;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .care-heading { font-family: 'Fredoka One', cursive; font-size: 1.25rem; color: #882f61; }
+        .care-mood { min-height: 37px; margin: 7px 0 10px; font-size: .78rem; font-weight: 800; line-height: 1.35; }
+        .care-stats { display: flex; gap: 8px; margin-bottom: 10px; font-size: .72rem; font-weight: 900; }
+        .care-stat { padding: 5px 8px; background: #f7d8e9; border: 2px solid #e9a9cc; }
+        .care-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .care-action {
+            padding: 9px 7px;
+            border: 3px solid #7a3f59;
+            background: #fff;
+            color: #68334d;
+            font: 900 .78rem/1 'Nunito', sans-serif;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 rgba(89,45,56,.18);
+        }
+        .care-action:hover { background: #fde5f1; transform: translateY(-1px); }
+        .care-action:disabled { opacity: .5; cursor: not-allowed; }
+
+        .level-reward {
+            margin-top: 8px;
+            padding-top: 7px;
+            border-top: 2px dashed #ead4f7;
+            color: #a24f79;
+            font-size: .65rem;
+            font-weight: 900;
+        }
+
+        .pixel-cat {
+            --fur: #8b5a3c;
+            --fur-dark: #4b2e24;
+            --fur-light: #f8d8b0;
+            position: relative;
+            display: block;
+            width: 72px;
+            height: 54px;
+            image-rendering: pixelated;
+        }
+        .pixel-cat .pc-body {
+            position: absolute;
+            left: 26px;
+            bottom: 9px;
+            width: 36px;
+            height: 25px;
+            background: var(--fur);
+            border: 4px solid var(--fur-dark);
+            box-shadow: inset 7px 0 0 var(--fur-light);
+        }
+        .pixel-cat .pc-head {
+            position: absolute;
+            left: 7px;
+            bottom: 14px;
+            width: 30px;
+            height: 28px;
+            background: var(--fur);
+            border: 4px solid var(--fur-dark);
+            z-index: 2;
+        }
+        .pixel-cat .pc-ear {
+            position: absolute;
+            top: -12px;
+            width: 10px;
+            height: 12px;
+            background: var(--fur);
+            border: 4px solid var(--fur-dark);
+            border-bottom: 0;
+        }
+        .pixel-cat .pc-ear.left { left: -4px; }
+        .pixel-cat .pc-ear.right { right: -4px; }
+        .pixel-cat .pc-eye {
+            position: absolute;
+            top: 9px;
+            width: 4px;
+            height: 5px;
+            background: #241624;
+            box-shadow: 0 1px 0 #fff;
+        }
+        .pixel-cat .pc-eye.left { left: 5px; }
+        .pixel-cat .pc-eye.right { right: 5px; }
+        .pixel-cat .pc-nose {
+            position: absolute;
+            left: 11px;
+            top: 17px;
+            width: 4px;
+            height: 4px;
+            background: #ef8295;
+        }
+        .pixel-cat .pc-tail {
+            position: absolute;
+            right: 1px;
+            bottom: 24px;
+            width: 19px;
+            height: 19px;
+            border: 5px solid var(--fur-dark);
+            border-left: 0;
+            border-bottom: 0;
+            animation: tailFlick .8s steps(2) infinite;
+        }
+        .pixel-cat .pc-leg {
+            position: absolute;
+            bottom: 1px;
+            width: 9px;
+            height: 14px;
+            background: var(--fur-dark);
+            border-bottom: 4px solid #fff4f7;
+            transform-origin: top;
+        }
+        .pixel-cat .pc-leg.front { left: 19px; animation: pawStep .45s steps(2) infinite; }
+        .pixel-cat .pc-leg.back  { left: 49px; animation: pawStep .45s steps(2) -.22s infinite; }
+        .pixel-cat .pc-mark {
+            position: absolute;
+            z-index: 3;
+        }
+
+        .pixel-cat.mochi { --fur: #f5eee8; --fur-dark: #3c3540; --fur-light: #fff; }
+        .pixel-cat.mochi .pc-head { box-shadow: inset 11px 0 0 #3c3540; }
+        .pixel-cat.mochi .pc-body { box-shadow: inset 10px 0 0 #3c3540; }
+        .pixel-cat.pudding { --fur: #f5c28b; --fur-dark: #633f38; --fur-light: #fff3df; }
+        .pixel-cat.pudding .pc-body { background: linear-gradient(90deg, #f5c28b 0 38%, #fff3df 38% 65%, #5b453f 65%); }
+        .pixel-cat.pudding .pc-head { background: linear-gradient(90deg, #fff3df 0 45%, #f5c28b 45% 75%, #5b453f 75%); }
+        .pixel-cat.biscuit { --fur: #a77a5b; --fur-dark: #49342d; --fur-light: #cfaa83; }
+        .pixel-cat.biscuit .pc-body { background: repeating-linear-gradient(90deg, #a77a5b 0 7px, #654737 7px 10px); }
+        .pixel-cat.biscuit .pc-head { box-shadow: inset 0 7px 0 #654737; }
+        .pixel-cat.cookie { --fur: #4a3b59; --fur-dark: #211b29; --fur-light: #f6f0ff; }
+        .pixel-cat.cookie .pc-body { box-shadow: inset 9px 0 0 #f6f0ff; }
+        .pixel-cat.cookie .pc-head { box-shadow: inset 0 -7px 0 #f6f0ff; }
+        .pixel-cat.caramel { --fur: #e69542; --fur-dark: #75421f; --fur-light: #ffd493; }
+        .pixel-cat.caramel .pc-body { background: repeating-linear-gradient(90deg, #e69542 0 9px, #c8732d 9px 12px); }
+        .pixel-cat.caramel .pc-eye { height: 2px; top: 12px; box-shadow: none; }
+        .pixel-cat.caramel::after {
+            content: "z";
+            position: absolute;
+            left: 2px;
+            top: -10px;
+            color: #7e22ce;
+            font: 900 16px/1 monospace;
+            animation: sleepyZ 2.1s ease-out infinite;
+        }
+
+        /* ══════════════ GAME OVER ══════════════ */
+        #screen-game-over { justify-content: center; min-height: 92vh; text-align: center; }
+        .over-cat { font-size: 5rem; animation: wobbleCry 0.6s ease-in-out infinite alternate; }
+
+        /* ══════════════ KEYFRAMES ══════════════ */
+        @keyframes floatY {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-12px); }
+        }
+        @keyframes popIn {
+            from { transform: scale(0.25); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+        @keyframes bigPop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.3) rotate(-8deg); }
+            100% { transform: scale(1); }
+        }
+        @keyframes wobbleCry {
+            from { transform: rotate(-6deg) scale(1);    }
+            to   { transform: rotate(6deg)  scale(1.06); }
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%      { transform: translateX(-8px); }
+            40%      { transform: translateX(8px); }
+            60%      { transform: translateX(-5px); }
+            80%      { transform: translateX(5px); }
+        }
+        @keyframes flashRed {
+            0%,100% { border-color: #dc2626; background: #fee2e2; }
+            50%      { border-color: #ef4444; background: #fecaca; }
+        }
+        @keyframes confettiFall {
+            from { transform: translateY(-80px) rotate(0deg);   opacity: 1; }
+            to   { transform: translateY(110vh) rotate(600deg); opacity: 0; }
+        }
+        @keyframes roamRight {
+            from { transform: translateX(-120px); }
+            to   { transform: translateX(calc(100vw + 220px)); }
+        }
+        @keyframes pawStep {
+            0%, 100% { transform: translateX(-2px); }
+            50% { transform: translateX(4px); }
+        }
+        @keyframes tailFlick {
+            0%, 100% { transform: rotate(-8deg); }
+            50% { transform: rotate(12deg); }
+        }
+        @keyframes catStalk {
+            0%, 100% { transform: translateY(4px) scaleY(.88); }
+            50% { transform: translateY(0) scaleY(.94); }
+        }
+        @keyframes catPrance {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-13px) rotate(3deg); }
+        }
+        @keyframes catPatrol {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        @keyframes catZoom {
+            0%, 100% { transform: skewX(-8deg) translateY(1px); }
+            45% { transform: skewX(7deg) translateY(-6px); }
+        }
+        @keyframes catSleepwalk {
+            0%, 100% { transform: rotate(-4deg) translateY(2px); }
+            50% { transform: rotate(4deg) translateY(-2px); }
+        }
+        @keyframes catHappy {
+            0%, 100% { transform: scale(1.12) translateY(0); }
+            50% { transform: scale(1.12) translateY(-11px) rotate(-5deg); }
+        }
+        @keyframes catSad {
+            from { transform: scale(1.12) rotate(-4deg) translateY(2px); }
+            to { transform: scale(1.12) rotate(4deg) translateY(5px); }
+        }
+        @keyframes sleepyZ {
+            from { opacity: 0; transform: translate(0, 8px) scale(.7); }
+            50% { opacity: 1; }
+            to { opacity: 0; transform: translate(-8px, -9px) scale(1.15); }
+        }
+        @keyframes mochiApprove {
+            0%, 100% { transform: translateY(3px) rotate(0); }
+            50% { transform: translateY(-6px) rotate(-5deg); }
+        }
+        @keyframes puddingCelebrate {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-23px) scale(1.08) rotate(6deg); }
+        }
+        @keyframes biscuitNod {
+            0%, 100% { transform: rotate(0); }
+            50% { transform: rotate(7deg) translateY(3px); }
+        }
+        @keyframes cookieVictory {
+            0%, 100% { transform: translateX(-7px) skewX(-8deg); }
+            50% { transform: translateX(11px) translateY(-9px) skewX(8deg); }
+        }
+        @keyframes caramelWake {
+            0%, 25% { transform: rotate(-6deg) scaleY(.8); }
+            45% { transform: rotate(0) scaleY(1.12) translateY(-13px); }
+            65%, 100% { transform: rotate(0) scaleY(1); }
+        }
+        @keyframes mochiGasp {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-8px) scaleY(.9); }
+        }
+        @keyframes puddingHide {
+            0%, 100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(18px) scaleY(.62); }
+        }
+        @keyframes biscuitSideEye {
+            0%, 100% { transform: rotate(0); filter: none; }
+            50% { transform: rotate(-6deg); filter: brightness(.78); }
+        }
+        @keyframes cookieSkid {
+            0%, 100% { transform: translateX(0) skewX(0); }
+            45% { transform: translateX(28px) skewX(-18deg) rotate(5deg); }
+        }
+        @keyframes caramelStartle {
+            0%, 100% { transform: scaleY(.82) translateY(5px); }
+            45% { transform: scaleY(1.2) translateY(-17px); }
+        }
+        @keyframes cafeParty {
+            0%, 100% { transform: translateY(0) rotate(-4deg); }
+            50% { transform: translateY(-25px) rotate(7deg) scale(1.08); }
+        }
+        @keyframes reactionSpark {
+            from { opacity: 1; transform: translateY(0) rotate(0) scale(.8); }
+            to { opacity: 0; transform: translateY(-90px) rotate(25deg) scale(1.35); }
+        }
+        @keyframes inlineFeedback {
+            from { opacity: 0; transform: translateY(-8px) scale(.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes plantSway {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        @keyframes fishSwim {
+            from { transform: translateX(-3px); }
+            to { transform: translateX(12px); }
+        }
+        @keyframes neonFlicker {
+            0%, 94%, 100% { opacity: 1; }
+            95% { opacity: .45; }
+            97% { opacity: .82; }
+        }
+        @keyframes catSit {
+            0%, 15%, 85%, 100% { transform: translateY(0) scaleY(1); }
+            30%, 72% { transform: translateY(8px) scaleY(.73) scaleX(.88); }
+        }
+        @keyframes catGroom {
+            0%, 100% { transform: rotate(0) scaleY(1); }
+            25%, 75% { transform: rotate(-8deg) scaleY(.84) translateY(5px); }
+            50% { transform: rotate(-2deg) scaleY(.8) translateY(7px); }
+        }
+        @keyframes groomPaw {
+            0%, 100% { transform: rotate(0) translateY(0); }
+            50% { transform: rotate(-55deg) translate(-5px, -10px); }
+        }
+        @keyframes catTableJump {
+            0%, 12%, 88%, 100% { transform: translateY(0) scale(1); }
+            25% { transform: translateY(7px) scaleY(.78) scaleX(1.12); }
+            48%, 67% { transform: translateY(-76px) rotate(-3deg); }
+            80% { transform: translateY(-6px) scaleY(.82); }
+        }
+        @keyframes catNap {
+            0%, 12%, 88%, 100% { transform: translateY(0) scaleY(1); }
+            25%, 80% { transform: translateY(13px) scaleY(.52) scaleX(1.12) rotate(-3deg); }
+        }
+        @keyframes catTurn {
+            0%, 20%, 80%, 100% { transform: scaleX(1); }
+            35%, 67% { transform: scaleX(-1); }
+        }
+        @keyframes catLoaf {
+            0%, 12%, 88%, 100% { transform: translateY(0) scale(1); }
+            28%, 78% { transform: translateY(12px) scaleX(1.15) scaleY(.58); }
+        }
+        @keyframes catStretch {
+            0%, 12%, 88%, 100% { transform: scale(1) translateY(0); }
+            30%, 67% { transform: scaleX(1.34) scaleY(.72) translate(8px, 9px) skewX(-8deg); }
+            76% { transform: scaleX(.9) scaleY(1.14) translateY(-5px); }
+        }
+        @keyframes catPounce {
+            0%, 15%, 88%, 100% { transform: translate(0, 0) scale(1); }
+            30% { transform: translate(-8px, 10px) scaleX(1.18) scaleY(.72); }
+            48% { transform: translate(45px, -60px) rotate(8deg) scale(.95); }
+            63% { transform: translate(62px, -10px) rotate(-4deg); }
+            76% { transform: translate(50px, 3px) scaleY(.8); }
+        }
+        @keyframes catRoll {
+            0%, 15%, 85%, 100% { transform: translateY(0) rotate(0) scale(1); }
+            35% { transform: translateY(10px) rotate(90deg) scale(.82); }
+            55% { transform: translateY(12px) rotate(220deg) scale(.8); }
+            72% { transform: translateY(4px) rotate(360deg) scale(.9); }
+        }
+        @keyframes petWiggle {
+            0%, 100% { transform: rotate(-7deg) translateY(0); }
+            50% { transform: rotate(8deg) translateY(-9px) scale(1.08); }
+        }
+        @keyframes happyMunch {
+            0%, 100% { transform: translateY(7px) scaleY(.83); }
+            50% { transform: translateY(2px) scaleY(.93) rotate(3deg); }
+        }
+        @keyframes lookBeforeMoving {
+            0%, 100% { transform: scaleX(1) translateY(0); }
+            35% { transform: scaleX(-1) translateY(2px); }
+            68% { transform: scaleX(1) translateY(-3px); }
+        }
+        @keyframes turnToLeft {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(-1); }
+        }
+        @keyframes turnToRight {
+            from { transform: scaleX(-1); }
+            to { transform: scaleX(1); }
+        }
+        @keyframes purposefulWalkLeft {
+            0%, 100% { transform: scaleX(-1) translateY(0); }
+            50% { transform: scaleX(-1) translateY(-5px); }
+        }
+        @keyframes purposefulWalkRight {
+            0%, 100% { transform: scaleX(1) translateY(0); }
+            50% { transform: scaleX(1) translateY(-5px); }
+        }
+        @keyframes tablePerch {
+            0% { transform: translateY(58px) scaleX(1.14) scaleY(.68); }
+            18% { transform: translateY(-18px) rotate(-5deg) scale(.94); }
+            30% { transform: translateY(4px) scaleY(.8); }
+            42%, 100% { transform: translateY(7px) scaleY(.72); }
+        }
+        @keyframes towerSleep {
+            0% { transform: translateY(72px) scaleY(.72); }
+            17% { transform: translateY(-14px) rotate(4deg); }
+            30% { transform: translateY(5px) scaleY(.82); }
+            48%, 100% { transform: translateY(13px) scaleY(.5) scaleX(1.12); }
+        }
+        @keyframes watchFish {
+            0%, 100% { transform: rotate(-3deg) translateY(5px); }
+            50% { transform: rotate(5deg) translateY(2px) scaleX(.96); }
+        }
+        @keyframes playWithBall {
+            0%, 100% { transform: translate(-8px, 4px) scaleY(.82); }
+            50% { transform: translate(18px, -13px) rotate(7deg); }
+        }
+        @keyframes batFeather {
+            0%, 100% { transform: translateY(5px) rotate(-5deg); }
+            50% { transform: translateY(-12px) rotate(8deg) scale(1.04); }
+        }
+        @keyframes hideInBox {
+            0%, 100% { transform: translateY(22px) scaleY(.45); }
+            50% { transform: translateY(4px) scaleY(.9); }
+        }
+        @keyframes toyBallBounce {
+            0%, 100% { transform: translate(0, 0) rotate(0); }
+            50% { transform: translate(28px, -20px) rotate(90deg); }
+        }
+        @keyframes featherWiggle {
+            0%, 100% { transform: rotate(-17deg); }
+            50% { transform: rotate(22deg) translateY(-8px); }
+        }
+        @keyframes boxWobble {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(3deg) translateY(-3px); }
+        }
+        .confetti-bit {
+            position: fixed;
+            pointer-events: none;
+            animation: confettiFall linear forwards;
+        }
+
+        /* ══════════════ RESPONSIVE ══════════════ */
+        @media (max-width: 540px) {
+            .cafe-card { flex-direction: column; }
+            .cat-panel { flex-direction: row; flex-wrap: wrap; flex: none; width: 100%; }
+            .mc-grid   { grid-template-columns: 1fr; }
+            .drag-wrap { flex-direction: column; }
+            .title-main { font-size: 2rem; }
+            .title-hero { gap: 0; transform: scale(.8); }
+            .cat-roamer.biscuit, .cat-roamer.caramel { display: none; }
+            .cafe-window { left: -52px; width: 210px; opacity: .72; }
+            .menu-board { right: -70px; min-width: 190px; opacity: .7; }
+            .cafe-shelf, .cafe-table.two, .cafe-pendant.two { display: none; }
+            .cafe-table.one { left: 42%; transform: scale(.72); }
+            .cafe-sign { min-width: 230px; font-size: .86rem; }
+            .sound-toggle .sound-label { display: none; }
+            .sound-toggle { padding: 7px 9px; }
+            .cafe-progress { max-width: 150px; padding: 7px 8px; gap: 5px; }
+            .cafe-progress .progress-label { display: none; }
+            .unlock-books, .unlock-aquarium { display: none; }
+            .cat-care-card { left: 18px; right: 18px; width: auto; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cat-roamer { animation-play-state: paused !important; }
+            .cat-roamer.destination-mode { transition: none !important; }
+            .pixel-cat, .pixel-cat *, .title-hero .pixel-cat, .reaction-spark { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cafe-backdrop" aria-hidden="true">
+    <div class="cafe-awning"></div>
+    <div class="cafe-sign">JOY-EETHA'S CAT CAFÉ</div>
+    <div class="cafe-window"></div>
+    <div class="menu-board"><strong>MEOW-NU</strong>Cell Cupcake · 3 paws<br>DNA Doughnut · 4 paws<br>Osmosis Éclair · 5 paws</div>
+    <div class="cafe-shelf"></div>
+    <div class="cafe-pendant one"></div>
+    <div class="cafe-pendant two"></div>
+    <div class="cafe-unlock unlock-plant" data-unlock="1" aria-hidden="true">🪴</div>
+    <div class="cafe-unlock unlock-tree" data-unlock="2" data-cat-target="tree" aria-hidden="true"></div>
+    <div class="cafe-unlock unlock-books" data-unlock="3" aria-hidden="true">📚 🧬 🔬</div>
+    <div class="cafe-unlock unlock-aquarium" data-unlock="4" data-cat-target="aquarium" aria-hidden="true"></div>
+    <div class="cafe-unlock unlock-neon" data-unlock="5" aria-hidden="true">DNA ✦</div>
+    <div class="pastry-case"></div>
+    <div class="cafe-table one" data-cat-target="table"></div>
+    <div class="cafe-table two"></div>
+    <div class="cafe-toy toy-ball" data-toy-unlock="1" data-cat-target="ball" aria-hidden="true">🧶</div>
+    <div class="cafe-toy toy-feather" data-toy-unlock="2" data-cat-target="feather" aria-hidden="true">🪶</div>
+    <div class="cafe-toy toy-box" data-toy-unlock="3" data-cat-target="box" aria-hidden="true"></div>
+    <div class="cafe-counter"></div>
+</div>
+
+<div class="roaming-cats" id="roaming-cats" role="group" aria-label="Wandering café cats">
+    <button class="cat-roamer mochi" type="button" data-pixel-cat="mochi" aria-label="Pet Mochi" onclick="openCatCare('mochi')"></button>
+    <button class="cat-roamer pudding" type="button" data-pixel-cat="pudding" aria-label="Pet Pudding" onclick="openCatCare('pudding')"></button>
+    <button class="cat-roamer biscuit" type="button" data-pixel-cat="biscuit" aria-label="Pet Biscuit" onclick="openCatCare('biscuit')"></button>
+    <button class="cat-roamer cookie" type="button" data-pixel-cat="cookie" aria-label="Pet Cookie" onclick="openCatCare('cookie')"></button>
+    <button class="cat-roamer caramel" type="button" data-pixel-cat="caramel" aria-label="Pet Caramel" onclick="openCatCare('caramel')"></button>
+</div>
+<div class="cafe-reaction" id="cafe-reaction" role="status" aria-live="polite"></div>
+<div class="cafe-progress" aria-label="Café progress">
+    <span>🏡 <span class="progress-label">Café</span> <strong id="unlock-count">0/5</strong></span>
+    <span>🍪 <span class="progress-label">Treats</span> <strong id="treat-count">3</strong></span>
+</div>
+<button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" onclick="toggleSound()">
+    <span class="sound-icon" id="sound-icon" aria-hidden="true">🔊</span>
+    <span class="sound-label" id="sound-label">Sound on</span>
+</button>
+<aside class="cat-care-card" id="cat-care-card" aria-live="polite">
+    <button class="care-close" type="button" aria-label="Close cat interaction" onclick="closeCatCare()">×</button>
+    <div class="care-heading" id="care-heading">Mochi</div>
+    <div class="care-mood" id="care-mood">Mochi is pretending not to notice you.</div>
+    <div class="care-stats">
+        <span class="care-stat">💗 Friendship <strong id="care-affection">0</strong></span>
+        <span class="care-stat">🍪 Treats <strong id="care-treats">3</strong></span>
+    </div>
+    <div class="care-actions">
+        <button class="care-action" type="button" onclick="careForCat('pet')">🖐️ Pet</button>
+        <button class="care-action" id="feed-cat-btn" type="button" onclick="careForCat('feed')">🍪 Give treat</button>
+    </div>
+</aside>
+
+<!-- ══════════════ TITLE SCREEN ══════════════ -->
+<div id="screen-title" class="screen active">
+    <div class="title-hero" aria-label="Mochi, Pudding, Biscuit, Cookie and Caramel">
+        <div data-pixel-cat="mochi"></div>
+        <div data-pixel-cat="pudding"></div>
+        <div data-pixel-cat="biscuit"></div>
+        <div data-pixel-cat="cookie"></div>
+        <div data-pixel-cat="caramel"></div>
+    </div>
+    <div class="title-main">Joyeetha's Purrfect<br>Cell Café ☕</div>
+    <div class="title-sub">AQA Combined Biology Higher 🧬</div>
+    <div class="title-blurb">
+        Welcome to the cutest café in school! Answer biology questions to serve sweet treats
+        to our adorable (and dramatic) cat customers. Get them right and make them purr —
+        get them wrong and brace yourself for the consequences... 😿
+    </div>
+    <div class="treat-row">🍰 🧁 🍩 🍪 🎂</div>
+    <button class="btn btn-purple" onclick="showLevelSelect()">Start Playing 🐾</button>
+    <div style="font-size:0.78rem; color:#a3a3a3; font-weight:700;">5 levels · All topics · Earn 3 stars per level!</div>
+</div>
+
+<!-- ══════════════ LEVEL SELECT ══════════════ -->
+<div id="screen-levels" class="screen">
+    <div class="levels-heading">🐾 Choose a Level 🐾</div>
+    <p style="font-size:0.82rem; color:#a3a3a3; font-weight:700;">Each level covers a different AQA Biology topic</p>
+    <div class="level-grid" id="level-grid"></div>
+    <button class="btn btn-orange" onclick="showScreen('screen-title')">← Back to Home</button>
+</div>
+
+<!-- ══════════════ GAME SCREEN ══════════════ -->
+<div id="screen-game" class="screen">
+    <div class="game-header">
+        <div class="hearts-display" id="hearts-el">❤️❤️❤️</div>
+        <div class="level-indicator" id="level-label">Level 1: Cell Biology</div>
+        <div class="score-display">⭐ <span id="score-el">0</span></div>
+    </div>
+
+    <div class="progress-wrap">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="cafe-card">
+        <div class="cat-panel">
+            <div class="cat-emoji" id="cat-emoji-el" role="img" aria-label="Mochi the cat"></div>
+            <div class="cat-name-badge" id="cat-name-el">Mochi</div>
+            <div class="speech-bubble" id="speech-el">Meow!</div>
+            <div class="treat-label">Today's order:</div>
+            <div class="treat-emoji" id="treat-el">🧁</div>
+        </div>
+        <div class="question-panel">
+            <div class="topic-badge" id="topic-badge-el">Cell Biology</div>
+            <div class="q-num" id="q-num-el">Question 1 of 5</div>
+            <div class="q-text" id="q-text-el"></div>
+            <div id="answer-area"></div>
+            <div class="answer-feedback" id="answer-feedback" role="status" aria-live="polite"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ LEVEL COMPLETE ══════════════ -->
+<div id="screen-level-complete" class="screen">
+    <div class="complete-cat" id="complete-cat-el">😸</div>
+    <div class="complete-title">Purrfect Work!</div>
+    <div class="stars-row" id="complete-stars-el">⭐⭐⭐</div>
+    <div class="complete-card">
+        <div class="complete-num" id="complete-num-el">5/5</div>
+        <div class="complete-label">questions answered correctly</div>
+    </div>
+    <div class="fact-box">
+        <div class="fact-heading">🧬 Biology Bitesize</div>
+        <div class="fact-body" id="fact-body-el"></div>
+    </div>
+    <div class="btn-row">
+        <button class="btn btn-orange" onclick="showLevelSelect()">All Levels 🐾</button>
+        <button class="btn btn-purple" id="next-level-btn" onclick="nextLevel()">Next Level →</button>
+    </div>
+</div>
+
+<!-- ══════════════ GAME OVER ══════════════ -->
+<div id="screen-game-over" class="screen">
+    <div class="over-cat">😿</div>
+    <div class="complete-title" style="color:#dc2626;">The cats are sulking!</div>
+    <div class="complete-card">
+        <p style="font-size:0.95rem; color:#555; font-weight:700; line-height:1.6;">
+            You ran out of hearts this time — but don't give up!<br>
+            Biology gets easier with every attempt. You've got this! 💪
+        </p>
+        <div style="font-size:0.82rem; color:#a3a3a3; margin-top:12px;" id="over-score-el"></div>
+    </div>
+    <div class="btn-row">
+        <button class="btn btn-orange" onclick="showLevelSelect()">Level Select 🐾</button>
+        <button class="btn btn-purple" id="retry-btn">Try Again 🔄</button>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CAT CHARACTERS
+// ══════════════════════════════════════════════════════════════
+const CATS = [
+    {
+        name: "Mochi",
+        kind: "mochi",
+        emoji: "😾", sadEmoji: "😿", happyEmoji: "😸",
+        speech: "I demand nothing less than perfection.",
+        msgs: [
+            "MOCHI IS DEVASTATED 😿💔\n*knocks the entire table over in slow motion*",
+            "Mochi stares at you for 10 whole seconds without blinking 😾\n*extremely long, deeply disappointed silence*",
+            "Mochi has added this failure to her diary. In red ink. Underlined. 📒😤"
+        ]
+    },
+    {
+        name: "Pudding",
+        kind: "pudding",
+        emoji: "😸", sadEmoji: "😭", happyEmoji: "😻",
+        speech: "Ehe~ everything looks SO yummy!!",
+        msgs: [
+            "Pudding is SOBBING 😭 giant anime tears are flooding the café floor",
+            "Pudding fell off her chair!! She's physically ok but her feelings are NOT 😭💫",
+            "Pudding's little chin is wobbling... she still loves you though 😿💕\n*sniffles extremely loudly*"
+        ]
+    },
+    {
+        name: "Biscuit",
+        kind: "biscuit",
+        emoji: "🐱", sadEmoji: "😟", happyEmoji: "😊",
+        speech: "...I'm watching you very closely.",
+        msgs: [
+            "Biscuit sighs so deeply it rattles the windows\n*drafts a formal complaint letter* 📄😑",
+            "Biscuit removes you from his Christmas card list. Permanently. ✂️😤",
+            "Biscuit side-eyes you so hard his head nearly rotates 360°\n*disappointed cat noises* 😑👀"
+        ]
+    },
+    {
+        name: "Cookie",
+        kind: "cookie",
+        emoji: "😺", sadEmoji: "😿", happyEmoji: "🥳",
+        speech: "LET'S GOOOO!! I believe in you!! 🌟",
+        msgs: [
+            "Cookie ZOOMS away in pure disappointment and crashes into a wall 💨😿",
+            "Cookie gasps and places one tiny paw dramatically over his heart 🐾💔",
+            "Cookie is vibrating with sadness\n*does a tiny flop onto the floor* 😿✨"
+        ]
+    },
+    {
+        name: "Caramel",
+        kind: "caramel",
+        emoji: "😴", sadEmoji: "😪", happyEmoji: "😌",
+        speech: "...zzz... oh, treats?... ...zzz...",
+        msgs: [
+            "Caramel woke up SPECIFICALLY to give you a disappointed look, then went back to sleep 😴",
+            "Caramel slowly slides off her chair in dismay\n...zzz... 😪💤",
+            "Caramel opened one eye, shook her head once, and closed it again\n*deeply offended snoring* 😴"
+        ]
+    }
+];
+
+const CAT_CHAT = {
+    mochi: {
+        pet: ["One pet. No more. ...Fine, one more.", "*quietly leans into your hand*", "This is acceptable tribute."],
+        feed: ["A properly presented snack. Finally.", "I approve of this biscuit.", "*delicate crunch* Exquisite."],
+        correct: ["Naturally. I expected perfection.", "A dignified answer.", "Acceptable. Very acceptable."],
+        wrong: ["I shall pretend I didn't see that.", "Review your notes. Immediately.", "*extreme side-eye*"],
+        streak: ["A flawless streak. Do continue.", "You may be café management material."],
+        ambient: ["I am supervising.", "*tail flick*", "The standards remain high."],
+        purr: "prrr... but tell nobody."
+    },
+    pudding: {
+        pet: ["BEST PET EVER!!", "*happy little head bonk*", "Again again again!"],
+        feed: ["SNACK TIME!!", "This is the greatest day of my LIFE!", "*tiny delighted crunches*"],
+        correct: ["YOU DID IT!!", "Biology superstar!!", "That answer was DELICIOUS!"],
+        wrong: ["It's okay! We try again!", "I still believe in you!", "*encouraging paw pat*"],
+        streak: ["STREAK!! STREAK!! STREAK!!", "You are absolutely on FIRE!"],
+        ambient: ["Is that cake for me?", "*bouncy bouncy*", "Hi! Hi again!"],
+        purr: "PURR PURR PURR!!"
+    },
+    biscuit: {
+        pet: ["Your technique is adequate.", "*one approving blink*", "A precise ear scratch."],
+        feed: ["Hmm. Good crumb structure.", "I award this treat 8 paws out of 10.", "*professional crunch*"],
+        correct: ["Correct. As documented.", "Your reasoning checks out.", "A satisfactory result."],
+        wrong: ["Citation needed.", "Please revise section 2.", "*drafts feedback*"],
+        streak: ["A statistically significant streak.", "Consistent performance. Impressive."],
+        ambient: ["I am taking notes.", "*adjusts imaginary glasses*", "Quality control patrol."],
+        purr: "A measured, professional purr."
+    },
+    cookie: {
+        pet: ["PET ZOOMIES ACTIVATED!", "*spins in a tiny circle*", "You have charged my turbo paws!"],
+        feed: ["FUEL FOR ZOOMIES!", "*cronch at maximum speed*", "Snack acquired! GO GO GO!"],
+        correct: ["LET'S GOOOO!", "Massive biology win!", "Victory lap incoming!"],
+        wrong: ["Plot twist! Next one is ours!", "Quick reset — GO AGAIN!", "*supportive skid*"],
+        streak: ["COMBO MODE ACTIVATED!", "UNSTOPPABLE!!"],
+        ambient: ["Race you to the counter!", "*nyoom*", "I have places to zoom!"],
+        purr: "brrrrRRR—zoom!"
+    },
+    caramel: {
+        pet: ["Mmm... warm hand...", "*sleepy biscuit-making*", "Five more minutes of pets..."],
+        feed: ["Snack in bed? Perfect.", "*sleepy munch*", "I dreamed about this treat..."],
+        correct: ["Mmm... clever...", "Wake me for the next right answer.", "*proud sleepy blink*"],
+        wrong: ["It's okay... naps help memory...", "Try again after a tiny stretch.", "*comforting yawn*"],
+        streak: ["Even I woke up for that streak.", "So many right answers... wow..."],
+        ambient: ["...zzz...", "*slow blink*", "This table is my bed now."],
+        purr: "prrrrr... zzz..."
+    }
+};
+
+function pixelCatMarkup(kind) {
+    return `<span class="pixel-cat ${kind}" aria-hidden="true">
+        <span class="pc-tail"></span>
+        <span class="pc-body"></span>
+        <span class="pc-leg front"></span>
+        <span class="pc-leg back"></span>
+        <span class="pc-head">
+            <span class="pc-ear left"></span>
+            <span class="pc-ear right"></span>
+            <span class="pc-eye left"></span>
+            <span class="pc-eye right"></span>
+            <span class="pc-nose"></span>
+        </span>
+    </span>`;
+}
+
+document.querySelectorAll('[data-pixel-cat]').forEach(el => {
+    const kind = el.dataset.pixelCat;
+    el.innerHTML = pixelCatMarkup(kind) +
+        (el.classList.contains('cat-roamer') ? `<span class="roamer-bubble" id="bubble-${kind}"></span>` : '');
+});
+
+function setQuestionCat(cat, mood = '') {
+    const el = document.getElementById('cat-emoji-el');
+    el.innerHTML = pixelCatMarkup(cat.kind);
+    el.className = `cat-emoji ${mood}`.trim();
+    el.setAttribute('aria-label', `${cat.name} the ${cat.kind} pixel cat${mood ? `, ${mood}` : ''}`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// PROCEDURAL CAFÉ SOUND & MUSIC — no audio files or downloads required
+// ══════════════════════════════════════════════════════════════
+let audioCtx;
+let musicTimer;
+let nextMusicNoteTime = 0;
+let musicStep = 0;
+let soundEnabled = true;
+try {
+    soundEnabled = localStorage.getItem('joyeetha-sound') !== 'off';
+} catch (_) {}
+
+function getAudioContext() {
+    if (!soundEnabled) return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!audioCtx) audioCtx = new AudioContextClass();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+
+function soundTone(frequency, offset, duration, wave = 'sine', volume = .055, endFrequency = frequency) {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const start = ctx.currentTime + offset;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = wave;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, endFrequency), start + duration);
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + .018);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + .03);
+}
+
+const CAFE_MELODY = [
+    523.25, 659.25, 783.99, 659.25,
+    587.33, 698.46, 880.00, 698.46,
+    493.88, 587.33, 783.99, 587.33,
+    523.25, 659.25, 783.99, null,
+    659.25, 783.99, 1046.50, 783.99,
+    587.33, 698.46, 880.00, 698.46,
+    523.25, 659.25, 783.99, 659.25,
+    493.88, 587.33, 523.25, null
+];
+const CAFE_BASS = [130.81, 146.83, 123.47, 130.81, 164.81, 146.83, 130.81, 123.47];
+const MUSIC_BEAT = .31;
+
+function scheduleMusicTone(ctx, frequency, start, duration, wave = 'sine', volume = .012) {
+    if (!frequency) return;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = wave;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + .035);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + .03);
+}
+
+function scheduleCafeMusic() {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (nextMusicNoteTime < ctx.currentTime - .5) nextMusicNoteTime = ctx.currentTime + .06;
+    while (nextMusicNoteTime < ctx.currentTime + .28) {
+        const note = CAFE_MELODY[musicStep % CAFE_MELODY.length];
+        scheduleMusicTone(ctx, note, nextMusicNoteTime, MUSIC_BEAT * .88, 'triangle', .011);
+        if (musicStep % 4 === 0) {
+            const bass = CAFE_BASS[Math.floor(musicStep / 4) % CAFE_BASS.length];
+            scheduleMusicTone(ctx, bass, nextMusicNoteTime, MUSIC_BEAT * 3.5, 'sine', .009);
+        }
+        if (musicStep % 8 === 4) {
+            scheduleMusicTone(ctx, note ? note / 2 : 261.63, nextMusicNoteTime, MUSIC_BEAT * 1.7, 'sine', .006);
+        }
+        nextMusicNoteTime += MUSIC_BEAT;
+        musicStep = (musicStep + 1) % CAFE_MELODY.length;
+    }
+}
+
+function startBackgroundMusic() {
+    if (!soundEnabled || musicTimer) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    nextMusicNoteTime = ctx.currentTime + .06;
+    scheduleCafeMusic();
+    musicTimer = setInterval(scheduleCafeMusic, 90);
+}
+
+function stopBackgroundMusic() {
+    if (musicTimer) clearInterval(musicTimer);
+    musicTimer = null;
+}
+
+function playCatVoice(kind, happy) {
+    const voices = {
+        mochi:   happy ? [310, 390] : [290, 180],
+        pudding: happy ? [590, 790] : [520, 330],
+        biscuit: happy ? [390, 440] : [350, 270],
+        cookie:  happy ? [480, 720] : [430, 230],
+        caramel: happy ? [220, 260] : [210, 150]
+    };
+    const voice = voices[kind] || voices.mochi;
+    soundTone(voice[0], .06, .16, 'triangle', .028, voice[1]);
+    soundTone(voice[1], .2, .13, 'triangle', .022, happy ? voice[1] * 1.08 : voice[1] * .9);
+}
+
+function playSound(type, catKind) {
+    if (!soundEnabled) return;
+    if (type === 'correct') {
+        soundTone(523.25, 0, .2, 'sine', .045, 659.25);
+        soundTone(659.25, .09, .2, 'sine', .04, 783.99);
+        soundTone(783.99, .18, .28, 'triangle', .038, 1046.5);
+        if (catKind) playCatVoice(catKind, true);
+    } else if (type === 'wrong') {
+        soundTone(260, 0, .24, 'triangle', .04, 190);
+        soundTone(185, .18, .28, 'sine', .035, 135);
+        if (catKind) playCatVoice(catKind, false);
+    } else if (type === 'party') {
+        [523.25, 659.25, 783.99, 1046.5].forEach((note, i) =>
+            soundTone(note, i * .11, .3, i % 2 ? 'triangle' : 'sine', .045, note * 1.02)
+        );
+        soundTone(130.81, 0, .65, 'square', .018, 261.63);
+    } else if (type === 'tap') {
+        soundTone(620, 0, .08, 'sine', .025, 760);
+    } else if (type === 'feed') {
+        soundTone(440, 0, .07, 'square', .018, 360);
+        soundTone(510, .09, .07, 'square', .016, 420);
+        soundTone(650, .2, .13, 'triangle', .025, 760);
+    }
+}
+
+function playPurr(kind) {
+    const base = { mochi: 56, pudding: 72, biscuit: 61, cookie: 82, caramel: 48 }[kind] || 58;
+    for (let i = 0; i < 5; i++) {
+        soundTone(base, i * .12, .2, 'sawtooth', .007, base * 1.08);
+    }
+}
+
+function updateSoundButton() {
+    const button = document.getElementById('sound-toggle');
+    document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+    document.getElementById('sound-label').textContent = soundEnabled ? 'Music on' : 'Music off';
+    button.setAttribute('aria-pressed', String(soundEnabled));
+    button.setAttribute('aria-label', soundEnabled ? 'Mute café music and sounds' : 'Turn on café music and sounds');
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    try {
+        localStorage.setItem('joyeetha-sound', soundEnabled ? 'on' : 'off');
+    } catch (_) {}
+    updateSoundButton();
+    if (soundEnabled) {
+        playSound('tap');
+        startBackgroundMusic();
+    } else {
+        stopBackgroundMusic();
+    }
+}
+
+updateSoundButton();
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopBackgroundMusic();
+    else if (soundEnabled && audioCtx) startBackgroundMusic();
+});
+
+let selectedCareCat = null;
+function randomFrom(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+function catFromKind(kind) {
+    return CATS.find(cat => cat.kind === kind);
+}
+
+function showRoamerSpeech(kind, text, duration = 2600) {
+    const bubble = document.getElementById(`bubble-${kind}`);
+    if (!bubble) return;
+    clearTimeout(bubble.hideTimer);
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    bubble.hideTimer = setTimeout(() => bubble.classList.remove('show'), duration);
+}
+
+function animateRoamer(kind, className, duration = 2300) {
+    const roamer = document.querySelector(`.cat-roamer.${kind}`);
+    if (!roamer) return;
+    roamer.classList.remove(
+        'being-pet', 'being-fed', 'idling',
+        'idle-sit', 'idle-groom', 'idle-jump', 'idle-sleep', 'idle-turn',
+        'idle-loaf', 'idle-stretch', 'idle-pounce', 'idle-roll'
+    );
+    void roamer.offsetWidth;
+    roamer.classList.add(className);
+    if (className.startsWith('idle-')) roamer.classList.add('idling');
+    setTimeout(() => roamer.classList.remove(className, 'idling'), duration);
+}
+
+function openCatCare(kind) {
+    startBackgroundMusic();
+    selectedCareCat = kind;
+    const cat = catFromKind(kind);
+    document.querySelectorAll('.cat-roamer').forEach(roamer => roamer.classList.remove('selected'));
+    document.querySelector(`.cat-roamer.${kind}`)?.classList.add('selected');
+    document.getElementById('cat-care-card').classList.add('show');
+    document.getElementById('care-heading').textContent = `${cat.name} wants attention`;
+    document.getElementById('care-mood').textContent = randomFrom(CAT_CHAT[kind].ambient);
+    updateCareCard();
+    showRoamerSpeech(kind, "Oh! You found me.");
+    playSound('tap');
+}
+
+function closeCatCare() {
+    document.getElementById('cat-care-card').classList.remove('show');
+    document.querySelectorAll('.cat-roamer').forEach(roamer => roamer.classList.remove('selected'));
+    selectedCareCat = null;
+}
+
+function updateCareCard() {
+    if (!selectedCareCat) return;
+    const affection = cafeSave.affection[selectedCareCat] || 0;
+    document.getElementById('care-affection').textContent = affection;
+    document.getElementById('care-treats').textContent = cafeSave.treats;
+    document.getElementById('feed-cat-btn').disabled = cafeSave.treats < 1;
+}
+
+function careForCat(action) {
+    if (!selectedCareCat) return;
+    const kind = selectedCareCat;
+    const cat = catFromKind(kind);
+    if (action === 'feed' && cafeSave.treats < 1) {
+        document.getElementById('care-mood').textContent = 'Earn more treats by answering questions correctly!';
+        return;
+    }
+
+    if (action === 'feed') {
+        cafeSave.treats--;
+        cafeSave.affection[kind] = (cafeSave.affection[kind] || 0) + 2;
+        animateRoamer(kind, 'being-fed');
+        playSound('feed');
+    } else {
+        cafeSave.affection[kind] = (cafeSave.affection[kind] || 0) + 1;
+        animateRoamer(kind, 'being-pet');
+        playPurr(kind);
+    }
+
+    const message = randomFrom(CAT_CHAT[kind][action]);
+    document.getElementById('care-mood').textContent = `${cat.name}: “${message}”`;
+    showRoamerSpeech(kind, action === 'pet' ? CAT_CHAT[kind].purr : message);
+    saveCafeProgress();
+    applyCafeProgress();
+}
+
+function commentOnAnswer(type, focusKind) {
+    if (type === 'party') {
+        ['pudding', 'cookie', 'caramel'].forEach((kind, i) =>
+            setTimeout(() => showRoamerSpeech(kind, i === 2 ? "Even I woke up! 🎉" : "CAFÉ PARTY! 🎉", 3000), i * 180)
+        );
+        return;
+    }
+    if (!focusKind) return;
+    const chatType = type === 'correct' && G.streak >= 3 ? 'streak' : type;
+    showRoamerSpeech(focusKind, randomFrom(CAT_CHAT[focusKind][chatType]));
+    if (type === 'correct' && Math.random() < .45) {
+        const others = CATS.map(cat => cat.kind).filter(kind => kind !== focusKind);
+        const purringCat = randomFrom(others);
+        setTimeout(() => {
+            showRoamerSpeech(purringCat, CAT_CHAT[purringCat].purr);
+            if (audioCtx) playPurr(purringCat);
+        }, 450);
+    }
+}
+
+let cafeReactionTimer;
+function triggerCafeReaction(type, catKind) {
+    startBackgroundMusic();
+    const cats = document.getElementById('roaming-cats');
+    const notice = document.getElementById('cafe-reaction');
+    const copy = {
+        correct: [
+            'Correct! The whole café is purring! ✨',
+            'Brilliant biology — the cats celebrate! 🐾',
+            'Perfect order! Five happy customers! 💜'
+        ],
+        wrong: [
+            'Oops! Every cat in the café noticed…',
+            'The café crew reacts dramatically! 🙀',
+            'Not quite — the cats are rooting for your comeback!'
+        ],
+        party: [
+            'Level complete — café dance party! 🎉'
+        ]
+    };
+    const messages = copy[type] || copy.correct;
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    playSound(type, catKind);
+    commentOnAnswer(type, catKind);
+
+    clearTimeout(cafeReactionTimer);
+    cats.classList.remove('react-correct', 'react-wrong', 'react-party');
+    notice.classList.remove('show', 'wrong');
+    void cats.offsetWidth;
+    cats.classList.add(`react-${type}`);
+    notice.textContent = message;
+    notice.classList.toggle('wrong', type === 'wrong');
+    notice.classList.add('show');
+
+    const symbols = type === 'wrong' ? ['💧', '!?', '🙀'] : type === 'party' ? ['🎉', '⭐', '🐾', '✨'] : ['💜', '⭐', '🐾', '✨'];
+    const sparkCount = type === 'party' ? 18 : 10;
+    for (let i = 0; i < sparkCount; i++) {
+        const spark = document.createElement('span');
+        spark.className = 'reaction-spark';
+        spark.textContent = symbols[i % symbols.length];
+        spark.style.left = `${8 + Math.random() * 84}vw`;
+        spark.style.top = `${35 + Math.random() * 50}vh`;
+        spark.style.animationDelay = `${Math.random() * .2}s`;
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 1500);
+    }
+
+    cafeReactionTimer = setTimeout(() => {
+        cats.classList.remove('react-correct', 'react-wrong', 'react-party');
+        notice.classList.remove('show', 'wrong');
+    }, type === 'party' ? 3000 : 1900);
+}
+
+// ══════════════════════════════════════════════════════════════
+// QUESTION BANK
+// ══════════════════════════════════════════════════════════════
+const LEVELS = [
+    {
+        id: 1, name: "Level 1", topic: "Cell Biology", icon: "🔬",
+        fact: "The mitochondria is called the 'powerhouse of the cell' because it produces ATP through aerobic respiration. A single liver cell can contain over 2,000 mitochondria! Also: plant cells have 3 structures animal cells don't — cell wall (cellulose), chloroplasts, and a permanent vacuole.",
+        questions: [
+            {
+                type: "mc", topic: "Cell Biology", treat: "🍪", treatName: "Nucleus Nibble", cat: 1,
+                q: "What is the main function of the mitochondria?",
+                opts: [
+                    "Stores the cell's DNA and controls cell activities",
+                    "Site of aerobic respiration — produces ATP (energy)",
+                    "Controls what enters and exits the cell",
+                    "Where proteins are made for the cell"
+                ],
+                ans: 1,
+                explain: "Mitochondria are the site of aerobic respiration, where glucose + oxygen → CO₂ + water + ATP (energy). More active cells have MORE mitochondria!"
+            },
+            {
+                type: "mc", topic: "Cell Biology", treat: "🧁", treatName: "Membrane Muffin", cat: 0,
+                q: "Which structure controls what enters and exits the cell?",
+                opts: ["Cell wall", "Nucleus", "Cell membrane", "Vacuole"],
+                ans: 2,
+                explain: "The CELL MEMBRANE (partially permeable) controls the movement of substances in and out of the cell. The cell wall provides support but is fully permeable — don't mix these up!"
+            },
+            {
+                type: "mc", topic: "Cell Biology", treat: "🌸", treatName: "Plant Cell Parfait", cat: 2,
+                q: "Which THREE structures are found in plant cells but NOT in animal cells?",
+                opts: [
+                    "Nucleus, mitochondria, and ribosomes",
+                    "Cell wall, chloroplasts, and permanent vacuole",
+                    "Cell membrane, cytoplasm, and nucleus",
+                    "Endoplasmic reticulum, Golgi apparatus, and ribosomes"
+                ],
+                ans: 1,
+                explain: "Plant cells have: a CELL WALL (made of cellulose for support), CHLOROPLASTS (contain chlorophyll for photosynthesis), and a PERMANENT VACUOLE (filled with cell sap for turgor pressure)."
+            },
+            {
+                type: "mc", topic: "Cell Biology", treat: "💧", treatName: "Osmosis Éclair", cat: 3,
+                q: "What is osmosis?",
+                opts: [
+                    "Movement of any molecule from high to low concentration",
+                    "The movement of water molecules from a high to low water potential through a partially permeable membrane",
+                    "Active transport of glucose against a concentration gradient",
+                    "The diffusion of oxygen from the lungs into the blood"
+                ],
+                ans: 1,
+                explain: "Osmosis = WATER ONLY, moving from HIGH water potential (dilute solution) to LOW water potential (concentrated solution), through a PARTIALLY PERMEABLE MEMBRANE. No energy required."
+            },
+            {
+                type: "drag", topic: "Cell Biology", treat: "🔬", treatName: "Organelle Cake Pop", cat: 4,
+                q: "Match each organelle to its correct function:",
+                items: ["Nucleus", "Ribosome", "Chloroplast", "Mitochondria"],
+                slots: [
+                    "Site of aerobic respiration (produces ATP)",
+                    "Contains DNA — controls cell activities",
+                    "Site of photosynthesis (contains chlorophyll)",
+                    "Where proteins are synthesised"
+                ],
+                correctMatches: { 0: 1, 1: 3, 2: 2, 3: 0 }
+            }
+        ]
+    },
+    {
+        id: 2, name: "Level 2", topic: "Organisation", icon: "🫀",
+        fact: "The small intestine is about 6 metres long and lined with millions of villi. Each villus also has microvilli, giving a total surface area of ~250 m² — bigger than a tennis court! This massive area is perfect for absorbing digested food into the bloodstream.",
+        questions: [
+            {
+                type: "mc", topic: "Organisation", treat: "🍩", treatName: "Enzyme Donut", cat: 2,
+                q: "Which enzyme breaks down starch into sugars?",
+                opts: ["Protease", "Lipase", "Amylase", "Catalase"],
+                ans: 2,
+                explain: "AMYLASE breaks starch into maltose (a sugar). It is produced in the SALIVARY GLANDS (mouth) and the PANCREAS, and works in the small intestine too."
+            },
+            {
+                type: "mc", topic: "Organisation", treat: "🍋", treatName: "Liver Lemon Tart", cat: 1,
+                q: "Where is bile produced, and where is it stored?",
+                opts: [
+                    "Produced in the pancreas, stored in the stomach",
+                    "Produced in the liver, stored in the gall bladder",
+                    "Produced in the small intestine, stored in the liver",
+                    "Produced in the gall bladder, stored in the pancreas"
+                ],
+                ans: 1,
+                explain: "Bile is produced in the LIVER, stored in the GALL BLADDER, and released into the SMALL INTESTINE. It EMULSIFIES fats — breaks large fat droplets into smaller ones, giving lipase a bigger surface area to work on."
+            },
+            {
+                type: "mc", topic: "Organisation", treat: "🍰", treatName: "Villi Victoria Sponge", cat: 4,
+                q: "How do villi increase the efficiency of absorption in the small intestine?",
+                opts: [
+                    "They produce digestive enzymes to break down food faster",
+                    "They increase the surface area, have a rich blood supply, and thin walls for a short diffusion distance",
+                    "They secrete acid to kill bacteria in the gut",
+                    "They contain bile to emulsify fats before absorption"
+                ],
+                ans: 1,
+                explain: "Villi adaptations: LARGE SURFACE AREA (for more absorption), THIN WALLS (short diffusion distance), RICH BLOOD SUPPLY / CAPILLARIES (maintain concentration gradient by taking nutrients away quickly)."
+            },
+            {
+                type: "mc", topic: "Organisation", treat: "💓", treatName: "Heart-shaped Macaron", cat: 0,
+                q: "Which blood vessel carries oxygenated blood AWAY from the heart to the body?",
+                opts: ["Vena cava", "Pulmonary artery", "Aorta", "Pulmonary vein"],
+                ans: 2,
+                explain: "The AORTA carries oxygenated blood from the LEFT VENTRICLE to the rest of the body. The PULMONARY ARTERY carries deoxygenated blood to the lungs. (The pulmonary artery is the one exception to 'arteries carry oxygenated blood'!)"
+            },
+            {
+                type: "drag", topic: "Organisation", treat: "🎂", treatName: "Digestion Drizzle Cake", cat: 3,
+                q: "Match each enzyme to what it breaks down (substrate → product):",
+                items: ["Amylase", "Protease", "Lipase"],
+                slots: [
+                    "Fats → fatty acids + glycerol",
+                    "Starch → sugars (maltose)",
+                    "Proteins → amino acids"
+                ],
+                correctMatches: { 0: 1, 1: 2, 2: 0 }
+            }
+        ]
+    },
+    {
+        id: 3, name: "Level 3", topic: "Infection & Response", icon: "🦠",
+        fact: "Your body produces about 10 million new white blood cells every hour! Antibodies are Y-shaped proteins — each antibody only fits ONE specific antigen (like a lock and key). Memory lymphocytes can remain in your body for decades after an infection, giving you long-term immunity.",
+        questions: [
+            {
+                type: "mc", topic: "Infection & Response", treat: "🍡", treatName: "Pathogen Profiterole", cat: 3,
+                q: "Which type of pathogen is treated with antibiotics?",
+                opts: ["Viruses", "Bacteria", "Fungi", "Protists"],
+                ans: 1,
+                explain: "Antibiotics ONLY kill BACTERIA — they have NO effect on viruses. This is why you don't take antibiotics for a cold or flu (both caused by viruses). Overusing antibiotics leads to antibiotic resistance!"
+            },
+            {
+                type: "mc", topic: "Infection & Response", treat: "🛡️", treatName: "Immunity Iced Bun", cat: 0,
+                q: "What do PHAGOCYTES do when they encounter a pathogen?",
+                opts: [
+                    "Produce antibodies specific to the pathogen's antigens",
+                    "Release antitoxins to neutralise the pathogen's toxins",
+                    "Engulf and digest the pathogen (phagocytosis)",
+                    "Release chemicals that destroy the cell wall of the pathogen"
+                ],
+                ans: 2,
+                explain: "PHAGOCYTES engulf and digest pathogens — this is called PHAGOCYTOSIS. LYMPHOCYTES produce antibodies (not phagocytes!). Both are types of white blood cells."
+            },
+            {
+                type: "mc", topic: "Infection & Response", treat: "🍵", treatName: "Malaria Mochi", cat: 4,
+                q: "What type of pathogen causes malaria, and how is it spread?",
+                opts: [
+                    "Virus — spread by contaminated water",
+                    "Bacteria — spread by droplet infection (coughing/sneezing)",
+                    "Protist — spread via mosquito bites (the mosquito is a vector)",
+                    "Fungi — spread by direct skin contact"
+                ],
+                ans: 2,
+                explain: "Malaria is caused by a PROTIST (Plasmodium). It is spread by female Anopheles mosquitoes — the mosquito acts as a VECTOR (carries the pathogen without getting the disease itself)."
+            },
+            {
+                type: "mc", topic: "Infection & Response", treat: "💉", treatName: "Vaccine Velvet Cake", cat: 2,
+                q: "How does a vaccine give you immunity to a disease?",
+                opts: [
+                    "It contains antibiotics that kill the pathogen if you get infected later",
+                    "It contains dead/weakened pathogens → white blood cells produce antibodies + memory cells form → fast response if you encounter the real pathogen",
+                    "It strengthens your skin barrier to stop pathogens entering the body",
+                    "It contains ready-made antibodies that stay in your blood permanently"
+                ],
+                ans: 1,
+                explain: "Vaccines contain DEAD/WEAKENED/INACTIVATED pathogens. Your immune system responds → produces antibodies + MEMORY LYMPHOCYTES. If you meet the real pathogen later, the response is RAPID and prevents illness."
+            },
+            {
+                type: "drag", topic: "Infection & Response", treat: "🧬", treatName: "Pathogen Pavlova", cat: 1,
+                q: "Match each pathogen type to the disease it causes:",
+                items: ["Bacteria", "Virus", "Fungi", "Protist"],
+                slots: [
+                    "Malaria",
+                    "Tuberculosis (TB)",
+                    "Rose black spot (in plants)",
+                    "Influenza (flu)"
+                ],
+                correctMatches: { 0: 1, 1: 3, 2: 2, 3: 0 }
+            }
+        ]
+    },
+    {
+        id: 4, name: "Level 4", topic: "Bioenergetics", icon: "⚡",
+        fact: "A single chloroplast can fix up to 40 MILLION CO₂ molecules per second during photosynthesis! Interestingly, the ATP your body produces and uses each day weighs roughly the same as your entire body weight — it's constantly recycled and remade by your mitochondria.",
+        questions: [
+            {
+                type: "mc", topic: "Bioenergetics", treat: "☀️", treatName: "Photosynthesis Petit Four", cat: 0,
+                q: "What is the correct word equation for photosynthesis?",
+                opts: [
+                    "Glucose + Oxygen → Carbon dioxide + Water + Energy",
+                    "Carbon dioxide + Water → Glucose + Oxygen (requires light energy + chlorophyll)",
+                    "Glucose → Ethanol + Carbon dioxide + Energy",
+                    "Glucose + Water → Carbon dioxide + Oxygen"
+                ],
+                ans: 1,
+                explain: "Photosynthesis: CO₂ + H₂O → Glucose + O₂. Remember: photosynthesis TAKES IN CO₂ and RELEASES O₂ — the opposite of respiration! It requires light energy absorbed by chlorophyll."
+            },
+            {
+                type: "mc", topic: "Bioenergetics", treat: "🌿", treatName: "Limiting Factor Lemon Drizzle", cat: 3,
+                q: "A grower increases CO₂ concentration in their greenhouse but photosynthesis rate stays the same. What is MOST likely limiting it?",
+                opts: [
+                    "The CO₂ concentration is already too high and is toxic",
+                    "Light intensity or temperature is too low — one of these is now the limiting factor",
+                    "The plant has produced too much glucose and has switched off",
+                    "The soil doesn't have enough mineral ions"
+                ],
+                ans: 1,
+                explain: "The THREE limiting factors for photosynthesis are: LIGHT INTENSITY, CO₂ CONCENTRATION, and TEMPERATURE. If increasing CO₂ has no effect, light or temperature must be limiting. In exams, you may need to read graphs and identify which factor is limiting!"
+            },
+            {
+                type: "mc", topic: "Bioenergetics", treat: "💪", treatName: "ATP Affogato", cat: 1,
+                q: "What is the word equation for AEROBIC respiration?",
+                opts: [
+                    "Glucose → Ethanol + Carbon dioxide (+ small amount of energy)",
+                    "Glucose + Oxygen → Carbon dioxide + Water (+ energy released as ATP)",
+                    "Carbon dioxide + Water → Glucose + Oxygen",
+                    "Glucose + Water → Carbon dioxide + Lactic acid (+ energy)"
+                ],
+                ans: 1,
+                explain: "Aerobic respiration: Glucose + Oxygen → Carbon dioxide + Water (+ ATP). It occurs in the MITOCHONDRIA. It releases LOTS of ATP — much more than anaerobic respiration."
+            },
+            {
+                type: "mc", topic: "Bioenergetics", treat: "🍞", treatName: "Yeast Bread Brownie", cat: 4,
+                q: "What are the products of anaerobic respiration in YEAST?",
+                opts: [
+                    "Lactic acid only",
+                    "Carbon dioxide and water",
+                    "Ethanol (alcohol) and carbon dioxide",
+                    "Glucose and oxygen"
+                ],
+                ans: 2,
+                explain: "YEAST (anaerobic): Glucose → Ethanol + CO₂. This is FERMENTATION — used in bread-making and brewing! HUMANS (anaerobic): Glucose → Lactic acid. Lactic acid build-up causes muscle fatigue and that 'burn' feeling during intense exercise."
+            },
+            {
+                type: "drag", topic: "Bioenergetics", treat: "⚡", treatName: "Energy Éclair", cat: 2,
+                q: "Sort each statement into aerobic OR anaerobic respiration:",
+                items: [
+                    "Requires oxygen",
+                    "Produces lactic acid (in humans)",
+                    "Takes place in the mitochondria",
+                    "Produces much less ATP"
+                ],
+                slots: [
+                    "Aerobic respiration",
+                    "Aerobic respiration",
+                    "Anaerobic respiration",
+                    "Anaerobic respiration"
+                ],
+                correctMatches: { 0: 0, 1: 2, 2: 1, 3: 3 }
+            }
+        ]
+    },
+    {
+        id: 5, name: "Level 5", topic: "Mixed Topics", icon: "🏆",
+        fact: "You made it to the final level! In AQA Biology exams, always check if a question says 'DESCRIBE' (say WHAT happens) or 'EXPLAIN' (say WHAT happens AND WHY). Many students lose marks by describing when asked to explain. Picking up these extra marks can be the difference between a Grade 6 and a Grade 8!",
+        questions: [
+            {
+                type: "mc", topic: "Homeostasis", treat: "🍬", treatName: "Glucose Gummy", cat: 0,
+                q: "What is the role of INSULIN in controlling blood glucose levels?",
+                opts: [
+                    "Causes the liver to break glycogen down into glucose — RAISES blood glucose",
+                    "Stimulates the liver and muscles to convert glucose into glycogen — LOWERS blood glucose",
+                    "Increases the rate of glucose absorption in the small intestine",
+                    "Prevents the kidneys from excreting glucose in urine"
+                ],
+                ans: 1,
+                explain: "INSULIN (released by the pancreas when blood glucose is HIGH) causes the liver and muscle cells to convert glucose into GLYCOGEN for storage. This LOWERS blood glucose back to normal. GLUCAGON does the opposite (raises blood glucose)."
+            },
+            {
+                type: "mc", topic: "Plant Biology", treat: "🌱", treatName: "Phloem Praline", cat: 2,
+                q: "What is the key difference between xylem and phloem?",
+                opts: [
+                    "Xylem transports sugars; phloem transports water and minerals",
+                    "Xylem transports water and minerals upwards only; phloem transports dissolved sugars in both directions (translocation)",
+                    "Both transport water but only xylem can also carry minerals",
+                    "Phloem transports water upwards via transpiration; xylem transports sugars downwards"
+                ],
+                ans: 1,
+                explain: "XYLEM: water + mineral ions, UPWARDS only (transpiration stream, no energy needed). PHLOEM: dissolved sugars (sucrose), UP and DOWN (translocation, requires energy). Both are found in the vascular bundle of a plant."
+            },
+            {
+                type: "mc", topic: "Genetics", treat: "🧬", treatName: "DNA Doughnut", cat: 3,
+                q: "Two heterozygous brown-eyed parents cross (Bb × Bb). Brown (B) is dominant over blue (b). What is the probability of a child having BLUE eyes?",
+                opts: ["0% — brown is always dominant", "25% (1 in 4)", "50% (1 in 2)", "75% (3 in 4)"],
+                ans: 1,
+                explain: "Draw the Punnett square! Bb × Bb gives: BB, Bb, Bb, bb. Only bb = blue eyes. That's 1 out of 4 = 25%. ALWAYS draw the Punnett square in exams — it gets you the method marks even if you make an error."
+            },
+            {
+                type: "mc", topic: "Evolution", treat: "🦕", treatName: "Natural Selection Nougat", cat: 4,
+                q: "Which best describes natural selection?",
+                opts: [
+                    "Organisms choose to develop useful characteristics during their lifetime",
+                    "Individuals with advantageous inherited characteristics are more likely to survive, reproduce, and pass those alleles to offspring — over many generations, the trait becomes more common",
+                    "All members of a species gradually change together in the same direction over time",
+                    "Humans selectively breed animals and plants to develop desired traits"
+                ],
+                ans: 1,
+                explain: "Natural selection steps: VARIATION exists → some individuals have ADVANTAGEOUS TRAITS → better survival + more reproduction → genes passed to OFFSPRING → trait becomes MORE COMMON over generations. The last option describes SELECTIVE BREEDING, not natural selection."
+            },
+            {
+                type: "drag", topic: "Mixed Topics", treat: "🏆", treatName: "Champion's Celebration Cake", cat: 1,
+                q: "Match each term to its correct biological description:",
+                items: ["Mitosis", "Meiosis", "Diffusion", "Osmosis"],
+                slots: [
+                    "Movement of water through a partially permeable membrane (high → low water potential)",
+                    "Cell division for growth and repair — produces 2 IDENTICAL diploid daughter cells",
+                    "Movement of particles from high to low concentration (no energy needed)",
+                    "Cell division for gametes — produces 4 NON-IDENTICAL haploid cells"
+                ],
+                correctMatches: { 0: 1, 1: 3, 2: 2, 3: 0 }
+            }
+        ]
+    }
+];
+
+// ══════════════════════════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════════════════════════
+const CAFE_UNLOCKS = {
+    1: 'Hanging plant + yarn ball',
+    2: 'Cat climbing tower + feather toy',
+    3: 'Biology bookshelf + cardboard box',
+    4: 'Pixel aquarium',
+    5: 'Neon DNA sign'
+};
+
+let cafeSave = {
+    levelStars: {},
+    unlocked: [],
+    treats: 3,
+    affection: {}
+};
+
+try {
+    const storedCafe = JSON.parse(localStorage.getItem('joyeetha-cafe-progress') || 'null');
+    if (storedCafe && typeof storedCafe === 'object') {
+        cafeSave.levelStars = storedCafe.levelStars || {};
+        cafeSave.unlocked = Array.isArray(storedCafe.unlocked) ? storedCafe.unlocked : [];
+        cafeSave.treats = Number.isFinite(storedCafe.treats) ? Math.max(0, storedCafe.treats) : 3;
+        cafeSave.affection = storedCafe.affection || {};
+    }
+} catch (_) {}
+
+function saveCafeProgress() {
+    try {
+        localStorage.setItem('joyeetha-cafe-progress', JSON.stringify(cafeSave));
+    } catch (_) {}
+}
+
+function applyCafeProgress() {
+    document.querySelectorAll('[data-unlock]').forEach(item => {
+        item.classList.toggle('unlocked', cafeSave.unlocked.includes(Number(item.dataset.unlock)));
+    });
+    document.querySelectorAll('[data-toy-unlock]').forEach(toy => {
+        toy.classList.toggle('unlocked', cafeSave.unlocked.includes(Number(toy.dataset.toyUnlock)));
+    });
+    document.getElementById('unlock-count').textContent = `${cafeSave.unlocked.length}/5`;
+    document.getElementById('treat-count').textContent = cafeSave.treats;
+    if (selectedCareCat) updateCareCard();
+}
+
+function earnTreat(amount = 1) {
+    cafeSave.treats = Math.min(99, cafeSave.treats + amount);
+    saveCafeProgress();
+    applyCafeProgress();
+}
+
+function unlockCafeReward(levelId) {
+    if (cafeSave.unlocked.includes(levelId)) return null;
+    cafeSave.unlocked.push(levelId);
+    cafeSave.unlocked.sort((a, b) => a - b);
+    saveCafeProgress();
+    applyCafeProgress();
+    return CAFE_UNLOCKS[levelId];
+}
+
+let G = {
+    level: null,
+    qIdx: 0,
+    hearts: 3,
+    score: 0,
+    correct: 0,
+    streak: 0,
+    levelStars: cafeSave.levelStars,
+    dragSelected: null,
+    dragMatched: new Set()
+};
+
+applyCafeProgress();
+
+const CAT_IDLE_MOVES = {
+    mochi: ['idle-sit', 'idle-groom', 'idle-turn', 'idle-loaf', 'idle-stretch'],
+    pudding: ['idle-jump', 'idle-groom', 'idle-sit', 'idle-pounce', 'idle-roll'],
+    biscuit: ['idle-turn', 'idle-sit', 'idle-groom', 'idle-loaf', 'idle-stretch'],
+    cookie: ['idle-jump', 'idle-turn', 'idle-pounce', 'idle-roll', 'idle-stretch'],
+    caramel: ['idle-sleep', 'idle-sit', 'idle-groom', 'idle-loaf', 'idle-stretch']
+};
+
+function startCatIdle(kind, delay = 0) {
+    setTimeout(() => {
+        if (kind === selectedCareCat) return;
+        const move = randomFrom(CAT_IDLE_MOVES[kind]);
+        animateRoamer(kind, move, 3300);
+
+        if (move === 'idle-sleep') {
+            showRoamerSpeech(kind, '...zzz... 💤', 3000);
+        } else if (move === 'idle-groom' && Math.random() < .65) {
+            showRoamerSpeech(kind, '*groom groom*', 2400);
+        } else if (move === 'idle-jump' && Math.random() < .65) {
+            showRoamerSpeech(kind, 'Up on the table! 🐾', 2200);
+        } else if (move === 'idle-loaf' && Math.random() < .7) {
+            showRoamerSpeech(kind, '*perfect little loaf*', 2400);
+        } else if (move === 'idle-stretch' && Math.random() < .7) {
+            showRoamerSpeech(kind, 'Biiiig stretch!', 2300);
+        } else if (move === 'idle-pounce' && Math.random() < .7) {
+            showRoamerSpeech(kind, 'Pounce!', 2100);
+        } else if (move === 'idle-roll' && Math.random() < .7) {
+            showRoamerSpeech(kind, '*dramatic floor roll*', 2300);
+        }
+    }, delay);
+}
+
+const ACTIVE_CAT_TARGETS = new Set();
+const CAT_DESTINATION_PREFS = {
+    mochi: ['table', 'aquarium', 'table', 'box'],
+    pudding: ['ball', 'feather', 'box', 'tree', 'table'],
+    biscuit: ['aquarium', 'table', 'tree', 'box'],
+    cookie: ['ball', 'feather', 'ball', 'box', 'table'],
+    caramel: ['tree', 'box', 'table', 'aquarium']
+};
+const TARGET_CHAT = {
+    table: 'This table is mine now.',
+    tree: 'Perfect nap spot... zzz...',
+    aquarium: 'Hello, tiny fish friend.',
+    ball: 'The yarn is escaping!',
+    feather: 'Must. Catch. Feather.',
+    box: 'If I fit, I sit.'
+};
+
+function availableCatTargets(kind) {
+    return CAT_DESTINATION_PREFS[kind]
+        .map(id => ({ id, element: document.querySelector(`[data-cat-target="${id}"]`) }))
+        .filter(target => target.element &&
+            !ACTIVE_CAT_TARGETS.has(target.id) &&
+            getComputedStyle(target.element).display !== 'none' &&
+            (target.id === 'table' || target.element.classList.contains('unlocked')));
+}
+
+function targetPosition(target) {
+    const rect = target.element.getBoundingClientRect();
+    let x = rect.left + rect.width / 2 - 36;
+    let y = rect.top - 46;
+
+    if (target.id === 'aquarium') {
+        x = rect.left - 67;
+        y = rect.bottom - 57;
+    } else if (target.id === 'ball' || target.id === 'feather') {
+        x = rect.left - 54;
+        y = rect.top - 33;
+    } else if (target.id === 'box') {
+        x = rect.left + 3;
+        y = rect.top - 37;
+    } else if (target.id === 'tree') {
+        x = rect.left + rect.width / 2 - 36;
+        y = rect.top - 35;
+    }
+
+    return {
+        x: Math.max(8, Math.min(window.innerWidth - 88, x)),
+        y: Math.max(74, Math.min(window.innerHeight - 78, y))
+    };
+}
+
+function beginDestinationActivity(kind, done) {
+    const choices = availableCatTargets(kind);
+    if (!choices.length) return false;
+    const target = randomFrom(choices);
+    const roamer = document.querySelector(`.cat-roamer.${kind}`);
+    const start = roamer.getBoundingClientRect();
+    const destination = targetPosition(target);
+    const firstDirection = destination.x < start.left ? 'face-left' : 'face-right';
+    const returnDirection = firstDirection === 'face-left' ? 'face-right' : 'face-left';
+    const actionClass = `at-${target.id}`;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const turnTime = reducedMotion ? 20 : 600;
+    const travelTime = reducedMotion ? 30 : 1300;
+    const activityTime = reducedMotion ? 900 : 3300;
+
+    ACTIVE_CAT_TARGETS.add(target.id);
+    roamer.classList.remove(
+        'walking', 'idling', 'idle-sit', 'idle-groom', 'idle-jump',
+        'idle-sleep', 'idle-turn', 'idle-loaf', 'idle-stretch', 'idle-pounce', 'idle-roll'
+    );
+    roamer.classList.add('destination-mode', 'busy', 'turning-to-target', firstDirection);
+    roamer.style.left = `${start.left}px`;
+    roamer.style.top = `${start.top}px`;
+    roamer.style.bottom = 'auto';
+    roamer.style.transform = 'none';
+    roamer.style.transition = 'none';
+    showRoamerSpeech(kind, 'Where should I go?', 1400);
+
+    setTimeout(() => {
+        roamer.classList.remove('turning-to-target');
+        roamer.classList.add('purpose-walk');
+        roamer.style.transition = `left ${travelTime}ms ease-in-out, top ${travelTime}ms ease-in-out`;
+        roamer.style.left = `${destination.x}px`;
+        roamer.style.top = `${destination.y}px`;
+    }, turnTime);
+
+    setTimeout(() => {
+        roamer.classList.remove('purpose-walk', firstDirection);
+        roamer.classList.add(actionClass);
+        target.element.classList.add('in-use');
+        showRoamerSpeech(kind, TARGET_CHAT[target.id], activityTime - 250);
+    }, turnTime + travelTime + 40);
+
+    setTimeout(() => {
+        target.element.classList.remove('in-use');
+        roamer.classList.remove(actionClass);
+        roamer.classList.add('turning-to-target', returnDirection);
+    }, turnTime + travelTime + activityTime);
+
+    setTimeout(() => {
+        roamer.classList.remove('turning-to-target');
+        roamer.classList.add('purpose-walk');
+        roamer.style.left = `${start.left}px`;
+        roamer.style.top = `${start.top}px`;
+    }, turnTime * 2 + travelTime + activityTime);
+
+    setTimeout(() => {
+        roamer.classList.add('resetting');
+        roamer.classList.remove('destination-mode', 'busy', 'purpose-walk', returnDirection);
+        roamer.removeAttribute('style');
+        ACTIVE_CAT_TARGETS.delete(target.id);
+        setTimeout(() => {
+            roamer.classList.remove('resetting');
+            done();
+        }, 180);
+    }, turnTime * 2 + travelTime * 2 + activityTime + 80);
+
+    return true;
+}
+
+const CAT_ACTIVITY = {
+    mochi:   { destinationChance: .28, walkChance: .24, walkMin: 2800, walkMax: 5200 },
+    pudding: { destinationChance: .42, walkChance: .38, walkMin: 2500, walkMax: 5500 },
+    biscuit: { destinationChance: .32, walkChance: .22, walkMin: 3000, walkMax: 5000 },
+    cookie:  { destinationChance: .48, walkChance: .52, walkMin: 3200, walkMax: 6800 },
+    caramel: { destinationChance: .38, walkChance: .10, walkMin: 1800, walkMax: 3400 }
+};
+
+function scheduleCatActivity(kind, delay = 0) {
+    setTimeout(() => {
+        const roamer = document.querySelector(`.cat-roamer.${kind}`);
+        const catsLayer = document.getElementById('roaming-cats');
+        if (!roamer) return;
+
+        if (kind === selectedCareCat || roamer.classList.contains('busy') ||
+            catsLayer.classList.contains('react-correct') ||
+            catsLayer.classList.contains('react-wrong') ||
+            catsLayer.classList.contains('react-party')) {
+            scheduleCatActivity(kind, 1400);
+            return;
+        }
+
+        const activity = CAT_ACTIVITY[kind];
+        if (Math.random() < activity.destinationChance &&
+            beginDestinationActivity(kind, () => scheduleCatActivity(kind, 700 + Math.random() * 900))) {
+            return;
+        }
+
+        if (Math.random() < activity.walkChance) {
+            const walkTime = activity.walkMin + Math.random() * (activity.walkMax - activity.walkMin);
+            setTimeout(() => {
+                roamer.classList.remove('preparing-walk', 'idling');
+                roamer.classList.add('walking');
+                if (Math.random() < .32) showRoamerSpeech(kind, randomFrom(CAT_CHAT[kind].ambient), 2200);
+                setTimeout(() => {
+                    roamer.classList.remove('walking');
+                    scheduleCatActivity(kind, 500 + Math.random() * 900);
+                }, walkTime);
+            }, 620);
+            roamer.classList.add('preparing-walk');
+        } else {
+            roamer.classList.remove('walking');
+            startCatIdle(kind);
+            scheduleCatActivity(kind, 3700 + Math.random() * 1800);
+        }
+    }, delay);
+}
+
+function ambientCatMoment() {
+    const kind = randomFrom(CATS.map(cat => cat.kind));
+    const willPurr = Math.random() < (kind === 'caramel' ? .65 : kind === 'mochi' ? .22 : .4);
+    showRoamerSpeech(kind, willPurr ? CAT_CHAT[kind].purr : randomFrom(CAT_CHAT[kind].ambient), 2800);
+    if (willPurr && audioCtx) playPurr(kind);
+}
+
+setInterval(ambientCatMoment, 12500);
+CATS.forEach((cat, index) => scheduleCatActivity(cat.kind, 450 + index * 620));
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function showLevelSelect() {
+    startBackgroundMusic();
+    buildGrid();
+    showScreen('screen-levels');
+}
+
+function buildGrid() {
+    const grid = document.getElementById('level-grid');
+    grid.innerHTML = '';
+    LEVELS.forEach(lv => {
+        const s = G.levelStars[lv.id] || 0;
+        const starStr = '⭐'.repeat(s) + '☆'.repeat(3 - s);
+        const card = document.createElement('div');
+        card.className = 'level-card';
+        card.innerHTML = `
+            <div class="level-icon">${lv.icon}</div>
+            <div class="level-name">${lv.name}</div>
+            <div class="level-topic">${lv.topic}</div>
+            <div class="level-stars">${starStr}</div>
+            <div class="level-reward">${cafeSave.unlocked.includes(lv.id) ? '✓ Unlocked' : 'Unlock'}: ${CAFE_UNLOCKS[lv.id]}</div>
+        `;
+        card.onclick = () => startLevel(lv.id);
+        grid.appendChild(card);
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// START LEVEL
+// ══════════════════════════════════════════════════════════════
+function startLevel(levelId) {
+    G.level    = levelId;
+    G.qIdx     = 0;
+    G.hearts   = 3;
+    G.score    = 0;
+    G.correct  = 0;
+    G.streak   = 0;
+    G.dragSelected = null;
+    G.dragMatched  = new Set();
+    showScreen('screen-game');
+    renderQ();
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER QUESTION
+// ══════════════════════════════════════════════════════════════
+function renderQ() {
+    const lv  = LEVELS[G.level - 1];
+    const q   = lv.questions[G.qIdx];
+    const cat = CATS[q.cat];
+    const total = lv.questions.length;
+
+    document.getElementById('level-label').textContent  = `${lv.name}: ${lv.topic}`;
+    document.getElementById('score-el').textContent     = G.score;
+    document.getElementById('progress-fill').style.width = (G.qIdx / total * 100) + '%';
+    updateHearts();
+
+    setQuestionCat(cat);
+    document.getElementById('cat-name-el').textContent  = cat.name;
+    document.getElementById('speech-el').textContent    = cat.speech;
+    document.getElementById('treat-el').textContent     = q.treat;
+
+    document.getElementById('topic-badge-el').textContent = q.topic;
+    document.getElementById('q-num-el').textContent = `Question ${G.qIdx + 1} of ${total}`;
+    document.getElementById('q-text-el').textContent = q.q;
+    const feedback = document.getElementById('answer-feedback');
+    feedback.classList.remove('show');
+    feedback.textContent = '';
+
+    G.dragSelected = null;
+    G.dragMatched  = new Set();
+
+    const area = document.getElementById('answer-area');
+    if (q.type === 'mc')   buildMC(q, area);
+    else                    buildDrag(q, area);
+}
+
+// ══════════════════════════════════════════════════════════════
+// MULTIPLE CHOICE
+// ══════════════════════════════════════════════════════════════
+function buildMC(q, container) {
+    const letters = ['A','B','C','D'];
+    container.innerHTML = `<div class="mc-grid" id="mc-grid">
+        ${q.opts.map((o, i) => `
+            <button class="mc-btn" id="mc-${i}" onclick="answerMC(${i})">
+                <span class="mc-letter">${letters[i]}</span>${o}
+            </button>
+        `).join('')}
+    </div>`;
+}
+
+function answerMC(chosen) {
+    const q = LEVELS[G.level - 1].questions[G.qIdx];
+    document.querySelectorAll('.mc-btn').forEach(b => b.disabled = true);
+
+    if (chosen === q.ans) {
+        document.getElementById(`mc-${chosen}`).classList.add('correct');
+        popCatHappy();
+        G.score  += 100;
+        G.correct++;
+        G.streak++;
+        earnTreat();
+        triggerCafeReaction('correct', CATS[q.cat].kind);
+        document.getElementById('score-el').textContent = G.score;
+        setTimeout(advance, 1100);
+    } else {
+        document.getElementById(`mc-${chosen}`).classList.add('wrong');
+        document.getElementById(`mc-${q.ans}`).classList.add('correct');
+        G.streak = 0;
+        triggerCafeReaction('wrong', CATS[q.cat].kind);
+        showInlineWrongFeedback(q);
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// DRAG AND DROP (click-select / click-place, no heart loss)
+// ══════════════════════════════════════════════════════════════
+function buildDrag(q, container) {
+    container.innerHTML = `
+        <p class="drag-hint">👆 Click an item on the LEFT, then click its matching description on the RIGHT</p>
+        <div class="drag-wrap">
+            <div class="drag-col">
+                <div class="drag-col-label">Items</div>
+                ${q.items.map((item, i) => `
+                    <div class="drag-item" id="ditem-${i}" onclick="pickItem(${i})">${item}</div>
+                `).join('')}
+            </div>
+            <div class="drag-col">
+                <div class="drag-col-label">Descriptions</div>
+                ${q.slots.map((slot, i) => `
+                    <div class="drag-slot" id="dslot-${i}" onclick="dropItem(${i})">${slot}</div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function pickItem(idx) {
+    const q = LEVELS[G.level - 1].questions[G.qIdx];
+    if (G.dragMatched.has(idx)) return;
+    document.querySelectorAll('.drag-item').forEach(el => el.classList.remove('selected'));
+    G.dragSelected = (G.dragSelected === idx) ? null : idx;
+    if (G.dragSelected !== null) document.getElementById(`ditem-${idx}`).classList.add('selected');
+}
+
+function dropItem(slotIdx) {
+    if (G.dragSelected === null) return;
+    const q   = LEVELS[G.level - 1].questions[G.qIdx];
+    const slot = document.getElementById(`dslot-${slotIdx}`);
+    if (slot.classList.contains('filled')) return;
+
+    const itemIdx = G.dragSelected;
+    const correct = q.correctMatches[itemIdx];
+
+    if (correct === slotIdx) {
+        document.getElementById(`ditem-${itemIdx}`).classList.remove('selected');
+        document.getElementById(`ditem-${itemIdx}`).classList.add('matched');
+        slot.classList.add('filled');
+        slot.textContent = `✓ ${q.items[itemIdx]}`;
+        G.dragMatched.add(itemIdx);
+        G.dragSelected = null;
+        if (G.dragMatched.size === q.items.length) {
+            popCatHappy();
+            G.score  += 100;
+            G.correct++;
+            G.streak++;
+            earnTreat();
+            triggerCafeReaction('correct', CATS[q.cat].kind);
+            document.getElementById('score-el').textContent = G.score;
+            setTimeout(advance, 1200);
+        }
+    } else {
+        G.streak = 0;
+        triggerCafeReaction('wrong', CATS[q.cat].kind);
+        const itemEl = document.getElementById(`ditem-${itemIdx}`);
+        slot.classList.add('wrong-flash');
+        itemEl.classList.add('wrong-flash');
+        setTimeout(() => {
+            slot.classList.remove('wrong-flash');
+            itemEl.classList.remove('wrong-flash', 'selected');
+        }, 450);
+        G.dragSelected = null;
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// HEARTS & INLINE FEEDBACK
+// ══════════════════════════════════════════════════════════════
+function updateHearts() {
+    document.getElementById('hearts-el').textContent =
+        '❤️'.repeat(G.hearts) + '🖤'.repeat(3 - G.hearts);
+}
+
+function popCatHappy() {
+    const el = document.getElementById('cat-emoji-el');
+    const cat = CATS[LEVELS[G.level-1].questions[G.qIdx].cat];
+    setQuestionCat(cat, 'happy');
+    el.classList.add('pop');
+    setTimeout(() => el.classList.remove('pop'), 800);
+}
+
+function showInlineWrongFeedback(q) {
+    const cat = CATS[q.cat];
+    setQuestionCat(cat, 'sad');
+    G.hearts--;
+    updateHearts();
+
+    const feedback = document.getElementById('answer-feedback');
+    const explanation = document.createElement('div');
+    explanation.textContent = `Not quite — the correct answer is: ${q.opts[q.ans]}\n${q.explain}`;
+    const nextButton = document.createElement('button');
+    nextButton.type = 'button';
+    nextButton.className = 'inline-next';
+    nextButton.textContent = G.hearts > 0 ? 'Next question →' : 'See results →';
+    nextButton.onclick = () => G.hearts <= 0 ? gameOver() : advance();
+    feedback.replaceChildren(explanation, nextButton);
+    feedback.classList.add('show');
+    nextButton.focus();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADVANCE / LEVEL COMPLETE / GAME OVER
+// ══════════════════════════════════════════════════════════════
+function advance() {
+    G.qIdx++;
+    const lv = LEVELS[G.level - 1];
+    if (G.qIdx >= lv.questions.length) levelComplete();
+    else renderQ();
+}
+
+function levelComplete() {
+    const lv    = LEVELS[G.level - 1];
+    const total = lv.questions.length;
+    const pct   = G.correct / total;
+    const stars = pct === 1 ? 3 : pct >= 0.6 ? 2 : 1;
+    G.levelStars[G.level] = Math.max(G.levelStars[G.level] || 0, stars);
+    cafeSave.levelStars = G.levelStars;
+    const unlockedReward = unlockCafeReward(G.level);
+    saveCafeProgress();
+    triggerCafeReaction('party');
+    if (unlockedReward) {
+        document.getElementById('cafe-reaction').textContent = `Level complete — ${unlockedReward} unlocked! 🎁`;
+    }
+
+    const allCats = CATS.map(c => c.happyEmoji);
+    document.getElementById('complete-cat-el').textContent  = allCats[Math.floor(Math.random() * allCats.length)];
+    document.getElementById('complete-stars-el').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+    document.getElementById('complete-num-el').textContent  = `${G.correct}/${total}`;
+    document.getElementById('fact-body-el').textContent     = lv.fact;
+
+    const nextBtn = document.getElementById('next-level-btn');
+    nextBtn.style.display = G.level < LEVELS.length ? '' : 'none';
+
+    showScreen('screen-level-complete');
+    spawnConfetti();
+}
+
+function nextLevel() {
+    if (G.level < LEVELS.length) startLevel(G.level + 1);
+}
+
+function gameOver() {
+    const lv = LEVELS[G.level - 1];
+    document.getElementById('over-score-el').textContent =
+        `You got ${G.correct} out of ${lv.questions.length} question(s) correct this round. Keep going!`;
+    document.getElementById('retry-btn').onclick = () => startLevel(G.level);
+    showScreen('screen-game-over');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════════════════════════════
+function spawnConfetti() {
+    const cols = ['#d946ef','#9333ea','#f59e0b','#22c55e','#fb923c','#38bdf8','#fbbf24','#f472b6'];
+    for (let i = 0; i < 50; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-bit';
+        const size = 7 + Math.random() * 11;
+        el.style.cssText = `
+            left:${Math.random()*100}vw; top:-20px;
+            width:${size}px; height:${size}px;
+            background:${cols[Math.floor(Math.random()*cols.length)]};
+            border-radius:${Math.random()>.5?'50%':'3px'};
+            animation-delay:${Math.random()*1.4}s;
+            animation-duration:${1.6 + Math.random()*0.9}s;
+            transform:rotate(${Math.random()*360}deg);
+        `;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3200);
+    }
+}
+</script>
+</body>
+</html>

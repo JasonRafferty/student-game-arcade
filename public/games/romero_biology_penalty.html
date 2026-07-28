@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Romero's Biology Penalty Shootout!</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Arial Black',Arial,sans-serif;background:#145214;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#game{width:820px;max-width:100vw;min-height:620px;background:#1e7a1e;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);position:relative;}
+
+/* HEADER */
+#header{background:linear-gradient(135deg,#001f6b,#003db5);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+#header h1{font-size:17px;text-shadow:2px 2px 4px rgba(0,0,0,.5);white-space:nowrap;}
+#scoreboard{display:flex;gap:10px;align-items:center;}
+.score-pill{background:rgba(255,255,255,.2);padding:4px 14px;border-radius:20px;font-size:15px;font-weight:900;}
+#penalty-dots{display:flex;gap:6px;}
+.pdot{width:18px;height:18px;border-radius:50%;border:2px solid #fff;background:transparent;transition:background .3s;}
+.pdot.goal{background:#39ff14;}
+.pdot.miss{background:#ff3333;}
+#music-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 12px;border-radius:20px;cursor:pointer;font-size:13px;white-space:nowrap;}
+
+/* PITCH */
+#pitch{padding:14px 20px 6px;position:relative;background:repeating-linear-gradient(180deg,#1e7a1e 0px,#1e7a1e 44px,#1a6e1a 44px,#1a6e1a 88px);}
+
+/* GOAL WRAPPER */
+#gw{position:relative;width:580px;margin:0 auto;}
+
+/* GOAL */
+#goal{
+  width:580px;height:240px;
+  position:relative;overflow:hidden;
+  border:8px solid #fff;border-bottom:none;border-radius:4px 4px 0 0;
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  background:#0a0f2e;
+}
+/* Net pattern */
+#goal::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;
+  background-image:linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px);
+  background-size:24px 24px;}
+/* Net depth shadow */
+#goal::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse at 50% 120%,rgba(0,0,0,.5) 0%,transparent 70%);}
+
+/* Corner zones */
+.cn{
+  padding:10px 8px;display:flex;align-items:center;justify-content:center;
+  text-align:center;font-size:13px;font-weight:700;cursor:pointer;
+  transition:filter .15s,transform .15s;color:#fff;
+  text-shadow:1px 1px 4px rgba(0,0,0,1);line-height:1.3;
+  position:relative;z-index:2;border:1.5px solid rgba(255,255,255,.25);
+}
+#cn0{background:rgba(200,40,0,.7);}
+#cn1{background:rgba(0,60,180,.7);}
+#cn2{background:rgba(130,0,170,.7);}
+#cn3{background:rgba(0,140,50,.7);}
+.cn:hover:not(.off){filter:brightness(1.5);transform:scale(1.05);}
+.cn.off{pointer-events:none;}
+.cn.correct-flash{outline:4px solid #39ff14;filter:brightness(1.7);z-index:3;}
+.cn.wrong-flash{outline:4px solid #ff3333;filter:brightness(0.6);}
+.clabel{background:rgba(255,255,255,.9);color:#111;border-radius:50%;width:22px;height:22px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;
+  margin-right:5px;flex-shrink:0;font-weight:900;}
+
+/* Goal posts */
+.gpost{position:absolute;background:#f0f0f0;z-index:6;pointer-events:none;
+  box-shadow:inset -2px 0 4px rgba(0,0,0,.3);}
+.gpl{left:-8px;top:-8px;width:16px;height:calc(100% + 8px);}
+.gpr{right:-8px;top:-8px;width:16px;height:calc(100% + 8px);}
+.gpt{top:-8px;left:-8px;right:-8px;height:16px;}
+
+/* Keeper wrapper */
+#kw{
+  position:absolute;bottom:6px;left:50%;
+  transform:translateX(-50%);
+  transition:transform .4s cubic-bezier(.4,-.4,.3,1.4);
+  z-index:20;pointer-events:none;
+}
+
+/* Goal line */
+#gline{width:580px;height:8px;background:#f0f0f0;border-radius:0 0 3px 3px;margin:0 auto;
+  box-shadow:0 3px 6px rgba(0,0,0,.4);}
+
+/* TIMER */
+#timer-wrap{width:580px;margin:6px auto 0;display:flex;align-items:center;gap:8px;}
+#timer-bar-bg{flex:1;height:10px;background:rgba(0,0,0,.4);border-radius:5px;overflow:hidden;}
+#timer-fill{height:100%;width:100%;background:#39ff14;border-radius:5px;transition:width .9s linear,background .3s;}
+#timer-num{color:#fff;font-size:13px;font-weight:900;width:28px;text-align:right;text-shadow:1px 1px 3px #000;}
+
+/* Player area */
+#pa{height:115px;position:relative;display:flex;justify-content:center;align-items:flex-end;}
+
+/* Ball */
+#ball{
+  width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff 0%,#e0e0e0 40%,#aaa 100%);
+  border:2px solid #888;
+  position:absolute;z-index:15;
+  pointer-events:none;
+  box-shadow:2px 2px 4px rgba(0,0,0,.4);
+}
+/* Ball panel marks */
+#ball::before{content:'';position:absolute;width:8px;height:8px;
+  background:#333;border-radius:50%;top:3px;left:3px;opacity:.4;}
+
+/* Feedback */
+#fb{
+  position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);
+  font-size:50px;font-weight:900;text-shadow:4px 4px 0 rgba(0,0,0,.5);
+  z-index:50;display:none;text-align:center;pointer-events:none;white-space:nowrap;
+}
+@keyframes fbpop{from{transform:translate(-50%,-50%) scale(.3) rotate(-10deg);opacity:0;}to{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1;}}
+.fb-goal{color:#ffd700;animation:fbpop .3s ease-out;}
+.fb-miss{color:#ff4444;animation:fbpop .3s ease-out;}
+
+/* QUESTION BOX */
+#qbox{background:linear-gradient(135deg,#001a60,#002d9a);color:#fff;padding:12px 20px;text-align:center;}
+#tbadge{display:inline-block;background:#ffd700;color:#222;padding:2px 14px;border-radius:20px;font-size:12px;font-weight:900;margin-bottom:5px;}
+#qtext{font-size:16px;line-height:1.4;margin-bottom:4px;}
+#qhint{font-size:12px;opacity:.7;font-style:italic;}
+
+/* START SCREEN */
+#ss{position:absolute;inset:0;background:linear-gradient(135deg,#001040,#002580 55%,#000c30);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;color:#fff;text-align:center;padding:22px;}
+#ss h1{font-size:28px;color:#ffd700;text-shadow:3px 3px 0 rgba(0,0,0,.5);margin-bottom:5px;}
+.ss-sub{font-size:14px;opacity:.85;margin-bottom:18px;}
+.ball-bounce{font-size:56px;animation:bounce 1s ease-in-out infinite alternate;margin-bottom:12px;}
+@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-13px);}}
+.topics-grid{background:rgba(255,255,255,.1);border-radius:12px;padding:10px 18px;
+  margin-bottom:20px;font-size:12px;text-align:left;
+  display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;}
+.topics-grid div::before{content:'🔬 ';}
+.sbtn{background:linear-gradient(135deg,#ffd700,#ff8800);color:#222;
+  border:none;padding:13px 48px;font-size:21px;font-weight:900;
+  border-radius:50px;cursor:pointer;letter-spacing:2px;
+  box-shadow:0 6px 20px rgba(255,200,0,.5);transition:transform .1s;}
+.sbtn:hover{transform:scale(1.06);}
+
+/* END SCREEN */
+#es{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a1e,#0f1f4a,#001030);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;color:#fff;text-align:center;padding:30px;}
+#es.show{display:flex;}
+#fs{font-size:88px;font-weight:900;color:#ffd700;text-shadow:4px 4px 0 rgba(0,0,0,.5);}
+#fmsg{font-size:22px;margin:10px 0 25px;color:#ffd700;}
+.rsbtn{background:linear-gradient(135deg,#ffd700,#ff8800);color:#222;
+  border:none;padding:12px 40px;font-size:18px;font-weight:900;
+  border-radius:50px;cursor:pointer;box-shadow:0 6px 20px rgba(255,200,0,.5);transition:transform .1s;}
+.rsbtn:hover{transform:scale(1.05);}
+</style>
+</head>
+<body>
+<div id="game">
+
+<!-- START SCREEN -->
+<div id="ss">
+  <div class="ball-bounce">⚽</div>
+  <h1>Romero's Biology Penalty Shootout!</h1>
+  <p class="ss-sub">Year 9 Biology · 5 Penalties · 10 seconds per shot — don't be slow!</p>
+  <div class="topics-grid">
+    <div>Cells</div><div>Levels of Organisation</div>
+    <div>Organ Systems</div><div>Skeleton</div>
+    <div>Joints &amp; Muscles</div><div>Circulatory System</div>
+    <div>Blood</div><div>Respiratory System</div>
+    <div>Breathing</div><div>Food Groups</div>
+    <div>Food Tests</div><div>Energy in Food</div>
+    <div>Digestive System</div><div>Digestive Enzymes</div>
+  </div>
+  <button class="sbtn" onclick="startGame()">⚽ KICK OFF!</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" style="display:none;">
+  <div id="header">
+    <h1>⚽ Romero's Biology Shootout!</h1>
+    <div id="scoreboard">
+      <div class="score-pill">⚽ <span id="gc">0</span></div>
+      <div id="penalty-dots"></div>
+    </div>
+    <button id="music-btn" onclick="toggleMusic()">🎵 ON</button>
+  </div>
+
+  <div id="pitch">
+    <div id="gw">
+      <div id="goal">
+        <div class="cn" id="cn0" onclick="shoot(0)"><span class="clabel">A</span><span id="a0"></span></div>
+        <div class="cn" id="cn1" onclick="shoot(1)"><span class="clabel">B</span><span id="a1"></span></div>
+        <div class="cn" id="cn2" onclick="shoot(2)"><span class="clabel">C</span><span id="a2"></span></div>
+        <div class="cn" id="cn3" onclick="shoot(3)"><span class="clabel">D</span><span id="a3"></span></div>
+        <div class="gpost gpl"></div>
+        <div class="gpost gpr"></div>
+        <div class="gpost gpt"></div>
+      </div>
+
+      <!-- KEEPER (Cabo Verde — blue kit, yellow gloves) -->
+      <div id="kw">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 105" width="100" height="105">
+          <!-- shadow -->
+          <ellipse cx="50" cy="103" rx="28" ry="4" fill="rgba(0,0,0,.3)"/>
+          <!-- LEFT glove/arm -->
+          <line x1="50" y1="42" x2="8" y2="34" stroke="#003399" stroke-width="9" stroke-linecap="round"/>
+          <ellipse cx="6" cy="33" rx="9" ry="6" fill="#ff8c00" transform="rotate(-20,6,33)"/>
+          <!-- RIGHT glove/arm -->
+          <line x1="50" y1="42" x2="92" y2="34" stroke="#003399" stroke-width="9" stroke-linecap="round"/>
+          <ellipse cx="94" cy="33" rx="9" ry="6" fill="#ff8c00" transform="rotate(20,94,33)"/>
+          <!-- shirt body -->
+          <path d="M30 38 Q28 70 28 90 L72 90 Q72 70 70 38 Q60 32 50 32 Q40 32 30 38z" fill="#003399"/>
+          <!-- shirt collar -->
+          <path d="M42 32 Q50 38 58 32" stroke="#fff" stroke-width="2" fill="none"/>
+          <!-- kit number -->
+          <text x="50" y="65" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold" font-family="Arial">1</text>
+          <!-- shorts -->
+          <path d="M28 88 Q26 100 32 101 L46 101 Q48 90 50 90 Q52 90 54 101 L68 101 Q74 100 72 88z" fill="#001a66"/>
+          <!-- LEFT sock + boot -->
+          <rect x="29" y="99" width="14" height="3" rx="1" fill="#fff"/>
+          <ellipse cx="34" cy="103" rx="9" ry="4" fill="#111"/>
+          <!-- RIGHT sock + boot -->
+          <rect x="57" y="99" width="14" height="3" rx="1" fill="#fff"/>
+          <ellipse cx="66" cy="103" rx="9" ry="4" fill="#111"/>
+          <!-- neck -->
+          <rect x="45" y="24" width="10" height="10" rx="4" fill="#d4956a"/>
+          <!-- head -->
+          <ellipse cx="50" cy="17" rx="16" ry="17" fill="#d4956a"/>
+          <!-- hair -->
+          <ellipse cx="50" cy="7" rx="15" ry="10" fill="#1a0900"/>
+          <!-- ears -->
+          <ellipse cx="34" cy="17" rx="4" ry="5" fill="#d4956a"/>
+          <ellipse cx="66" cy="17" rx="4" ry="5" fill="#d4956a"/>
+          <!-- eyes -->
+          <ellipse cx="43" cy="16" rx="4" ry="3" fill="#fff"/>
+          <ellipse cx="57" cy="16" rx="4" ry="3" fill="#fff"/>
+          <circle cx="44" cy="16" r="2" fill="#2a1000"/>
+          <circle cx="58" cy="16" r="2" fill="#2a1000"/>
+          <circle cx="44.8" cy="15" r=".7" fill="#fff"/>
+          <circle cx="58.8" cy="15" r=".7" fill="#fff"/>
+          <!-- eyebrows -->
+          <path d="M39 12 Q43 10 47 12" stroke="#1a0900" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M53 12 Q57 10 61 12" stroke="#1a0900" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- nose -->
+          <circle cx="48" cy="19" r="1.5" fill="#ba7a4a" opacity=".6"/>
+          <circle cx="52" cy="19" r="1.5" fill="#ba7a4a" opacity=".6"/>
+          <!-- mouth -->
+          <path d="M44 24 Q50 27 56 24" stroke="#a0704a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <!-- glove fingers detail -->
+          <line x1="2" y1="30" x2="5" y2="37" stroke="#cc6600" stroke-width="1.5"/>
+          <line x1="5" y1="28" x2="7" y2="36" stroke="#cc6600" stroke-width="1.5"/>
+          <line x1="95" y1="30" x2="92" y2="37" stroke="#cc6600" stroke-width="1.5"/>
+          <line x1="98" y1="28" x2="95" y2="36" stroke="#cc6600" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div id="gline"></div>
+    </div>
+
+    <!-- TIMER -->
+    <div id="timer-wrap">
+      <div id="timer-bar-bg"><div id="timer-fill"></div></div>
+      <div id="timer-num">10s</div>
+    </div>
+
+    <!-- PLAYER AREA -->
+    <div id="pa">
+      <!-- MESSI (Argentina kit #10) -->
+      <svg id="messi-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 125" width="70" height="125" style="position:absolute;bottom:0;">
+        <!-- shadow -->
+        <ellipse cx="35" cy="123" rx="22" ry="4" fill="rgba(0,0,0,.3)"/>
+        <!-- RIGHT boot (slightly forward — kicking stance) -->
+        <ellipse cx="42" cy="119" rx="12" ry="5" fill="#111" transform="rotate(-8,42,119)"/>
+        <rect x="34" y="112" width="14" height="4" rx="2" fill="#fff"/>
+        <!-- LEFT boot -->
+        <ellipse cx="22" cy="121" rx="11" ry="4.5" fill="#1a1a1a"/>
+        <rect x="14" y="115" width="13" height="4" rx="2" fill="#74acdf"/>
+        <!-- LEFT leg (planted) -->
+        <rect x="14" y="88" width="13" height="30" rx="4" fill="#001a50"/>
+        <!-- RIGHT leg (kicking — angled slightly) -->
+        <path d="M33 88 Q38 105 40 115" stroke="#001a50" stroke-width="13" fill="none" stroke-linecap="round"/>
+        <!-- shorts -->
+        <path d="M15 70 Q13 90 16 90 L30 90 Q32 78 35 78 Q38 78 40 90 L54 90 Q57 90 55 70z" fill="#001a50"/>
+        <!-- shirt body - Argentina stripes -->
+        <clipPath id="sc"><path d="M13 30 Q11 35 11 70 L59 70 Q59 35 57 30 Q46 24 35 24 Q24 24 13 30z"/></clipPath>
+        <path d="M13 30 Q11 35 11 70 L59 70 Q59 35 57 30 Q46 24 35 24 Q24 24 13 30z" fill="#74acdf"/>
+        <rect x="11" y="24" width="9" height="47" fill="#fff" clip-path="url(#sc)"/>
+        <rect x="29" y="24" width="9" height="47" fill="#fff" clip-path="url(#sc)"/>
+        <rect x="47" y="24" width="9" height="47" fill="#fff" clip-path="url(#sc)"/>
+        <!-- LEFT sleeve + arm (hanging down) -->
+        <path d="M13 32 Q6 44 5 56" stroke="#74acdf" stroke-width="9" stroke-linecap="round" fill="none"/>
+        <path d="M13 32 Q6 44 5 56" stroke="#c0905a" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <!-- LEFT hand -->
+        <ellipse cx="5" cy="58" rx="6" ry="5" fill="#c0905a"/>
+        <!-- RIGHT sleeve + arm (raised slightly) -->
+        <path d="M57 32 Q64 40 66 52" stroke="#74acdf" stroke-width="9" stroke-linecap="round" fill="none"/>
+        <path d="M57 32 Q64 40 66 52" stroke="#c0905a" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <!-- RIGHT hand -->
+        <ellipse cx="66" cy="54" rx="6" ry="5" fill="#c0905a"/>
+        <!-- kit number 10 -->
+        <text x="35" y="58" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold" font-family="Arial Black,Arial">10</text>
+        <!-- Argentina badge area -->
+        <ellipse cx="22" cy="36" rx="5" ry="6" fill="rgba(255,255,255,.25)"/>
+        <!-- collar -->
+        <path d="M28 26 Q35 32 42 26" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- neck -->
+        <rect x="30" y="16" width="10" height="11" rx="4" fill="#c0905a"/>
+        <!-- head -->
+        <ellipse cx="35" cy="13" rx="16" ry="15" fill="#c0905a"/>
+        <!-- hair - dark, slightly swept -->
+        <path d="M20 10 Q22 2 35 2 Q48 2 50 10 Q46 6 35 7 Q24 6 20 10z" fill="#1a0a00"/>
+        <ellipse cx="35" cy="5" rx="14" ry="7" fill="#1a0a00"/>
+        <!-- ears -->
+        <ellipse cx="19" cy="13" rx="3.5" ry="4.5" fill="#c0905a"/>
+        <ellipse cx="51" cy="13" rx="3.5" ry="4.5" fill="#c0905a"/>
+        <!-- eyes -->
+        <ellipse cx="28" cy="12" rx="4" ry="3.5" fill="#fff"/>
+        <ellipse cx="42" cy="12" rx="4" ry="3.5" fill="#fff"/>
+        <circle cx="29" cy="12" r="2.2" fill="#2a1000"/>
+        <circle cx="43" cy="12" r="2.2" fill="#2a1000"/>
+        <circle cx="29.8" cy="11" r=".8" fill="#fff"/>
+        <circle cx="43.8" cy="11" r=".8" fill="#fff"/>
+        <!-- eyebrows - slightly furrowed (focused) -->
+        <path d="M24 8 Q28 6 32 8" stroke="#1a0a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M38 8 Q42 6 46 8" stroke="#1a0a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- nose -->
+        <circle cx="33" cy="15" r="1.5" fill="#a07040" opacity=".6"/>
+        <circle cx="37" cy="15" r="1.5" fill="#a07040" opacity=".6"/>
+        <!-- beard / stubble -->
+        <ellipse cx="35" cy="22" rx="11" ry="6" fill="#2a1000" opacity=".35"/>
+        <!-- mouth -->
+        <path d="M29 20 Q35 23 41 20" stroke="#8a5030" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+
+      <!-- Ball -->
+      <div id="ball"></div>
+    </div>
+
+    <div id="fb"></div>
+  </div>
+
+  <!-- Question box -->
+  <div id="qbox">
+    <div id="tbadge">Loading…</div>
+    <div id="qtext">Get ready!</div>
+    <div id="qhint">⬆️ Click the correct corner to shoot! Timer counts down — be quick!</div>
+  </div>
+</div>
+
+<!-- END SCREEN -->
+<div id="es">
+  <div id="end-emoji" style="font-size:60px;margin-bottom:10px;">🏆</div>
+  <div id="fs">0/5</div>
+  <div style="font-size:15px;opacity:.7;margin-bottom:8px;">goals scored</div>
+  <div id="fmsg">Well played!</div>
+  <button class="rsbtn" onclick="startGame()">🔄 Play Again!</button>
+</div>
+
+</div><!-- #game -->
+
+<script>
+// ─── QUESTIONS ────────────────────────────────────────────────────────────────
+const Q=[
+  {t:"Cells",q:"What is the basic unit of life?",a:["Organ","Cell","Tissue","Organism"],c:1},
+  {t:"Cells",q:"Which organelle controls what enters and leaves the cell?",a:["Nucleus","Mitochondria","Ribosome","Cell membrane"],c:3},
+  {t:"Cells",q:"What does the nucleus contain?",a:["Glucose","Chlorophyll","DNA","Oxygen"],c:2},
+  {t:"Cells",q:"Which organelle releases energy from glucose?",a:["Ribosome","Mitochondria","Chloroplast","Nucleus"],c:1},
+  {t:"Cells",q:"What do plant cells have that animal cells do NOT?",a:["Mitochondria","Nucleus","Cell wall","Cell membrane"],c:2},
+  {t:"Cells",q:"Which organelle is only in plant cells and used for photosynthesis?",a:["Mitochondria","Ribosome","Chloroplast","Nucleus"],c:2},
+  {t:"Levels of Organisation",q:"What is the correct order smallest → largest?",a:["Organ→Tissue→Cell","Cell→Organ→Tissue→Organism","Cell→Tissue→Organ→Organism","Tissue→Cell→Organ→Organism"],c:2},
+  {t:"Levels of Organisation",q:"A group of similar cells working together is called a…",a:["Organ","System","Tissue","Organism"],c:2},
+  {t:"Levels of Organisation",q:"Several organs working together form an organ…",a:["Cell","Tissue","Organism","System"],c:3},
+  {t:"Levels of Organisation",q:"What level comes between tissue and organism?",a:["Cell","Organ","System","Organism"],c:1},
+  {t:"Organ Systems",q:"Which organ system transports blood around the body?",a:["Digestive","Respiratory","Circulatory","Skeletal"],c:2},
+  {t:"Organ Systems",q:"Which system removes waste gases from the body?",a:["Circulatory","Skeletal","Digestive","Respiratory"],c:3},
+  {t:"Organ Systems",q:"Which organ belongs to the digestive system?",a:["Lungs","Kidneys","Stomach","Heart"],c:2},
+  {t:"Organ Systems",q:"The skeletal system provides support, protection and…",a:["Gas exchange","Digestion","Movement","Pumping blood"],c:2},
+  {t:"Skeleton",q:"How many bones are in the adult human body?",a:["106","156","206","306"],c:2},
+  {t:"Skeleton",q:"What covers the ends of bones at joints to reduce friction?",a:["Marrow","Ligaments","Tendons","Cartilage"],c:3},
+  {t:"Skeleton",q:"What connects bone to bone?",a:["Tendons","Ligaments","Cartilage","Muscles"],c:1},
+  {t:"Skeleton",q:"Where are red blood cells made?",a:["Liver","Bone marrow","Kidneys","Heart"],c:1},
+  {t:"Skeleton",q:"What connects muscle to bone?",a:["Tendons","Ligaments","Cartilage","Marrow"],c:0},
+  {t:"Joints & Muscles",q:"What type of joint is the hip?",a:["Hinge","Fixed","Ball and socket","Pivot"],c:2},
+  {t:"Joints & Muscles",q:"What type of joint is the knee?",a:["Ball and socket","Fixed","Pivot","Hinge"],c:3},
+  {t:"Joints & Muscles",q:"Muscles working in opposing pairs are called…",a:["Parallel pairs","Antagonistic pairs","Sequential pairs","Cooperative pairs"],c:1},
+  {t:"Joints & Muscles",q:"When the bicep contracts, the tricep…",a:["Also contracts","Stays the same","Relaxes","Shreds"],c:2},
+  {t:"Joints & Muscles",q:"Fixed bones at the skull — what type of joint?",a:["Hinge","Ball and socket","Fixed","Pivot"],c:2},
+  {t:"Circulatory System",q:"What does the heart pump around the body?",a:["Lymph","Air","Bile","Blood"],c:3},
+  {t:"Circulatory System",q:"Which vessels carry blood AWAY from the heart?",a:["Veins","Capillaries","Arteries","Venules"],c:2},
+  {t:"Circulatory System",q:"Which vessels carry blood BACK to the heart?",a:["Arteries","Veins","Capillaries","Aorta"],c:1},
+  {t:"Circulatory System",q:"How many chambers does the human heart have?",a:["2","3","4","6"],c:2},
+  {t:"Circulatory System",q:"Which tiny vessels connect arteries to veins?",a:["Venules","Arterioles","Capillaries","Lymphatics"],c:2},
+  {t:"Circulatory System",q:"The aorta is the body's largest…",a:["Vein","Capillary","Artery","Nerve"],c:2},
+  {t:"Blood",q:"What protein carries oxygen inside red blood cells?",a:["Plasma","Platelets","Haemoglobin","Glucose"],c:2},
+  {t:"Blood",q:"What is the job of platelets?",a:["Fight infection","Carry oxygen","Produce antibodies","Help blood clot"],c:3},
+  {t:"Blood",q:"What do white blood cells do?",a:["Carry oxygen","Clot blood","Fight infection","Transport glucose"],c:2},
+  {t:"Blood",q:"What is the liquid part of blood called?",a:["Serum","Marrow","Lymph","Plasma"],c:3},
+  {t:"Blood",q:"What shape are red blood cells?",a:["Round and flat","Biconcave disc","Long and thin","Irregular blob"],c:1},
+  {t:"Respiratory System",q:"What is the main organ of the respiratory system?",a:["Heart","Liver","Lungs","Kidneys"],c:2},
+  {t:"Respiratory System",q:"What is the name of the windpipe?",a:["Oesophagus","Bronchus","Trachea","Larynx"],c:2},
+  {t:"Respiratory System",q:"Where does gas exchange happen in the lungs?",a:["Bronchi","Trachea","Pleural membrane","Alveoli"],c:3},
+  {t:"Respiratory System",q:"The trachea splits into two tubes called…",a:["Alveoli","Bronchi","Capillaries","Villi"],c:1},
+  {t:"Respiratory System",q:"What makes alveoli great at gas exchange?",a:["Large and thick","Thin walls, huge surface area","No blood supply","Full of mucus"],c:1},
+  {t:"Breathing",q:"When you breathe IN, the diaphragm…",a:["Moves up","Stays still","Contracts & moves down","Relaxes & curves up"],c:2},
+  {t:"Breathing",q:"When you breathe IN, your ribcage moves…",a:["Down and in","Up and out","Stays still","Collapses"],c:1},
+  {t:"Breathing",q:"What gas is absorbed into blood in the alveoli?",a:["Carbon dioxide","Nitrogen","Oxygen","Helium"],c:2},
+  {t:"Breathing",q:"What gas do you breathe out MORE of than you breathe in?",a:["Oxygen","Nitrogen","Water vapour","Carbon dioxide"],c:3},
+  {t:"Breathing",q:"Normal resting adult breathing rate?",a:["4–6 breaths/min","12–20 breaths/min","30–40 breaths/min","60–70 breaths/min"],c:1},
+  {t:"Food Groups",q:"Which nutrient provides the body's main energy source?",a:["Protein","Vitamins","Carbohydrates","Minerals"],c:2},
+  {t:"Food Groups",q:"Which nutrient builds and repairs muscles?",a:["Carbohydrates","Fats","Protein","Vitamins"],c:2},
+  {t:"Food Groups",q:"Lack of Vitamin C causes which disease?",a:["Rickets","Anaemia","Scurvy","Kwashiorkor"],c:2},
+  {t:"Food Groups",q:"Butter, oil and cheese belong to which food group?",a:["Carbohydrates","Protein","Vitamins","Fats"],c:3},
+  {t:"Food Groups",q:"Fibre is important for…",a:["Building muscle","Making red blood cells","Healthy digestion","Fighting infection"],c:2},
+  {t:"Food Tests",q:"Which reagent tests for starch?",a:["Benedict's solution","Biuret solution","Sudan III","Iodine solution"],c:3},
+  {t:"Food Tests",q:"What colour does iodine turn when starch is present?",a:["Red","Orange-brown","Blue-black","Green"],c:2},
+  {t:"Food Tests",q:"Which reagent tests for glucose?",a:["Iodine","Biuret solution","Sudan III","Benedict's solution"],c:3},
+  {t:"Food Tests",q:"Benedict's solution turns which colour when glucose is present?",a:["Blue","Brick red/orange","Purple","Yellow"],c:1},
+  {t:"Food Tests",q:"Biuret solution tests for…",a:["Fat","Starch","Glucose","Protein"],c:3},
+  {t:"Food Tests",q:"Sudan III turns red-orange in the presence of…",a:["Protein","Glucose","Fat","Starch"],c:2},
+  {t:"Energy in Food",q:"Energy in food is measured in…",a:["Watts","Newtons","Joules or Calories","Grams"],c:2},
+  {t:"Energy in Food",q:"Which food group has the most energy per gram?",a:["Carbohydrates","Protein","Fats","Vitamins"],c:2},
+  {t:"Energy in Food",q:"How do we measure energy in food in the lab?",a:["Weigh it","Dissolve in water","Burn it & heat water","Cool it"],c:2},
+  {t:"Energy in Food",q:"Which has the highest energy content per gram?",a:["Lettuce","Carrot","Bread","Butter"],c:3},
+  {t:"Digestive System",q:"Where does digestion begin?",a:["Stomach","Small intestine","Mouth","Oesophagus"],c:2},
+  {t:"Digestive System",q:"Where does most ABSORPTION of nutrients happen?",a:["Stomach","Large intestine","Mouth","Small intestine"],c:3},
+  {t:"Digestive System",q:"What does the liver produce to help digest fats?",a:["Hydrochloric acid","Enzymes","Bile","Mucus"],c:2},
+  {t:"Digestive System",q:"The large intestine mainly absorbs…",a:["Protein","Fats","Water","Glucose"],c:2},
+  {t:"Digestive System",q:"Finger-like projections in the small intestine for absorption are called…",a:["Alveoli","Cilia","Villi","Flagella"],c:2},
+  {t:"Digestive System",q:"Which organ produces hydrochloric acid?",a:["Small intestine","Liver","Stomach","Pancreas"],c:2},
+  {t:"Digestive Enzymes",q:"What is the job of a digestive enzyme?",a:["Absorb nutrients","Break food into smaller molecules","Store food","Produce energy directly"],c:1},
+  {t:"Digestive Enzymes",q:"Amylase breaks down…",a:["Protein","Fat","Starch","Glucose"],c:2},
+  {t:"Digestive Enzymes",q:"Protease breaks down…",a:["Carbohydrates","Fat","Protein","Vitamins"],c:2},
+  {t:"Digestive Enzymes",q:"Lipase breaks down…",a:["Protein","Starch","Vitamins","Fat"],c:3},
+  {t:"Digestive Enzymes",q:"Where is amylase produced?",a:["Stomach","Liver","Salivary glands & pancreas","Large intestine"],c:2},
+  {t:"Digestive Enzymes",q:"Enzymes are biological…",a:["Acids","Catalysts","Bases","Lipids"],c:1},
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let gameQs=[],pen=0,goals=0,busy=false;
+const TOTAL=5, TIME_LIMIT=10;
+let timerInterval=null, timeLeft=TIME_LIMIT;
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+let actx=null, musicOn=false, musicTO=null, crowdSrc=null, crowdGain=null;
+
+function aC(){
+  if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+
+function tone(freq,dur,type,vol,t0){
+  type=type||'sine'; vol=vol||0.28; t0=t0||0;
+  const c=aC(),o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);
+  o.type=type; o.frequency.value=freq;
+  const s=c.currentTime+t0;
+  g.gain.setValueAtTime(vol,s);
+  g.gain.exponentialRampToValueAtTime(0.001,s+dur);
+  o.start(s);o.stop(s+dur+0.05);
+}
+
+function whistle(){
+  const c=aC(),o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);
+  o.type='sine';
+  const s=c.currentTime;
+  o.frequency.setValueAtTime(1400,s);
+  o.frequency.linearRampToValueAtTime(2000,s+0.1);
+  o.frequency.linearRampToValueAtTime(1700,s+0.45);
+  g.gain.setValueAtTime(0.4,s);
+  g.gain.exponentialRampToValueAtTime(0.001,s+0.5);
+  o.start(s);o.stop(s+0.55);
+}
+
+function kick(){
+  const c=aC(),o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);
+  o.type='sawtooth';
+  const s=c.currentTime;
+  o.frequency.setValueAtTime(130,s);
+  o.frequency.exponentialRampToValueAtTime(28,s+0.18);
+  g.gain.setValueAtTime(0.55,s);
+  g.gain.exponentialRampToValueAtTime(0.001,s+0.18);
+  o.start(s);o.stop(s+0.22);
+}
+
+function noiseBurst(dur,freq,vol){
+  const c=aC();
+  const len=c.sampleRate*dur;
+  const buf=c.createBuffer(1,len,c.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1);
+  const src=c.createBufferSource(); src.buffer=buf;
+  const filt=c.createBiquadFilter(); filt.type='bandpass';
+  filt.frequency.value=freq; filt.Q.value=0.4;
+  const g=c.createGain();
+  g.gain.setValueAtTime(vol,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+  src.connect(filt);filt.connect(g);g.connect(c.destination);
+  src.start();src.stop(c.currentTime+dur+0.05);
+}
+
+function goalSound(){
+  [523,659,784,1047].forEach((f,i)=>tone(f,0.45,'sine',0.3,i*0.13));
+  noiseBurst(1.2,1200,0.15); // cheer
+  // Extra roar
+  setTimeout(()=>noiseBurst(0.8,800,0.1),600);
+}
+
+function missSound(){
+  [380,300,240].forEach((f,i)=>tone(f,0.5,'sawtooth',0.2,i*0.22));
+  noiseBurst(0.8,500,0.1); // groan
+}
+
+// Crowd ambient — looping filtered noise
+function startCrowd(){
+  if(crowdSrc) return;
+  const c=aC();
+  const len=c.sampleRate*4;
+  const buf=c.createBuffer(2,len,c.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  }
+  const src=c.createBufferSource(); src.buffer=buf; src.loop=true;
+  const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=700;
+  const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=180;
+  const pk=c.createBiquadFilter(); pk.type='peaking'; pk.frequency.value=350; pk.gain.value=8;
+  const g=c.createGain(); g.gain.value=0.045;
+  crowdGain=g;
+  src.connect(hp);hp.connect(pk);pk.connect(lp);lp.connect(g);g.connect(c.destination);
+  src.start();
+  crowdSrc=src;
+}
+
+function stopCrowd(){
+  if(crowdSrc){try{crowdSrc.stop();}catch(e){} crowdSrc=null; crowdGain=null;}
+}
+
+// Silly tuba melody
+const MEL=[[130,.25],[165,.25],[196,.25],[261,.25],[196,.25],[165,.25],[147,.5],
+           [175,.25],[220,.25],[175,.25],[147,.25],[130,.5],[0,.25],
+           [130,.125],[130,.125],[165,.25],[196,.5],[0,.5]];
+const MDUR=MEL.reduce((s,[,d])=>s+d,0);
+
+function scheduleMusic(){
+  if(!musicOn) return;
+  const c=aC();
+  let t=c.currentTime+0.05;
+  const master=c.createGain(); master.gain.value=0.11; master.connect(c.destination);
+  MEL.forEach(([f,d])=>{
+    if(f>0){
+      const o=c.createOscillator(); o.type='sawtooth'; o.frequency.value=f;
+      const vib=c.createOscillator(),vg=c.createGain();
+      vib.frequency.value=5.5; vg.gain.value=2.5;
+      vib.connect(vg);vg.connect(o.frequency);
+      vib.start(t);vib.stop(t+d-.02);
+      o.connect(master);o.start(t);o.stop(t+d-.02);
+    }
+    t+=d;
+  });
+  musicTO=setTimeout(scheduleMusic,(MDUR-.3)*1000);
+}
+
+function startMusic(){ musicOn=true; document.getElementById('music-btn').textContent='🔇 OFF'; scheduleMusic(); }
+function stopMusic(){ musicOn=false; clearTimeout(musicTO); document.getElementById('music-btn').textContent='🎵 ON'; }
+function toggleMusic(){ musicOn?stopMusic():startMusic(); }
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft=TIME_LIMIT;
+  updateTimer();
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimer();
+    if(timeLeft<=3 && timeLeft>0){
+      // urgent tick sound
+      tone(880,.05,'square',0.15);
+    }
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      if(!busy) autoSave();
+    }
+  },1000);
+}
+
+function stopTimer(){ clearInterval(timerInterval); }
+
+function updateTimer(){
+  const fill=document.getElementById('timer-fill');
+  const num=document.getElementById('timer-num');
+  const pct=(timeLeft/TIME_LIMIT)*100;
+  fill.style.width=pct+'%';
+  fill.style.background=timeLeft>6?'#39ff14':timeLeft>3?'#ff8c00':'#ff2222';
+  num.textContent=timeLeft+'s';
+  num.style.color=timeLeft<=3?'#ff4444':'#fff';
+}
+
+function autoSave(){
+  busy=true;
+  stopTimer();
+  document.querySelectorAll('.cn').forEach(c=>c.classList.add('off'));
+  const ri=Math.random()*4|0;
+  diveKeeper(ri);
+  setTimeout(()=>{
+    showFB('⏰ TOO SLOW!','fb-miss');
+    missSound();
+    document.getElementById('pd'+pen).classList.add('miss');
+    document.querySelectorAll('.cn').forEach(c=>{
+      if(c.dataset.ok==='1') c.classList.add('correct-flash');
+    });
+    setTimeout(()=>{hideFB();pen++;busy=false;loadQ();},2600);
+  },500);
+}
+
+// ─── GAME ────────────────────────────────────────────────────────────────────
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+function startGame(){
+  gameQs=shuffle(Q).slice(0,TOTAL);
+  pen=0;goals=0;busy=false;
+  document.getElementById('ss').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  document.getElementById('es').classList.remove('show');
+  document.getElementById('gc').textContent=0;
+  buildDots();
+  resetKeeper();
+  resetBall();
+  loadQ();
+  if(!musicOn) startMusic();
+  startCrowd();
+}
+
+function buildDots(){
+  const c=document.getElementById('penalty-dots');
+  c.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='pdot';d.id='pd'+i;c.appendChild(d);}
+}
+
+function loadQ(){
+  if(pen>=TOTAL){endGame();return;}
+  const q=gameQs[pen];
+  const idxs=shuffle([0,1,2,3]);
+  idxs.forEach((orig,pos)=>{
+    document.getElementById('a'+pos).textContent=q.a[orig];
+    const el=document.getElementById('cn'+pos);
+    el.dataset.ok=(orig===q.c)?'1':'0';
+    el.className='cn';
+    el.style.outline='';
+  });
+  document.getElementById('tbadge').textContent='🔬 '+q.t;
+  document.getElementById('qtext').textContent='Penalty '+(pen+1)+'/5: '+q.q;
+  document.getElementById('qhint').textContent='⬆️ Click the correct corner to shoot!';
+  resetKeeper();
+  resetBall();
+  hideFB();
+  setTimeout(()=>{whistle();startTimer();},200);
+}
+
+function resetBall(){
+  const b=document.getElementById('ball');
+  b.style.transition='none';
+  b.style.position='absolute';
+  b.style.left='50%';b.style.top='auto';b.style.bottom='10px';
+  b.style.transform='translateX(-50%)';b.style.opacity='1';
+}
+
+function resetKeeper(){
+  const k=document.getElementById('kw');
+  k.style.transition='none';
+  requestAnimationFrame(()=>{
+    k.style.transform='translateX(-50%)';
+    k.style.transition='transform .4s cubic-bezier(.4,-.4,.3,1.4)';
+  });
+}
+
+const CT=[{x:.10,y:.10},{x:.79,y:.10},{x:.10,y:.73},{x:.79,y:.73}];
+const KD=[
+  'translateX(calc(-50% - 195px)) translateY(-65px) rotate(-42deg)',
+  'translateX(calc(-50% + 195px)) translateY(-65px) rotate(42deg)',
+  'translateX(calc(-50% - 170px)) translateY(5px) rotate(-20deg)',
+  'translateX(calc(-50% + 170px)) translateY(5px) rotate(20deg)',
+];
+
+function shoot(ci){
+  if(busy) return;
+  stopTimer();
+  const el=document.getElementById('cn'+ci);
+  const ok=el.dataset.ok==='1';
+  busy=true;
+  document.querySelectorAll('.cn').forEach(c=>c.classList.add('off'));
+  kick();
+  animBall(ci,()=>{
+    if(ok){
+      const others=[0,1,2,3].filter(i=>i!==ci);
+      diveKeeper(others[Math.random()*others.length|0]);
+      setTimeout(()=>{
+        showFB('⚽ GOAL!!! 🎉','fb-goal');
+        goalSound();
+        goals++;
+        document.getElementById('gc').textContent=goals;
+        document.getElementById('pd'+pen).classList.add('goal');
+        el.classList.add('correct-flash');
+        setTimeout(()=>{hideFB();pen++;busy=false;loadQ();},2100);
+      },80);
+    } else {
+      diveKeeper(ci);
+      setTimeout(()=>{
+        showFB('🧤 SAVED!','fb-miss');
+        missSound();
+        document.getElementById('pd'+pen).classList.add('miss');
+        el.classList.add('wrong-flash');
+        document.querySelectorAll('.cn').forEach(c=>{
+          if(c.dataset.ok==='1') c.classList.add('correct-flash');
+        });
+        setTimeout(()=>{hideFB();pen++;busy=false;loadQ();},2700);
+      },430);
+    }
+  });
+}
+
+function animBall(ci,cb){
+  const ball=document.getElementById('ball');
+  const pa=document.getElementById('pa');
+  const goal=document.getElementById('goal');
+  const paR=pa.getBoundingClientRect();
+  const gR=goal.getBoundingClientRect();
+  const t=CT[ci];
+  const tx=(gR.left-paR.left)+gR.width*t.x;
+  const ty=(gR.top-paR.top)+gR.height*t.y;
+  const sx=paR.width/2-13;
+  const sy=paR.height-35;
+  ball.style.transition='none';
+  ball.style.bottom='auto';
+  ball.style.left=sx+'px';
+  ball.style.top=sy+'px';
+  ball.style.transform='none';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    ball.style.transition='left .40s ease-in,top .36s ease-in,transform .40s linear';
+    ball.style.left=tx+'px';
+    ball.style.top=ty+'px';
+    ball.style.transform='rotate(720deg) scale(0.6)';
+  }));
+  setTimeout(cb,440);
+}
+
+function diveKeeper(ci){ document.getElementById('kw').style.transform=KD[ci]; }
+
+function showFB(txt,cls){
+  const f=document.getElementById('fb');
+  f.textContent=txt; f.className=cls;
+  f.style.display='block';
+}
+function hideFB(){ document.getElementById('fb').style.display='none'; }
+
+function endGame(){
+  stopTimer();
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('es').classList.add('show');
+  document.getElementById('fs').textContent=goals+'/5';
+  const msgs=[
+    {e:'😬',m:'Nil points! Revise harder, Romero! 📚'},
+    {e:'😅',m:'1 goal — keep at it! 💪'},
+    {e:'🙂',m:'2 goals — getting there! 📖'},
+    {e:'😊',m:'3 goals — solid biology! 🧬'},
+    {e:'🌟',m:'4 goals — nearly perfect! ⭐'},
+    {e:'🏆',m:'PERFECT SCORE! Biology genius! 🎉🎉🎉'},
+  ];
+  const r=msgs[goals];
+  document.getElementById('end-emoji').textContent=r.e;
+  document.getElementById('fmsg').textContent=r.m;
+  if(goals===5) goalSound();
+}
+</script>
+</body>
+</html>
