@@ -43,5 +43,14 @@
     "stage": "ks3",
     "subject": "biology",
     "logo": "logos/romero-football.svg"
+  },
+  {
+    "folder": "shrees_apple_rescue",
+    "path": "shrees_apple_rescue/index.html",
+    "title": "Shree's Apple Rescue",
+    "description": "Catch magical apples, brave changing weather, and solve maths riddles with Shree and Simba.",
+    "stage": "sats",
+    "subject": "maths",
+    "logo": "logos/shree-owl.svg"
   }
 ]
