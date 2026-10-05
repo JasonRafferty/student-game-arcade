@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Eshaan's SPAG Road Race</title>
+<meta name="game-stage" content="sats">
+<meta name="game-subject" content="english">
 <meta name="game-logo" content="logos/eshaan-spag.svg">
+<meta name="description" content="Race through traffic and weather while answering Year 6 grammar and punctuation questions.">
 <link rel="icon" type="image/svg+xml" href="../logos/eshaan-spag.svg">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -97,6 +100,16 @@
   #countdownLabel { color: #d8f7ff; font-size: clamp(1rem, 3vw, 1.4rem); font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; text-shadow: 0 2px 8px #00142e; }
   #countdownText { color: #fff; font-size: clamp(5rem, 20vw, 10rem); line-height: 1; font-weight: 900; font-style: italic; text-shadow: 0 0 16px #00d4ff, 5px 5px 0 #003ecc; animation: countdownPop 0.35s ease-out; }
   @keyframes countdownPop { from { transform: scale(1.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  #bossAlert { display:none; position:fixed; inset:0; z-index:44; align-items:center; justify-content:center; pointer-events:none; background:radial-gradient(circle,rgba(145,0,25,.28),rgba(0,0,0,.15)); }
+  #bossAlertCard { width:min(620px,calc(100vw - 30px)); padding:24px; text-align:center; color:#fff; background:rgba(32,5,17,.94); border:3px solid #ff365f; border-radius:16px; box-shadow:0 0 45px #ff274f99; animation:bossAlertPulse .65s infinite alternate; }
+  #bossAlertTitle { color:#ff607d; font-size:clamp(1.7rem,6vw,3.2rem); font-weight:1000; letter-spacing:.06em; text-transform:uppercase; }
+  #bossAlertName { margin:8px 0 5px; color:#fff1a8; font-size:clamp(1.2rem,4vw,2rem); font-weight:900; }
+  #bossAlertInstruction { color:#dcecff; font-weight:700; }
+  #bossTimerRow { display:none; border-color:#ff365f !important; background:#361326 !important; }
+  #bossTimer { color:#ffdf74 !important; font-variant-numeric:tabular-nums; }
+  #bossProgress { width:70px; height:6px; overflow:hidden; background:#5a2030; border-radius:6px; }
+  #bossProgressFill { width:100%; height:100%; background:linear-gradient(90deg,#ff334f,#ffd43b); }
+  @keyframes bossAlertPulse { from { transform:scale(.98); box-shadow:0 0 25px #ff274f77; } to { transform:scale(1.01); box-shadow:0 0 60px #ff274fcc; } }
   #mistakeReview { display: none; margin: 14px 0 2px; padding: 14px; border-radius: 10px; background: #0d1933; text-align: left; line-height: 1.4; }
   #mistakeReview h3 { color: #f1c40f; margin-bottom: 8px; }
   #mistakeReview li { margin: 0 0 12px 20px; }
@@ -113,7 +126,7 @@
   .secondary-btn:hover { border-color:#00d4ff; }
   #settingsOverlay { display:none; position:fixed; inset:0; z-index:70; align-items:center; justify-content:center; padding:10px; background:rgba(4,9,24,.9); }
   #settingsPanel { width:min(860px,100%); max-height:calc(100vh - 20px); overflow:hidden; display:flex; flex-direction:column; padding:0; color:#fff; background:#101f3d; border:2px solid #00d4ff; border-radius:16px; box-shadow:0 0 40px #00d4ff55; }
-  .settings-scroll { min-height:0; overflow:hidden; padding:12px 18px 8px; }
+  .settings-scroll { min-height:0; overflow:auto; padding:12px 18px 8px; }
   #settingsPanel h2 { color:#53e9ff; margin-bottom:2px; font-size:1.55rem; }
   .settings-note { color:#a9bed1; margin-bottom:7px; font-size:.86rem; }
   #settingsPanel .race-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
@@ -228,6 +241,7 @@
     <span>Wanted: <b id="wanted">—</b></span>
     <span>Route: <b id="route">Countryside</b></span>
     <span>Conditions: <b id="conditions">Day · Clear</b></span>
+    <span id="bossTimerRow">Boss: <b id="bossTimer">0:30</b><span id="bossProgress"><span id="bossProgressFill"></span></span></span>
     <span>Best: <b id="highScore">0</b></span>
     <span>Speed: <span id="speedBar"><span id="speedFill" style="width:20%"></span></span></span>
   </div>
@@ -243,6 +257,13 @@
   <div id="countdownCard">
     <div id="countdownLabel">Race starts in</div>
     <div id="countdownText">3</div>
+  </div>
+</div>
+<div id="bossAlert" role="status" aria-live="assertive">
+  <div id="bossAlertCard">
+    <div id="bossAlertTitle">⚠️ Boss Event Incoming</div>
+    <div id="bossAlertName"></div>
+    <div id="bossAlertInstruction"></div>
   </div>
 </div>
 
@@ -276,6 +297,9 @@
 
   <div class="start-launch">
     <div id="raceSummary"><strong>🏁 Balanced Race</strong><small>Normal difficulty · 1.8× points</small></div>
+    <button id="continueRaceButton" class="big-btn launch-btn" onclick="continueSavedRace()" style="display:none">Continue Saved Race ▶</button>
+    <p id="savedRaceSummary" style="display:none;color:#b8cad9;margin:-4px 0 2px"></p>
+    <button id="deleteSavedRaceButton" class="secondary-btn" onclick="deleteSavedRace()" style="display:none">🗑️ Delete Saved Race</button>
     <button class="big-btn launch-btn" onclick="startGame()">Start Your Engine 🏁</button>
     <div class="start-secondary-actions">
       <button class="secondary-btn" onclick="showRaceSettings()">⚙️ Race Settings</button>
@@ -304,6 +328,8 @@
         <div class="difficulty-panel"><span class="difficulty-label">Road hazards</span><div id="hazardChoices"><button class="hazard-btn" data-hazards="off" onclick="selectHazardMode(false)">✅ Clear road</button><button class="hazard-btn selected" data-hazards="on" onclick="selectHazardMode(true)">🌳 Trees & debris</button></div></div>
         <div class="difficulty-panel"><span class="difficulty-label">Guest racers</span><div id="guestChoices"><button class="setting-toggle" data-guests="off" onclick="selectGuestRacers(false)">🚫 Off</button><button class="setting-toggle selected" data-guests="on" onclick="selectGuestRacers(true)">🏎️ On</button></div></div>
         <div class="difficulty-panel"><span class="difficulty-label">One-time SPAG rescue</span><div id="rescueChoices"><button class="setting-toggle" data-rescue="off" onclick="selectRescueMode(false)">🚫 Off</button><button class="setting-toggle selected" data-rescue="on" onclick="selectRescueMode(true)">💚 On</button></div></div>
+        <div class="difficulty-panel"><span class="difficulty-label">Milestone boss battles · every 5 levels</span><div id="bossModeChoices"><button class="setting-toggle" data-bosses="off" onclick="selectBossMode(false)">🚫 Off</button><button class="setting-toggle selected" data-bosses="on" onclick="selectBossMode(true)">👑 On</button></div></div>
+        <div class="difficulty-panel"><span class="difficulty-label">Boss difficulty</span><div id="bossDifficultyChoices"><button class="setting-toggle" data-boss-difficulty="relaxed" onclick="selectBossDifficulty('relaxed')">Relaxed</button><button class="setting-toggle selected" data-boss-difficulty="normal" onclick="selectBossDifficulty('normal')">Normal</button><button class="setting-toggle" data-boss-difficulty="extreme" onclick="selectBossDifficulty('extreme')">Extreme</button></div></div>
         <div class="difficulty-panel wide"><span class="difficulty-label">Audio</span><button id="settingsMusicToggle" class="setting-toggle" onclick="toggleMusic()">🎵 Music: ON</button><button id="settingsSfxToggle" class="setting-toggle" onclick="toggleSfx()">🔊 Sounds: ON</button></div>
       </div>
     </div>
@@ -319,6 +345,7 @@
   <h2>⏸ Race Paused</h2>
   <p>Take a breather—the road will wait for you.</p>
   <button class="big-btn" onclick="togglePause()">Resume Racing ▶</button>
+  <button class="secondary-btn" onclick="saveAndExitRace()">💾 Save &amp; Exit</button>
 </div>
 
 <div id="gameOverScreen" style="display:none">
@@ -343,6 +370,7 @@
     <h2 id="howToTitle">❓ How to Play</h2>
     <div class="controls-strip"><strong>Controls</strong><span class="key-chip">WASD</span><span class="key-chip">ARROW KEYS</span><span class="key-chip">DOUBLE-TAP ←/→ TO DODGE</span><span class="key-chip">1–4 ANSWER</span><span class="key-chip">P PAUSE</span></div>
     <p>Steer around traffic and hazards, collect coins, and drive through glowing SPAG power-ups. Double-tap left or right for a fast sideways dodge. Answer correctly to activate the reward.</p>
+    <p><strong>Milestone bosses:</strong> every five levels, a random survival event begins. Avoid collisions for 30 seconds while the boss timer counts down. SPAG questions pause until the event ends.</p>
     <div class="powerup-info-grid">
       <div class="powerup-info-item"><span class="icon">🔥</span><div><strong>Nitro</strong><small>Five-second speed boost</small></div></div>
       <div class="powerup-info-item"><span class="icon">🛡️</span><div><strong>Shield</strong><small>Blocks one collision</small></div></div>
@@ -422,6 +450,26 @@ const allQuestions = [
   { q: "Which spelling is correct?", a: ["immediately", "imediately", "immediatly", "immedietely"], correct: 0, explain: "'Immediately' has two m's and ends with '-ately'." },
   { q: "Which word has a prefix meaning 'again'?", a: ["rewrite", "unhappy", "preview", "misread"], correct: 0, explain: "The prefix 're-' means again, so 'rewrite' means write again." },
   { q: "Which pair are synonyms?", a: ["rapid and swift", "rapid and slow", "brave and fearful", "ancient and modern"], correct: 0, explain: "'Rapid' and 'swift' both mean fast." },
+  { q: "Which sentence uses a colon to introduce an explanation?", a: ["The race was cancelled: the track was flooded.", "The race: was cancelled because the track was flooded.", "The race was: cancelled because the track was flooded.", "The race was cancelled the track: was flooded."], correct: 0, explain: "A colon can introduce an explanation when the words before it form a complete clause." },
+  { q: "Which sentence uses a semi-colon to separate detailed list items?", a: ["The racers came from Leeds, England; Paris, France; and Rome, Italy.", "The racers came; from Leeds, England, Paris, France and Rome, Italy.", "The racers; came from Leeds; England; Paris; France.", "The racers came from; Leeds, England, Paris, France and Rome, Italy."], correct: 0, explain: "Semi-colons clearly separate list items that already contain commas." },
+  { q: "Which sentence uses commas for parenthesis correctly?", a: ["The winner, exhausted but delighted, lifted the trophy.", "The winner exhausted, but delighted lifted the trophy.", "The winner, exhausted but delighted lifted the trophy.", "The winner exhausted but delighted, lifted the trophy."], correct: 0, explain: "A pair of commas surrounds the removable extra information." },
+  { q: "Which sentence uses a pair of dashes for parenthesis?", a: ["The final lap — the most difficult part — began.", "The final lap — the most difficult part began.", "The final lap the most difficult — part — began.", "The final — lap the most difficult part began."], correct: 0, explain: "A matching pair of dashes can mark extra information within a sentence." },
+  { q: "Which sentence uses an ellipsis correctly?", a: ["Eshaan waited… then the lights turned green.", "Eshaan… waited then… the lights turned green…", "Eshaan waited. . then the lights turned green.", "Eshaan waited,, then the lights turned green."], correct: 0, explain: "An ellipsis can show a pause or omitted words; it consists of three dots." },
+  { q: "Which sentence is punctuated correctly?", a: ["After checking the tyres, the mechanic started the engine.", "After checking, the tyres the mechanic started the engine.", "After checking the tyres the mechanic, started the engine.", "After, checking the tyres, the mechanic started the engine."], correct: 0, explain: "A comma separates the fronted adverbial from the main clause." },
+  { q: "Which sentence contains a relative clause beginning with 'whose'?", a: ["The driver, whose helmet was red, waved.", "The driver with the red helmet waved.", "Whose red helmet is this?", "The driver's helmet was red."], correct: 0, explain: "'Whose helmet was red' is a relative clause adding information about the driver." },
+  { q: "Which sentence uses the passive voice appropriately?", a: ["The road was closed by the police.", "The police closed the road.", "The police are closing the road.", "Close the road, police!"], correct: 0, explain: "In the passive sentence, the road receives the action." },
+  { q: "Which sentence is in the present perfect progressive tense?", a: ["Eshaan has been practising all week.", "Eshaan practised all week.", "Eshaan is practising all week.", "Eshaan will practise all week."], correct: 0, explain: "Present perfect progressive uses has or have + been + an -ing verb." },
+  { q: "Which sentence maintains the same tense throughout?", a: ["Eshaan checked the mirror and changed lanes.", "Eshaan checked the mirror and changes lanes.", "Eshaan checks the mirror and changed lanes.", "Eshaan had checked the mirror and changes lanes."], correct: 0, explain: "Both verbs, 'checked' and 'changed', are in the simple past tense." },
+  { q: "Which sentence uses the subjunctive for a formal demand?", a: ["The marshal insisted that he wear a helmet.", "The marshal insisted that he wears a helmet.", "The marshal insisted that he wore a helmet yesterday.", "The marshal insists he wearing a helmet."], correct: 0, explain: "Formal demands can use the base verb 'wear' after 'that'." },
+  { q: "Which modal verb shows the greatest certainty?", a: ["will", "might", "could", "may"], correct: 0, explain: "'Will' expresses greater certainty than 'might', 'could' or 'may'." },
+  { q: "Which sentence uses 'affect' correctly?", a: ["The rain may affect the race.", "The rain may effect the race.", "The rain had an affect on the race.", "The affect of rain was obvious."], correct: 0, explain: "'Affect' is usually a verb meaning to influence; 'effect' is usually a noun." },
+  { q: "Which sentence uses 'effect' correctly?", a: ["The new tyres had a positive effect.", "The new tyres had a positive affect.", "The tyres will effect his speed positively.", "The affect was positive."], correct: 0, explain: "'Effect' is the noun meaning a result or consequence." },
+  { q: "Which word is spelled correctly?", a: ["conscience", "concience", "consciense", "consience"], correct: 0, explain: "'Conscience' contains 'science': con-science." },
+  { q: "Which word is spelled correctly?", a: ["rhythm", "rythm", "rhythym", "rythem"], correct: 0, explain: "'Rhythm' is spelled r-h-y-t-h-m." },
+  { q: "Which word contains a suffix meaning 'without'?", a: ["careless", "careful", "caring", "cared"], correct: 0, explain: "The suffix '-less' means without, so 'careless' means without care." },
+  { q: "Which word contains a prefix meaning 'wrongly'?", a: ["misjudge", "rejudge", "prejudge", "unjudged"], correct: 0, explain: "The prefix 'mis-' means wrongly or badly." },
+  { q: "Which sentence is the most formal?", a: ["The event will commence at nine o'clock.", "The event kicks off at nine.", "We get going at nine.", "It starts at nine, okay?"], correct: 0, explain: "'Commence' and the complete construction create a formal tone." },
+  { q: "Which sentence is cohesive because it uses a pronoun clearly?", a: ["Maya checked the engine before she started it.", "Maya checked the engine before Maya started the engine.", "She checked it before she started it.", "The engine checked Maya before it started her."], correct: 0, explain: "'She' and 'it' refer clearly to Maya and the engine without unnecessary repetition." },
 ];
 
 // ── Enemy car colours and names ───────────────────────────────────────────────
@@ -452,6 +500,8 @@ let selectedTrafficMode = true;
 let selectedHazardMode = true;
 let selectedGuestRacers = true;
 let selectedRescueMode = true;
+let selectedBossMode = true;
+let selectedBossDifficulty = 'normal';
 let savedRaceSettings = {};
 let settingsEditing = false;
 let settingsSnapshot = null;
@@ -462,11 +512,14 @@ if (typeof savedRaceSettings.traffic === 'boolean') selectedTrafficMode = savedR
 if (typeof savedRaceSettings.hazards === 'boolean') selectedHazardMode = savedRaceSettings.hazards;
 if (typeof savedRaceSettings.guests === 'boolean') selectedGuestRacers = savedRaceSettings.guests;
 if (typeof savedRaceSettings.rescue === 'boolean') selectedRescueMode = savedRaceSettings.rescue;
+if (typeof savedRaceSettings.bosses === 'boolean') selectedBossMode = savedRaceSettings.bosses;
+if (['relaxed', 'normal', 'extreme'].includes(savedRaceSettings.bossDifficulty)) selectedBossDifficulty = savedRaceSettings.bossDifficulty;
 
 function saveRaceSettings() {
   const settings = {
     difficulty:selectedDifficulty, police:selectedPoliceMode, traffic:selectedTrafficMode,
     hazards:selectedHazardMode, guests:selectedGuestRacers, rescue:selectedRescueMode,
+    bosses:selectedBossMode, bossDifficulty:selectedBossDifficulty,
     music:musicEnabled, sfx:sfxEnabled,
   };
   if (!settingsEditing) {
@@ -486,7 +539,7 @@ function updateRaceSummary() {
   let multiplier = 1;
   if (selectedPoliceMode) multiplier *= 1.5;
   if (selectedTrafficMode) multiplier *= 1.2;
-  summary.innerHTML = `<strong>${presetName}</strong><small>${DIFFICULTIES[selectedDifficulty].label} difficulty · ${multiplier.toFixed(1)}× points</small>`;
+  summary.innerHTML = `<strong>${presetName}</strong><small>${DIFFICULTIES[selectedDifficulty].label} difficulty · ${multiplier.toFixed(1)}× points${selectedBossMode ? ` · Bosses ${capitalise(selectedBossDifficulty)}` : ''}</small>`;
 }
 
 function selectDifficulty(name) {
@@ -548,9 +601,30 @@ function selectRescueMode(enabled) {
   saveRaceSettings();
 }
 
+function selectBossMode(enabled) {
+  selectedBossMode = Boolean(enabled);
+  document.querySelectorAll('[data-bosses]').forEach(button => {
+    const selected = button.dataset.bosses === (selectedBossMode ? 'on' : 'off');
+    button.classList.toggle('selected', selected); button.setAttribute('aria-pressed', String(selected));
+  });
+  document.querySelectorAll('[data-boss-difficulty]').forEach(button => { button.disabled = !selectedBossMode; });
+  saveRaceSettings();
+}
+
+function selectBossDifficulty(name) {
+  if (!['relaxed', 'normal', 'extreme'].includes(name)) return;
+  selectedBossDifficulty = name;
+  document.querySelectorAll('[data-boss-difficulty]').forEach(button => {
+    const selected = button.dataset.bossDifficulty === name;
+    button.classList.toggle('selected', selected); button.setAttribute('aria-pressed', String(selected));
+  });
+  saveRaceSettings();
+}
+
 function currentSettingsSnapshot() {
   return { difficulty:selectedDifficulty, police:selectedPoliceMode, traffic:selectedTrafficMode,
     hazards:selectedHazardMode, guests:selectedGuestRacers, rescue:selectedRescueMode,
+    bosses:selectedBossMode, bossDifficulty:selectedBossDifficulty,
     music:musicEnabled, sfx:sfxEnabled };
 }
 
@@ -567,9 +641,11 @@ function restoreSettings(snapshot) {
   selectedDifficulty = snapshot.difficulty; selectedPoliceMode = snapshot.police;
   selectedTrafficMode = snapshot.traffic; selectedHazardMode = snapshot.hazards;
   selectedGuestRacers = snapshot.guests; selectedRescueMode = snapshot.rescue;
+  selectedBossMode = snapshot.bosses; selectedBossDifficulty = snapshot.bossDifficulty;
   musicEnabled = snapshot.music; sfxEnabled = snapshot.sfx;
   selectDifficulty(selectedDifficulty); selectPoliceMode(selectedPoliceMode); selectTrafficMode(selectedTrafficMode);
   selectHazardMode(selectedHazardMode); selectGuestRacers(selectedGuestRacers); selectRescueMode(selectedRescueMode);
+  selectBossMode(selectedBossMode); selectBossDifficulty(selectedBossDifficulty);
   updateAudioButtons(); updateRaceSummary();
 }
 
@@ -589,18 +665,20 @@ function hideHowToPlay() { document.getElementById('howToOverlay').style.display
 
 function applyPreset(name) {
   const presets = {
-    practice:{ difficulty:'easy', police:false, traffic:false, hazards:false, guests:true, rescue:true },
-    balanced:{ difficulty:'normal', police:true, traffic:true, hazards:true, guests:true, rescue:true },
-    chaos:{ difficulty:'expert', police:true, traffic:true, hazards:true, guests:true, rescue:true },
+    practice:{ difficulty:'easy', police:false, traffic:false, hazards:false, guests:true, rescue:true, bosses:false, bossDifficulty:'relaxed' },
+    balanced:{ difficulty:'normal', police:true, traffic:true, hazards:true, guests:true, rescue:true, bosses:true, bossDifficulty:'normal' },
+    chaos:{ difficulty:'expert', police:true, traffic:true, hazards:true, guests:true, rescue:true, bosses:true, bossDifficulty:'extreme' },
   };
   const preset = presets[name]; if (!preset) return;
   selectDifficulty(preset.difficulty); selectPoliceMode(preset.police); selectTrafficMode(preset.traffic);
   selectHazardMode(preset.hazards); selectGuestRacers(preset.guests); selectRescueMode(preset.rescue);
+  selectBossMode(preset.bosses); selectBossDifficulty(preset.bossDifficulty);
 }
 
 function resetRaceSettings() {
   selectDifficulty('normal'); selectPoliceMode(true); selectTrafficMode(true);
   selectHazardMode(true); selectGuestRacers(true); selectRescueMode(true);
+  selectBossMode(true); selectBossDifficulty('normal');
   if (!musicEnabled) toggleMusic(); if (!sfxEnabled) toggleSfx();
 }
 
@@ -714,6 +792,17 @@ let trafficModeEnabled = true;
 let hazardsEnabled = true;
 let guestRacersEnabled = true;
 let rescueModeEnabled = true;
+let bossModeEnabled = true;
+let bossDifficulty = 'normal';
+let bossActive = false;
+let bossType = null;
+let bossFramesRemaining = 0;
+let bossAlertFrames = 0;
+let bossNextLevel = 5;
+let bossLastType = null;
+let bossPreviousWeather = 'clear';
+let bossPreviousTimeOfDay = 'day';
+let bossLightningFrames = 0;
 let wantedLevel = 0;
 let policePursuitFrames = 0;
 let lastWantedLevel = 0;
@@ -724,12 +813,20 @@ let rescueUsed = false;
 let fatalCrashPending = false;
 let correctAnswersThisRace = 0;
 let nearMissesThisRace = 0;
+let resumeWithCountdown = false;
+const SAVED_RACE_KEY = 'eshaanSpagSavedRace';
+const SAVED_RACE_VERSION = 2;
 const ACHIEVEMENTS = {
   firstAnswer: { icon:'📘', name:'SPAG Starter', description:'Answer your first SPAG question correctly.' },
   comboFive: { icon:'🔥', name:'Grammar on Fire', description:'Reach a 5× correct-answer combo.' },
   nearMiss: { icon:'😮', name:'Close Call', description:'Earn a near-miss bonus.' },
   rescued: { icon:'💚', name:'Second Chance', description:'Answer the rescue question and continue a race.' },
   thousand: { icon:'🏁', name:'Four-Figure Racer', description:'Score 1,000 points in one race.' },
+  bossSurvivor: { icon:'👑', name:'Boss Survivor', description:'Survive a 30-second milestone boss event.' },
+  bossPolice: { icon:'🚨', name:'Most Wanted', description:'Survive the Police Commander event.' },
+  bossStorm: { icon:'⛈️', name:'Storm Chaser', description:'Survive the Thunderstorm event.' },
+  bossMotorway: { icon:'🏎️', name:'Motorway Master', description:'Survive Motorway Mayhem.' },
+  bossGauntlet: { icon:'🚧', name:'Untouchable', description:'Survive the Obstacle Gauntlet.' },
 };
 let achievements = {};
 try { highScore = Number(localStorage.getItem('eshaanSpagHighScore')) || 0; } catch (e) { /* Storage can be unavailable in private mode. */ }
@@ -2486,7 +2583,7 @@ function clearCountdown() {
   document.getElementById('countdownOverlay').style.display = 'none';
 }
 
-function beginCountdown(token, label = 'Race starts in') {
+function beginCountdown(token, label = 'Race starts in', onComplete = null) {
   countdownActive = true;
   const overlay = document.getElementById('countdownOverlay');
   const text = document.getElementById('countdownText');
@@ -2510,6 +2607,7 @@ function beginCountdown(token, label = 'Race starts in') {
     if (token !== raceToken) return;
     countdownActive = false;
     playBackgroundMusic();
+    if (typeof onComplete === 'function') onComplete();
   }, 2400));
   countdownTimers.push(setTimeout(() => {
     if (token === raceToken) overlay.style.display = 'none';
@@ -2554,11 +2652,12 @@ function spawnPolice() {
 }
 
 function updatePolicePursuit() {
-  if (!policeModeEnabled) return;
+  const policeBoss = bossActive && bossType === 'police' && bossAlertFrames <= 0;
+  if (!policeModeEnabled && !policeBoss) return;
 
   policePursuitFrames++;
   // Police escalation is intentionally faster than level progression: a new wanted star about every 10 seconds.
-  wantedLevel = Math.min(5, 1 + Math.floor(policePursuitFrames / 600));
+  wantedLevel = policeBoss ? 5 : Math.min(5, 1 + Math.floor(policePursuitFrames / 600));
   helicopterActive = wantedLevel >= 5;
   if (wantedLevel > lastWantedLevel) {
     lastWantedLevel = wantedLevel;
@@ -2568,14 +2667,18 @@ function updatePolicePursuit() {
   }
 
   // Each wanted star allows another police car into the pursuit (1–5 cars).
-  const maxPolice = wantedLevel;
-  const spawnInterval = Math.max(105, 255 - wantedLevel * 28);
+  const maxPolice = policeBoss ? (bossDifficulty === 'relaxed' ? 3 : 5) : wantedLevel;
+  const spawnInterval = policeBoss
+    ? (bossDifficulty === 'extreme' ? 70 : bossDifficulty === 'relaxed' ? 135 : 95)
+    : Math.max(105, 255 - wantedLevel * 28);
   if (policePursuitFrames > 360 && policeCars.length < maxPolice && policePursuitFrames % spawnInterval === 0) {
     spawnPolice();
   }
 
   if (wantedLevel >= 3 && empFrames <= 0) {
-    const roadblockInterval = Math.max(620, 1120 - wantedLevel * 100);
+    const roadblockInterval = policeBoss
+      ? (bossDifficulty === 'extreme' ? 300 : bossDifficulty === 'relaxed' ? 520 : 400)
+      : Math.max(620, 1120 - wantedLevel * 100);
     if (policePursuitFrames - lastRoadblockFrame >= roadblockInterval && roadblocks.length === 0) {
       spawnPoliceRoadblock(wantedLevel >= 4);
       lastRoadblockFrame = policePursuitFrames;
@@ -2836,6 +2939,112 @@ function checkRescueAnswer(isCorrect, button, shuffled) {
   }
 }
 
+const BOSS_EVENTS = {
+  police: { name:'🚨 Police Commander', instruction:'Survive the elite pursuit and incoming roadblocks.' },
+  storm: { name:'⛈️ Thunderstorm', instruction:'Hold the road through lightning, rain and slippery steering.' },
+  motorway: { name:'🏎️ Motorway Mayhem', instruction:'Survive thirty seconds of extreme speed and dense traffic.' },
+  gauntlet: { name:'🚧 Obstacle Gauntlet', instruction:'Thread through rapid waves of roadside hazards.' },
+};
+
+function bossDifficultyScale() {
+  return bossDifficulty === 'relaxed' ? 1.3 : bossDifficulty === 'extreme' ? 0.72 : 1;
+}
+
+function updateBossHUD() {
+  const row = document.getElementById('bossTimerRow');
+  row.style.display = bossActive ? 'flex' : 'none';
+  if (!bossActive) return;
+  const seconds = Math.max(0, Math.ceil(bossFramesRemaining / 60));
+  document.getElementById('bossTimer').textContent = `0:${String(seconds).padStart(2, '0')}`;
+  document.getElementById('bossProgressFill').style.width = `${Math.max(0, bossFramesRemaining / 1800 * 100)}%`;
+}
+
+function startBossEvent() {
+  const choices = Object.keys(BOSS_EVENTS).filter(type => type !== bossLastType);
+  bossType = choices[Math.floor(Math.random() * choices.length)];
+  bossLastType = bossType;
+  bossActive = true;
+  bossFramesRemaining = 1800;
+  bossAlertFrames = 180;
+  bossPreviousWeather = weather;
+  bossPreviousTimeOfDay = timeOfDay;
+  invincible = Math.max(invincible, 200);
+  powerUps = [];
+  const event = BOSS_EVENTS[bossType];
+  document.getElementById('bossAlertName').textContent = event.name;
+  document.getElementById('bossAlertInstruction').textContent = event.instruction;
+  document.getElementById('bossAlert').style.display = 'flex';
+  if (bossType === 'storm') weather = 'rain';
+  if (bossType === 'police') {
+    wantedLevel = 5;
+    lastWantedLevel = 5;
+    helicopterActive = true;
+  }
+  playSfx('siren');
+  updateBossHUD();
+  updateHUD();
+}
+
+function finishBossEvent() {
+  const event = BOSS_EVENTS[bossType];
+  const bonus = pointsFor(400 + level * 35);
+  score += bonus;
+  lives = Math.min(3, lives + 1);
+  addScorePopup(`👑 SURVIVED! +${bonus}`, '#ffd43b', W / 2, 105);
+  unlockAchievement('bossSurvivor');
+  unlockAchievement({
+    police:'bossPolice', storm:'bossStorm', motorway:'bossMotorway', gauntlet:'bossGauntlet'
+  }[bossType]);
+  playSfx('level');
+  if (bossType === 'storm') {
+    weather = bossPreviousWeather;
+    timeOfDay = bossPreviousTimeOfDay;
+  }
+  if (bossType === 'police' && !policeModeEnabled) {
+    policeCars = [];
+    roadblocks = [];
+    wantedLevel = 0;
+    helicopterActive = false;
+  }
+  bossActive = false;
+  bossFramesRemaining = 0;
+  bossAlertFrames = 0;
+  bossLightningFrames = 0;
+  bossType = null;
+  document.getElementById('bossAlert').style.display = 'none';
+  updateBossHUD();
+  updateHUD();
+  addScorePopup(`${event.name} defeated`, '#8fffc1', W / 2, 140);
+}
+
+function updateBossEvent() {
+  if (!bossActive) return;
+  if (bossAlertFrames > 0) {
+    bossAlertFrames--;
+    if (bossAlertFrames === 0) document.getElementById('bossAlert').style.display = 'none';
+    return;
+  }
+  bossFramesRemaining--;
+  const scale = bossDifficultyScale();
+  if (bossType === 'storm') {
+    if (bossFramesRemaining % Math.round(240 * scale) === 0) {
+      bossLightningFrames = 12;
+      slideFrames = Math.max(slideFrames, bossDifficulty === 'extreme' ? 85 : bossDifficulty === 'relaxed' ? 35 : 55);
+      slideVelocity += (Math.random() < 0.5 ? -1 : 1) * 1.8;
+      playSfx('challenge');
+    }
+  } else if (bossType === 'motorway') {
+    const interval = Math.max(38, Math.round(72 * scale));
+    if (bossFramesRemaining % interval === 0 && enemies.length < (bossDifficulty === 'extreme' ? 9 : 7)) spawnEnemy();
+  } else if (bossType === 'gauntlet') {
+    const interval = Math.max(42, Math.round(82 * scale));
+    if (bossFramesRemaining % interval === 0 && obstacles.length < 7) spawnBiomeObstacle();
+  }
+  if (bossLightningFrames > 0) bossLightningFrames--;
+  if (bossFramesRemaining % 15 === 0) updateBossHUD();
+  if (bossFramesRemaining <= 0) finishBossEvent();
+}
+
 // ── Game Loop ─────────────────────────────────────────────────────────────────
 function gameLoop() {
   if (!gameRunning) return;
@@ -2863,14 +3072,17 @@ function gameLoop() {
     return;
   }
   frameCount++;
+  if (!questionActive) updateBossEvent();
   const difficulty = DIFFICULTIES[selectedDifficulty];
   let activeSpeed = (carSpeed + (nitroFrames > 0 ? 5 : 0)) * (sandSlowFrames > 0 ? 0.62 : 1);
+  if (bossActive && bossType === 'motorway' && bossAlertFrames <= 0) activeSpeed += bossDifficulty === 'extreme' ? 5.5 : bossDifficulty === 'relaxed' ? 3 : 4.2;
 
   // Continuously accelerate
   if (!questionActive) {
     if (dodgeCooldownFrames > 0) dodgeCooldownFrames--;
     carSpeed = Math.min(difficulty.startSpeed + frameCount * difficulty.acceleration, 14);
     activeSpeed = (carSpeed + (nitroFrames > 0 ? 5 : 0)) * (sandSlowFrames > 0 ? 0.62 : 1);
+    if (bossActive && bossType === 'motorway' && bossAlertFrames <= 0) activeSpeed += bossDifficulty === 'extreme' ? 5.5 : bossDifficulty === 'relaxed' ? 3 : 4.2;
     roadOffset = (roadOffset + activeSpeed) % 100000;
     updateWorldState();
   }
@@ -2899,6 +3111,7 @@ function gameLoop() {
     // A longer score runway gives each route, weather change and police tier time to play out.
     const newLevel = Math.floor(score / 300) + 1;
     if (newLevel > level) {
+      const previousLevel = level;
       level = newLevel;
       levelBannerLevel = level;
       levelBannerFrames = 100;
@@ -2906,6 +3119,10 @@ function gameLoop() {
       addScorePopup(`LEVEL ${level}!`, '#00d4ff', W / 2, 95);
       playSfx('level');
       updateHUD();
+      if (bossModeEnabled && !bossActive && previousLevel < bossNextLevel && level >= bossNextLevel) {
+        bossNextLevel += 5;
+        startBossEvent();
+      }
     }
 
     // Scroll and clean unanswered power-ups.
@@ -3017,7 +3234,7 @@ function gameLoop() {
 
     // Each glowing pickup carries its own SPAG question.
     const powerUpInterval = Math.max(115, difficulty.powerUpBase + 70 - level * 3);
-    if (frameCount >= 420 && (frameCount - 420) % powerUpInterval === 0) {
+    if (!bossActive && frameCount >= 420 && (frameCount - 420) % powerUpInterval === 0) {
       const availablePowerUps = POWER_UP_TYPES.filter(type =>
         (type !== 'emp' || policeModeEnabled) &&
         (!['shield', 'timeSlow'].includes(type) || policeModeEnabled || trafficModeEnabled)
@@ -3198,6 +3415,10 @@ function gameLoop() {
   policeCars.forEach(drawPoliceCar);
   drawPoliceHelicopter();
   drawParticles();
+  if (bossLightningFrames > 0) {
+    ctx.fillStyle = `rgba(235,248,255,${Math.min(.8, bossLightningFrames / 12)})`;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // Draw Bugatti — blink when invincible
   const showCar = dodgeFrames > 0 || nitroFrames > 0 || invincible === 0 || Math.floor(invincible / 6) % 2 === 0;
@@ -3381,6 +3602,10 @@ function endGame() {
   gameRunning = false;
   paused = false;
   countdownActive = false;
+  bossActive = false;
+  bossFramesRemaining = 0;
+  bossAlertFrames = 0;
+  bossLightningFrames = 0;
   raceToken++;
   clearCountdown();
   try { localStorage.setItem('eshaanSpagHighScore', String(highScore)); } catch (e) { /* Keep playing if storage is blocked. */ }
@@ -3390,6 +3615,8 @@ function endGame() {
   rampGain(engineGain, 0, 0.08);
   document.getElementById('questionOverlay').style.display = 'none';
   document.getElementById('pauseScreen').style.display = 'none';
+  document.getElementById('bossAlert').style.display = 'none';
+  updateBossHUD();
   document.getElementById('pauseToggle').disabled = true;
   document.getElementById('goTitle').textContent = lives <= 0 ? '💥 Crashed Out, Eshaan!' : '🏆 Legendary, Eshaan!';
   document.getElementById('goMessage').innerHTML =
@@ -3418,17 +3645,225 @@ function renderMistakeReview() {
 }
 
 function togglePause() {
-  if (!gameRunning || questionActive || countdownActive) return;
+  if (!gameRunning || questionActive || fatalCrashPending || (countdownActive && !paused)) return;
   paused = !paused;
   Object.keys(keys).forEach(key => { keys[key] = false; });
   document.getElementById('pauseScreen').style.display = paused ? 'block' : 'none';
   document.getElementById('pauseToggle').textContent = paused ? '▶ Resume' : '⏸ Pause';
   if (paused) {
+    document.getElementById('bossAlert').style.display = 'none';
     backgroundMusic.pause();
     rampGain(engineGain, 0, 0.06);
   } else {
-    playBackgroundMusic();
+    if (bossActive && bossAlertFrames > 0) document.getElementById('bossAlert').style.display = 'flex';
+    if (resumeWithCountdown) {
+      resumeWithCountdown = false;
+      beginCountdown(raceToken, 'Back to racing in');
+    } else {
+      playBackgroundMusic();
+    }
   }
+}
+
+function savedRaceData() {
+  return {
+    version: SAVED_RACE_VERSION,
+    savedAt: Date.now(),
+    settings: {
+      difficulty: selectedDifficulty, police: policeModeEnabled, traffic: trafficModeEnabled,
+      hazards: hazardsEnabled, guests: guestRacersEnabled, rescue: rescueModeEnabled,
+      bosses: bossModeEnabled, bossDifficulty,
+    },
+    state: {
+      score, lives, level, carX, carY, carSpeed, roadOffset, currentEnvironment, timeOfDay, weather,
+      environmentMessageTimer, questionPool, frameCount, invincible, crashFlash, cameraShake,
+      impactRings, driftAmount, dodgeCooldownFrames, dodgeFrames, dodgeDirection,
+      levelBannerFrames, levelBannerLevel, weatherTransition, combo, nitroFrames, nitroQueued,
+      shieldCharges, empFrames, timeSlowFrames, slideFrames, slideVelocity, sandSlowFrames,
+      mistakes, wantedLevel, policePursuitFrames, lastWantedLevel, policeSirenTimer,
+      lastRoadblockFrame, helicopterActive, rescueUsed, fatalCrashPending,
+      correctAnswersThisRace, nearMissesThisRace,
+      bossActive, bossType, bossFramesRemaining, bossAlertFrames, bossNextLevel, bossLastType,
+      bossPreviousWeather, bossPreviousTimeOfDay, bossLightningFrames,
+      powerUps, obstacles, roadblocks, coins, enemies, policeCars, guestRacers, particles, scorePopups,
+    },
+  };
+}
+
+function isValidSavedRace(saved) {
+  if (!saved || saved.version !== SAVED_RACE_VERSION || !saved.settings || !saved.state) return false;
+  if (!Number.isFinite(saved.savedAt) || !DIFFICULTIES[saved.settings.difficulty]) return false;
+  if (!['police', 'traffic', 'hazards', 'guests', 'rescue', 'bosses'].every(key =>
+    typeof saved.settings[key] === 'boolean')) return false;
+  if (!['relaxed', 'normal', 'extreme'].includes(saved.settings.bossDifficulty)) return false;
+  const s = saved.state;
+  const numbers = ['score', 'lives', 'level', 'carX', 'carY', 'carSpeed', 'roadOffset',
+    'environmentMessageTimer', 'frameCount', 'invincible', 'crashFlash', 'cameraShake',
+    'driftAmount', 'dodgeCooldownFrames', 'dodgeFrames', 'dodgeDirection', 'levelBannerFrames',
+    'levelBannerLevel', 'weatherTransition', 'combo', 'nitroFrames', 'shieldCharges', 'empFrames',
+    'timeSlowFrames', 'slideFrames', 'slideVelocity', 'sandSlowFrames', 'wantedLevel',
+    'policePursuitFrames', 'lastWantedLevel', 'policeSirenTimer', 'lastRoadblockFrame',
+    'correctAnswersThisRace', 'nearMissesThisRace'];
+  numbers.push('bossFramesRemaining', 'bossAlertFrames', 'bossNextLevel', 'bossLightningFrames');
+  const arrays = ['questionPool', 'impactRings', 'mistakes', 'powerUps', 'obstacles', 'roadblocks',
+    'coins', 'enemies', 'policeCars', 'guestRacers', 'particles', 'scorePopups'];
+  const booleans = ['nitroQueued', 'helicopterActive', 'rescueUsed', 'fatalCrashPending', 'bossActive'];
+  const strings = ['currentEnvironment', 'timeOfDay', 'weather'];
+  const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const hasPosition = value => isRecord(value) && Number.isFinite(value.x) && Number.isFinite(value.y);
+  const validQuestion = value => isRecord(value) && typeof value.q === 'string' &&
+    Array.isArray(value.a) && value.a.length === 4 && value.a.every(answer => typeof answer === 'string') &&
+    Number.isInteger(value.correct) && value.correct >= 0 && value.correct < value.a.length &&
+    typeof value.explain === 'string';
+  const nestedStateIsValid =
+    s.questionPool.every(validQuestion) &&
+    s.impactRings.every(item => hasPosition(item) && Number.isFinite(item.radius) && Number.isFinite(item.life)) &&
+    s.mistakes.every(item => isRecord(item) && ['question', 'correct', 'explanation'].every(key => typeof item[key] === 'string')) &&
+    s.powerUps.every(item => hasPosition(item) && Object.hasOwn(POWER_UPS, item.type) && typeof item.collected === 'boolean') &&
+    s.obstacles.every(item => hasPosition(item) && isRecord(item.definition) && Number.isFinite(item.radius)) &&
+    s.roadblocks.every(item => isRecord(item) && Number.isFinite(item.y) &&
+      Number.isFinite(item.gapX) && typeof item.hit === 'boolean') &&
+    s.coins.every(item => hasPosition(item) && typeof item.collected === 'boolean') &&
+    s.enemies.every(item => hasPosition(item) && Array.isArray(item.trafficLanes) &&
+      item.trafficLanes.every(Number.isFinite) && Number.isInteger(item.laneIndex) && isRecord(item.style)) &&
+    s.policeCars.every(hasPosition) &&
+    s.guestRacers.every(item => hasPosition(item) && typeof item.driverName === 'string' && isRecord(item.style)) &&
+    s.particles.every(item => hasPosition(item) && Number.isFinite(item.vx) && Number.isFinite(item.vy) && Number.isFinite(item.life)) &&
+    s.scorePopups.every(item => hasPosition(item) && Number.isFinite(item.life) && typeof item.text === 'string');
+  return numbers.every(key => Number.isFinite(s[key])) &&
+    s.lives > 0 && s.lives <= 3 && s.level >= 1 && s.fatalCrashPending === false &&
+    s.carX >= 0 && s.carX <= W && s.carY >= 0 && s.carY <= H &&
+    arrays.every(key => Array.isArray(s[key])) &&
+    booleans.every(key => typeof s[key] === 'boolean') &&
+    strings.every(key => typeof s[key] === 'string' && s[key].length > 0) &&
+    (!s.bossActive || (Object.hasOwn(BOSS_EVENTS, s.bossType) && s.bossFramesRemaining > 0)) &&
+    (s.bossLastType === null || Object.hasOwn(BOSS_EVENTS, s.bossLastType)) &&
+    typeof s.bossPreviousWeather === 'string' && typeof s.bossPreviousTimeOfDay === 'string' &&
+    nestedStateIsValid;
+}
+
+function readSavedRace() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVED_RACE_KEY) || 'null');
+    return isValidSavedRace(saved) ? saved : null;
+  } catch (e) { return null; }
+}
+
+function updateSavedRaceControls() {
+  const saved = readSavedRace();
+  let hasStoredSave = false;
+  try { hasStoredSave = localStorage.getItem(SAVED_RACE_KEY) !== null; } catch (e) {}
+  const button = document.getElementById('continueRaceButton');
+  const deleteButton = document.getElementById('deleteSavedRaceButton');
+  const summary = document.getElementById('savedRaceSummary');
+  button.style.display = saved ? 'block' : 'none';
+  deleteButton.style.display = hasStoredSave ? 'block' : 'none';
+  summary.style.display = hasStoredSave ? 'block' : 'none';
+  if (saved) {
+    const date = new Date(saved.savedAt);
+    summary.textContent = `Level ${saved.state.level} · ${saved.state.score} points · saved ${date.toLocaleString()}`;
+  } else if (hasStoredSave) {
+    summary.textContent = 'This saved race is damaged or from an incompatible version. Delete it to start fresh.';
+  }
+}
+
+function clearSavedRace() {
+  try { localStorage.removeItem(SAVED_RACE_KEY); } catch (e) {}
+  updateSavedRaceControls();
+}
+
+function deleteSavedRace() {
+  clearSavedRace();
+}
+
+function saveAndExitRace() {
+  if (!gameRunning || !paused || questionActive || countdownActive || fatalCrashPending || lives <= 0) return;
+  try { localStorage.setItem(SAVED_RACE_KEY, JSON.stringify(savedRaceData())); }
+  catch (e) {
+    document.querySelector('#pauseScreen p').textContent = 'This browser could not save the race. Please resume and keep this page open.';
+    return;
+  }
+  gameRunning = false;
+  paused = false;
+  raceToken++;
+  Object.keys(keys).forEach(key => { keys[key] = false; });
+  backgroundMusic.pause();
+  rampGain(engineGain, 0, 0.06);
+  document.body.classList.remove('game-active');
+  document.getElementById('pauseScreen').style.display = 'none';
+  document.getElementById('bossAlert').style.display = 'none';
+  document.getElementById('pauseToggle').disabled = true;
+  document.getElementById('pauseToggle').textContent = '⏸ Pause';
+  document.getElementById('startScreen').style.display = 'flex';
+  updateSavedRaceControls();
+}
+
+function continueSavedRace() {
+  const saved = readSavedRace();
+  if (!saved) {
+    updateSavedRaceControls();
+    return;
+  }
+  const s = saved.state;
+  initAudio();
+  clearCountdown();
+  raceToken++;
+  const thisRace = raceToken;
+  selectedDifficulty = DIFFICULTIES[saved.settings.difficulty] ? saved.settings.difficulty : 'normal';
+  selectedPoliceMode = policeModeEnabled = Boolean(saved.settings.police);
+  selectedTrafficMode = trafficModeEnabled = Boolean(saved.settings.traffic);
+  selectedHazardMode = hazardsEnabled = Boolean(saved.settings.hazards);
+  selectedGuestRacers = guestRacersEnabled = Boolean(saved.settings.guests);
+  selectedRescueMode = rescueModeEnabled = Boolean(saved.settings.rescue);
+  selectedBossMode = bossModeEnabled = Boolean(saved.settings.bosses);
+  selectedBossDifficulty = bossDifficulty = saved.settings.bossDifficulty;
+  selectDifficulty(selectedDifficulty);
+  selectPoliceMode(selectedPoliceMode);
+  selectTrafficMode(selectedTrafficMode);
+  selectHazardMode(selectedHazardMode);
+  selectGuestRacers(selectedGuestRacers);
+  selectRescueMode(selectedRescueMode);
+  selectBossMode(selectedBossMode);
+  selectBossDifficulty(selectedBossDifficulty);
+  updateRaceSummary();
+  ({ score, lives, level, carX, carY, carSpeed, roadOffset, currentEnvironment, timeOfDay, weather,
+    environmentMessageTimer, questionPool, frameCount, invincible, crashFlash, cameraShake,
+    impactRings, driftAmount, dodgeCooldownFrames, dodgeFrames, dodgeDirection,
+    levelBannerFrames, levelBannerLevel, weatherTransition, combo, nitroFrames, nitroQueued,
+    shieldCharges, empFrames, timeSlowFrames, slideFrames, slideVelocity, sandSlowFrames,
+    mistakes, wantedLevel, policePursuitFrames, lastWantedLevel, policeSirenTimer,
+    lastRoadblockFrame, helicopterActive, rescueUsed, fatalCrashPending,
+    correctAnswersThisRace, nearMissesThisRace, bossActive, bossType, bossFramesRemaining,
+    bossAlertFrames, bossNextLevel, bossLastType, bossPreviousWeather, bossPreviousTimeOfDay,
+    bossLightningFrames, powerUps, obstacles, roadblocks, coins,
+    enemies, policeCars, guestRacers, particles, scorePopups } = s);
+  questionPool = questionPool || [];
+  impactRings = impactRings || []; mistakes = mistakes || [];
+  powerUps = powerUps || []; obstacles = obstacles || []; roadblocks = roadblocks || [];
+  coins = coins || []; enemies = enemies || []; policeCars = policeCars || []; guestRacers = guestRacers || [];
+  particles = particles || []; scorePopups = scorePopups || [];
+  questionActive = false; answered = false; currentQuestion = null; pendingPowerUp = null;
+  countdownActive = false; paused = false; gameRunning = true;
+  fatalCrashPending = Boolean(fatalCrashPending);
+  Object.keys(keys).forEach(key => { keys[key] = false; });
+  lastSteerTap.ArrowLeft = 0; lastSteerTap.ArrowRight = 0;
+  document.body.classList.add('game-active');
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameOverScreen').style.display = 'none';
+  document.getElementById('pauseScreen').style.display = 'none';
+  document.getElementById('questionOverlay').style.display = 'none';
+  document.getElementById('bossAlert').style.display = bossActive && bossAlertFrames > 0 ? 'flex' : 'none';
+  if (bossActive) {
+    const event = BOSS_EVENTS[bossType];
+    document.getElementById('bossAlertName').textContent = event.name;
+    document.getElementById('bossAlertInstruction').textContent = event.instruction;
+  }
+  updateBossHUD();
+  document.getElementById('pauseToggle').disabled = false;
+  document.getElementById('pauseToggle').textContent = '⏸ Pause';
+  updateHUD();
+  beginCountdown(thisRace, 'Continue racing in', clearSavedRace);
+  gameLoop();
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────────
@@ -3500,7 +3935,19 @@ document.addEventListener('keyup', e => {
   if (drivingKey) keys[drivingKey] = false;
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && gameRunning && !paused && !questionActive) togglePause();
+  if (!document.hidden || !gameRunning || paused || questionActive || fatalCrashPending) return;
+  if (countdownActive) {
+    clearCountdown();
+    paused = true;
+    resumeWithCountdown = true;
+    Object.keys(keys).forEach(key => { keys[key] = false; });
+    document.getElementById('pauseScreen').style.display = 'block';
+    document.getElementById('pauseToggle').textContent = '▶ Resume';
+    backgroundMusic.pause();
+    rampGain(engineGain, 0, 0.06);
+  } else {
+    togglePause();
+  }
 });
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
@@ -3539,6 +3986,8 @@ function shuffle(arr) {
 }
 
 function startGame() {
+  clearSavedRace();
+  resumeWithCountdown = false;
   initAudio();
   document.body.classList.add('game-active');
   clearCountdown();
@@ -3552,6 +4001,8 @@ function startGame() {
   hazardsEnabled = selectedHazardMode;
   guestRacersEnabled = selectedGuestRacers;
   rescueModeEnabled = selectedRescueMode;
+  bossModeEnabled = selectedBossMode;
+  bossDifficulty = selectedBossDifficulty;
   carX = W / 2; carY = H - 95;
   powerUps = []; obstacles = []; roadblocks = []; coins = []; enemies = []; policeCars = []; guestRacers = []; particles = []; scorePopups = [];
   roadOffset = 0; frameCount = 0; questionPool = [];
@@ -3563,6 +4014,8 @@ function startGame() {
   levelBannerFrames = 0; levelBannerLevel = 1; weatherTransition = 0;
   combo = 0; paused = false;
   rescueUsed = false; fatalCrashPending = false; correctAnswersThisRace = 0; nearMissesThisRace = 0;
+  bossActive = false; bossType = null; bossFramesRemaining = 0; bossAlertFrames = 0;
+  bossNextLevel = 5; bossLastType = null; bossLightningFrames = 0;
   nitroFrames = 0; nitroQueued = false; mistakes = [];
   shieldCharges = 0; empFrames = 0; timeSlowFrames = 0; pendingPowerUp = null;
   slideFrames = 0; slideVelocity = 0; sandSlowFrames = 0;
@@ -3574,6 +4027,8 @@ function startGame() {
   document.getElementById('gameOverScreen').style.display = 'none';
   document.getElementById('pauseScreen').style.display = 'none';
   document.getElementById('questionOverlay').style.display = 'none';
+  document.getElementById('bossAlert').style.display = 'none';
+  updateBossHUD();
   document.getElementById('mistakeReview').style.display = 'none';
   document.getElementById('powerupInfo').classList.remove('open');
   document.querySelector('[aria-controls="powerupInfo"]').setAttribute('aria-expanded', 'false');
@@ -3592,8 +4047,11 @@ selectTrafficMode(selectedTrafficMode);
 selectHazardMode(selectedHazardMode);
 selectGuestRacers(selectedGuestRacers);
 selectRescueMode(selectedRescueMode);
+selectBossMode(selectedBossMode);
+selectBossDifficulty(selectedBossDifficulty);
 updateAudioButtons();
 updateRaceSummary();
+updateSavedRaceControls();
 </script>
 </body>
 </html>
