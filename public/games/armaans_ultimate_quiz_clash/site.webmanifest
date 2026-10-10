@@ -1,0 +1,17 @@
+{
+  "name": "Armaan's Quiz Clash",
+  "short_name": "Quiz Clash",
+  "description": "A football quiz game for Year 6 players.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1023",
+  "theme_color": "#0a1023",
+  "icons": [
+    {
+      "src": "assets/quiz-clash-pixel-sticker.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

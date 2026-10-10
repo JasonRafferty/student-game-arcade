@@ -9,6 +9,15 @@
     "logo": "logos/ameerah-maths.svg"
   },
   {
+    "folder": "armaans_ultimate_quiz_clash",
+    "path": "armaans_ultimate_quiz_clash/index.html",
+    "title": "Armaan's Quiz Clash | Football Quiz Game",
+    "description": "Answer Year 6 quiz questions, beat the bot, earn coins and unlock mystery football stars in Armaan's Quiz Clash.",
+    "stage": "sats",
+    "subject": "maths",
+    "logo": "games/armaans_ultimate_quiz_clash/assets/quiz-clash-pixel-sticker.png"
+  },
+  {
     "folder": "eshaan_spag_game",
     "path": "eshaan_spag_game.html",
     "title": "Eshaan's SPAG Road Race",

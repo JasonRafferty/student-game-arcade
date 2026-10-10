@@ -39,8 +39,8 @@ function getMetaContent(html, name) {
     const nameMatch = tag.match(/\bname\s*=\s*["']([^"']*)["']/i);
     return nameMatch?.[1].toLowerCase() === name.toLowerCase();
   });
-  const match = metaTag?.match(/\bcontent\s*=\s*["']([^"']*)["']/i);
-  return match ? decodeHtml(match[1]) : '';
+  const match = metaTag?.match(/\bcontent\s*=\s*(["'])([\s\S]*?)\1/i);
+  return match ? decodeHtml(match[2]) : '';
 }
 
 await mkdir(gamesDirectory, { recursive: true });
