@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apex Maths Racing</title>
+<meta name="description" content="Race Silverstone, Monaco and Monza, make pit stops, and solve Year 6 maths questions to earn upgrades.">
+<meta name="game-stage" content="sats">
+<meta name="game-subject" content="maths">
+<meta name="game-logo" content="logos/apex-maths-racing.svg">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
+</head>
+<body>
+<div id="menu" class="shell">
+  <header>
+    <div><div class="logo">APEX <span>/</span> MATHS RACING</div><div class="tag">FORMULA ONE · YEAR 6 MATHS</div></div>
+    <div class="pts" id="points">0 PTS</div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="tag red">RACE. THINK. PIT. WIN.</div>
+      <h1>Real circuits.<br><span>Real pit stops.</span></h1>
+      <p class="muted">Drive Silverstone, Monaco and Monza, built from real track maps. Dive into the pit lane, pick your tyres and answer the crew's maths question. Get it right for a lightning-fast stop.</p>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="active" data-tab="raceTab">RACE</button>
+    <button data-tab="garage">GARAGE</button>
+    <button data-tab="quests">QUESTS</button>
+  </nav>
+
+  <section id="raceTab" class="panel active">
+    <h2>Choose your circuit</h2>
+    <div class="circuits" id="tracks"></div>
+    <div class="setup">
+      <div class="settings" id="settings"></div>
+      <button id="start" class="go">LIGHTS OUT →</button>
+    </div>
+    <div class="howto">
+      <div><b>Drive</b><span>↑ / W throttle · ↓ / S brake (hold to reverse) · ← → / A D steer</span></div>
+      <div><b>Boost</b><span>Hold SPACE for ERS overtake power (the DRS flap opens!)</span></div>
+      <div><b>Pit stop</b><span>Pit lane entry is just before the start line, on the right. Keep to 80 km/h and stop in your glowing box.</span></div>
+      <div><b>Extras</b><span>C change camera · R back to track · M sound · ESC pause</span></div>
+    </div>
+  </section>
+
+  <section id="garage" class="panel">
+    <div class="garage-top">
+      <div class="preview-wrap"><canvas id="carPreview"></canvas><div class="preview-name" id="previewName"></div></div>
+      <div class="designer"><h2>Livery designer</h2><div id="designer"></div></div>
+    </div>
+    <h2>Livery collection</h2>
+    <div class="livery-grid" id="liveries"></div>
+    <h2>Upgrades</h2>
+    <div class="upgrade-grid" id="upgrades"></div>
+    <h2>Your cars</h2>
+    <div class="grid" id="cars"></div>
+  </section>
+
+  <section id="quests" class="panel">
+    <h2>Quests & rewards</h2>
+    <div class="grid" id="questCards"></div>
+  </section>
+
+  <footer>Fictional teams and drivers. Circuit layouts are based on OpenStreetMap data (bacinger/f1-circuits, MIT licence).</footer>
+</div>
+
+<div id="raceRoot"></div>
+<div id="loading"><div class="spinner"></div><div>Building the circuit…</div></div>
+<div id="toast"></div>
+<script>addEventListener("error",e=>{const t=document.getElementById("toast");t.textContent="Error: "+e.message+" ("+(e.filename||"").split("/").pop()+":"+e.lineno+")";t.classList.add("show")});</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

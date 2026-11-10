@@ -9,6 +9,15 @@
     "logo": "logos/ameerah-maths.svg"
   },
   {
+    "folder": "apex_maths_racing",
+    "path": "apex_maths_racing/index.html",
+    "title": "Apex Maths Racing",
+    "description": "Race Silverstone, Monaco and Monza, make pit stops, and solve Year 6 maths questions to earn upgrades.",
+    "stage": "sats",
+    "subject": "maths",
+    "logo": "logos/apex-maths-racing.svg"
+  },
+  {
     "folder": "armaans_ultimate_quiz_clash",
     "path": "armaans_ultimate_quiz_clash/index.html",
     "title": "Armaan's Ultimate Football Quiz",
