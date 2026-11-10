@@ -217,9 +217,10 @@ export class Race {
       }
     }
     if (this.state === 'racing' || this.state === 'finished') this.raceTime += dt;
-    this.stepPlayer(this.player, dt);
+    // Keep the player's finish time and position fixed while rivals complete their laps.
+    if (this.state !== 'finished') this.stepPlayer(this.player, dt);
     for (const c of this.cars) if (!c.isPlayer) this.stepAI(c, dt);
-    this.collisions();
+    if (this.state !== 'finished') this.collisions();
     this.updateProgress();
   }
 
@@ -588,12 +589,15 @@ export class Race {
 
   showResults(penalty) {
     if (this.disposed) return;
-    const L = this.track.length, total = this.totalLaps * L;
-    const rows = this.cars.map((c) => {
-      let t = c.finishTime;
-      if (!c.finished) { const avg = Math.max(20, c.progress / Math.max(1, this.raceTime)); t = this.raceTime + (total - c.progress) / avg; }
-      return { c, t };
-    }).sort((a, b) => a.t - b.t);
+    // With a missed pit stop, wait until the 10-second penalty window closes.
+    // Any rival still racing then cannot finish ahead of the player's adjusted time.
+    if (this.raceTime < this.player.finishTime) {
+      setTimeout(() => this.showResults(penalty), 200);
+      return;
+    }
+    const rows = this.cars.map((c) => ({ c, t: c.finished ? c.finishTime : null }))
+      .sort((a, b) => a.t === null ? (b.t === null ? b.c.progress - a.c.progress : 1)
+        : b.t === null ? -1 : a.t - b.t);
     const pos = rows.findIndex((r) => r.c.isPlayer) + 1;
     const fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(3).padStart(6, '0')}`;
     const res = { position: pos, time: this.player.finishTime, bestLap: this.player.bestLap, penalty, correct: this.questions.correct, perfectStop: !!this.perfectStop, pitted: this.player.pit.done };
@@ -601,7 +605,7 @@ export class Race {
     const winner = rows[0].t;
     this.hud.modal(`<div class="tag">CHEQUERED FLAG · ${this.circuit.name.toUpperCase()}</div>
       <h2>${pos === 1 ? 'YOU WIN! 🏆' : pos <= 3 ? `Podium! P${pos} 🥈` : `You finished P${pos}`}</h2>
-      <table class="results">${rows.map((r, k) => `<tr class="${r.c.isPlayer ? 'me' : ''}"><td>P${k + 1}</td><td><i style="background:${r.c.team.livery.base}"></i>${r.c.driver.name}</td><td>${r.c.team.name}</td><td>${k === 0 ? fmt(r.t) : '+' + (r.t - winner).toFixed(3) + 's'}${r.c.isPlayer && penalty ? ' (incl. 10s penalty)' : ''}</td></tr>`).join('')}</table>
+      <table class="results">${rows.map((r, k) => `<tr class="${r.c.isPlayer ? 'me' : ''}"><td>P${k + 1}</td><td><i style="background:${r.c.team.livery.base}"></i>${r.c.driver.name}</td><td>${r.c.team.name}</td><td>${r.t === null ? 'Still racing' : k === 0 ? fmt(r.t) : '+' + (r.t - winner).toFixed(3) + 's'}${r.c.isPlayer && penalty ? ' (incl. 10s penalty)' : ''}</td></tr>`).join('')}</table>
       <p>Best lap ${this.player.bestLap ? fmt(this.player.bestLap) : '—'} · Maths answers right first time: ${this.questions.correct}/${this.questions.asked}</p>
       <p class="reward">+${reward} points</p>
       <div class="row center"><button data-act="menu">BACK TO GARAGE</button><button class="ghost" data-act="restart">RACE AGAIN</button></div>`, {
