@@ -129,8 +129,13 @@ export class Race {
       if (!isPlayer) {
         c.pace = info.pace;
         c.prof = T.speedProfile(info.pace, diff.vmax * (0.99 + (info.pace - diff.pace) * 0.5));
-        c.laneOff = 0; c.overtakeT = 0; c.react = 0.15 + Math.random() * 0.35; c.vmax = diff.vmax;
-        c.pit.plannedLap = Math.min(this.totalLaps - 2, Math.max(0, Math.floor(this.totalLaps / 2) - 1 + Math.floor(Math.random() * 2)));
+        c.personality = { risk: [0.82, 0.45, 0.72, 0.96, 0.56][aiIdx - 1],
+          defence: [0.75, 0.9, 0.55, 0.6, 0.8][aiIdx - 1],
+          tyreCare: [0.95, 1.12, 1.04, 0.86, 1.08][aiIdx - 1],
+          consistency: [0.025, 0.012, 0.018, 0.035, 0.015][aiIdx - 1] };
+        c.laneOff = 0; c.passTarget = null; c.passTime = 0; c.overtakeT = 0; c.react = 0.15 + Math.random() * 0.35; c.vmax = diff.vmax;
+        c.launchLat = lat; c.launchDistance = 0;
+        c.pit.plannedLap = Math.max(0, Math.min(this.totalLaps - 2, compound === 'soft' ? 0 : Math.floor(this.totalLaps / 2)));
       }
       mesh.position.set(c.x, 0, c.z); mesh.rotation.y = c.yaw;
       this.cars.push(c);
@@ -436,12 +441,17 @@ export class Race {
     if (this.raceTime < c.react) return;
     const rel = T.rel(c.s);
     let target = T.profileAt(c.s + 4, c.prof);
+    const temperament = c.personality;
+    target *= 1 + Math.sin(c.s / 115 + c.id * 2.3) * temperament.consistency;
+    target *= 1 - c.wear * 0.18;
     let laneTarget = T.lineAt(c.s + 10) + c.laneOff;
     let latRate = 3.5 * Math.min(1, c.v / 18 + 0.2);
 
     // pit stop plan
     const pit = c.pit;
-    if (!pit.done && !pit.state && c.laps === pit.plannedLap && rel > P.from - 3 && rel < P.from + 20) pit.state = 'in';
+    const tyreLimit = c.compound === 'soft' ? 0.43 : c.compound === 'medium' ? 0.56 : 0.68;
+    const needsStop = c.laps >= pit.plannedLap || c.wear > tyreLimit * temperament.tyreCare;
+    if (!pit.done && !pit.state && c.laps >= 0 && needsStop && rel > P.from - 3 && rel < P.from + 20) pit.state = 'in';
     if (pit.state) {
       const boxRel = T.boxS[c.box];
       latRate = 12;
@@ -459,7 +469,7 @@ export class Race {
         laneTarget = P.side * P.boxLat; target = 0; c.v = 0;
         pit.timer -= dt;
         if (pit.timer <= 0) {
-          pit.state = 'out'; c.compound = Math.random() < 0.5 ? 'hard' : 'medium'; setTyreCompound(c.mesh, c.compound);
+          pit.state = 'out'; c.compound = this.totalLaps - c.laps <= 2 ? 'soft' : temperament.tyreCare > 1 ? 'hard' : 'medium'; c.wear = 0; setTyreCompound(c.mesh, c.compound);
           this.scenery.crews[c.box]?.setWorking(false);
         }
       } else if (pit.state === 'out') {
@@ -467,24 +477,36 @@ export class Race {
         if (rel > P.to - 2) { pit.state = null; pit.done = true; }
       }
     } else {
-      // racing: follow, overtake, or slot in behind
-      c.overtakeT -= dt;
-      if (c.overtakeT <= 0) c.laneOff *= Math.max(0, 1 - dt * 0.6);
-      for (const o of this.cars) {
-        if (o === c || o.pit.state) continue;
-        let gap = o.progress - c.progress;
-        if (gap < -T.length / 2) gap += T.length;
-        if (gap <= 0 || gap > 32) continue;
-        const oLat = o.lat, myLat = T.lineAt(c.s) + c.laneOff;
-        if (Math.abs(oLat - myLat) > 2.3) continue;
-        const myTarget = target;
-        if (o.v < myTarget - 0.5 && c.overtakeT <= 0) {
-          const lim = T.halfW - 1.3;
-          const left = oLat - 3.1, right = oLat + 3.1;
-          const choice = Math.abs(left) <= lim && (Math.abs(right) > lim || Math.abs(left - myLat) < Math.abs(right - myLat)) ? left : (Math.abs(right) <= lim ? right : null);
-          if (choice !== null && gap > 6) { c.laneOff = choice - T.lineAt(c.s); c.overtakeT = 2.5; }
-          else target = Math.min(target, o.v - (gap < 9 ? 2 : 0.3));
-        } else if (gap < 12) target = Math.min(target, o.v + (gap - 8) * 0.3);
+      // Judge nearby traffic before committing to one move. A committed pass stays
+      // in its lane until the target is behind, avoiding side-to-side weaving.
+      c.overtakeT = Math.max(0, c.overtakeT - dt);
+      const nearestAhead = this.cars.filter(o => o !== c && !o.pit.state && !o.finished)
+        .map(o => ({ o, gap: o.progress - c.progress }))
+        .filter(x => x.gap > 0 && x.gap < 45).sort((a, b) => a.gap - b.gap)[0];
+      const passing = this.cars.find(o => o.id === c.passTarget);
+      if (c.passTarget !== null) c.passTime += dt;
+      if (c.passTarget !== null && (!passing || passing.pit.state || passing.finished || c.progress > passing.progress + 7 || c.passTime > 9)) {
+        c.passTarget = null; c.overtakeT = 1.5;
+      }
+      if (c.passTarget === null && c.overtakeT <= 0) c.laneOff *= Math.max(0, 1 - dt * 0.8);
+      if (nearestAhead) {
+        const { o, gap } = nearestAhead;
+        const sameLane = Math.abs(o.lat - (T.lineAt(c.s) + c.laneOff)) < 2.5;
+        const cornerSoon = T.profileAt(c.s + 38, c.prof) < c.v * 0.82;
+        if (sameLane && c.passTarget === null && c.launchDistance > 65 && gap < 27 && !cornerSoon && c.v >= o.v - 1) {
+          const limit = T.halfW - 1.4, choices = [o.lat - 3.4, o.lat + 3.4]
+            .filter(lat => Math.abs(lat) < limit)
+            .filter(lat => !this.cars.some(other => other !== c && other !== o && Math.abs(other.progress - c.progress) < 12 && Math.abs(other.lat - lat) < 2.5));
+          if (choices.length && gap > 6 + (1 - temperament.risk) * 8) {
+            const choice = choices.sort((a, b) => Math.abs(a - T.lineAt(c.s)) - Math.abs(b - T.lineAt(c.s)))[0];
+            c.laneOff = choice - T.lineAt(c.s); c.passTarget = o.id; c.passTime = 0;
+          }
+        }
+        if (sameLane && c.passTarget === null) target = Math.min(target, Math.max(0, o.v + (gap - 8) * 0.9));
+      }
+      if (c.passTarget === null && c.launchDistance > 100) {
+        const attacker = this.cars.find(o => o !== c && !o.pit.state && o.progress < c.progress && c.progress - o.progress < 18 && o.v > c.v + 2);
+        if (attacker) c.laneOff += clamp((attacker.lat > c.lat ? 1 : -1) * temperament.defence - c.laneOff, -dt * 0.6, dt * 0.6);
       }
       laneTarget = T.lineAt(c.s + 10) + c.laneOff;
       laneTarget = clamp(laneTarget, -T.halfW + 1.1, T.halfW - 1.1);
@@ -493,10 +515,17 @@ export class Race {
     if (c.v < target) c.v = Math.min(target, c.v + Math.max(1, engineAccel(c.v, c.vmax, 1)) * dt);
     else c.v = Math.max(target, c.v - (20 + 0.0035 * c.v * c.v) * c.pace * dt);
     if (pit.state === 'stopped') c.v = 0;
+    if (!pit.state && c.launchDistance < 120) {
+      const blend = Math.max(0, 1 - c.launchDistance / 120);
+      laneTarget = laneTarget * (1 - blend) + c.launchLat * blend;
+      latRate = Math.min(latRate, 1.4 + c.launchDistance / 100);
+    }
     c.lat += clamp(laneTarget - c.lat, -latRate * dt, latRate * dt);
 
     const prevS = c.s;
     c.s = T.wrapS(c.s + c.v * dt);
+    c.launchDistance += Math.max(0, c.v) * dt;
+    c.wear = Math.min(1, c.wear + c.v * dt / (this.totalLaps * T.length) * 0.85 * TYRES[c.compound].wear / temperament.tyreCare);
     const pt = T.point(c.s, c.lat);
     const dx = pt.x - c.x, dz = pt.z - c.z;
     if (dx * dx + dz * dz > 1e-6) {
@@ -544,11 +573,19 @@ export class Race {
       } else if (along > 0) { // we hit the car ahead
         impact = Math.max(0, p.v - o.v);
         p.x -= fx * penA; p.z -= fz * penA;
-        p.v = Math.min(p.v, o.v - 0.5); if (!o.isPlayer && !o.pit.state) o.v += impact * 0.15;
+        if (this.time > (p.contactCooldown || 0)) {
+          p.contactCooldown = this.time + 0.45;
+          p.v = Math.max(0, p.v - Math.min(7, impact * 0.35));
+          if (!o.pit.state) o.v += Math.min(3, impact * 0.12);
+        }
       } else { // a car hit us from behind
         impact = Math.max(0, o.v - p.v);
-        if (!o.pit.state) { o.s = this.track.wrapS(o.s - penA); o.v = Math.min(o.v, p.v - 0.5); }
-        p.v += impact * 0.15;
+        if (!o.pit.state) o.s = this.track.wrapS(o.s - penA);
+        if (this.time > (p.contactCooldown || 0)) {
+          p.contactCooldown = this.time + 0.45;
+          if (!o.pit.state) o.v = Math.max(0, o.v - Math.min(7, impact * 0.35));
+          p.v += Math.min(3, impact * 0.12);
+        }
       }
       if (impact > 4 && this.time > (p.hitCooldown || 0)) { p.hitCooldown = this.time + 0.6; p.damage = Math.min(100, p.damage + Math.min(15, impact * 0.5)); this.audio.bump(impact / 10); this.shake = Math.min(1, impact / 12); }
     }
